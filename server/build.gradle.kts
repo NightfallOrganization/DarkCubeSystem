@@ -11,7 +11,8 @@ plugins {
 }
 
 dependencies {
-    api(projects.darkcubesystemLibs)
+    compileOnly(libs.cloudnet.wrapper)
+    api(projects.darkcubesystemApi)
 }
 
 publishing {
