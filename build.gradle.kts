@@ -7,6 +7,7 @@
 plugins {
     `java-library`
     alias(libs.plugins.shadow)
+    id("eu.darkcube.darkcube")
 }
 
 val plugins = configurations.register("plugins") { isTransitive = false }
