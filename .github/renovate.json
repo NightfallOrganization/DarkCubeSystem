@@ -1,0 +1,19 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "hostRules": [
+    {
+      "matchHost": "https://nexus.darkcube.eu/repository/darkcube-group/",
+      "username": "powerless",
+      "hostType": "maven",
+      "encrypted": {
+        "password": "wcFMA/xDdHCJBTolARAAhA2UMX8iAx12JwU0DH51ZD4rH5Obbw8Pbx3W6rpzvGs0dJ7lWkJV/JVvx6thTYG94TBbqJLmjB+d7jp5ghswspnQ/dmVINFc2Vk8QJgOcTsfkNvQ1l9WWr2X/yq8xu/JoePFn04NzfTdiwiPKExWO8ptyRjpYNT3FwJ8pg1GpX4WmPYHb9GfMzZuweDTQj888RMZvoMXCv+npkxHwfNjspdxic3BpYw4bvxQGEYZx0ln6WoYJnQp9lPfVHly5idyad6ETer4pvwmLrIDsnG/4h1o51pWTammwn5U16GuzKrsPLcDKcvLc3ruUNmrgjqXVWGIu7ki/a9Ce38xu6HL2oD26abCC4o+lvmYt7QrKzg4qjHVY+xPgVWUItkwaZRYGZAv+MbDVnZEFtZNECABtX2rX3X8Pq4e08a6m+g8h5/YO5k77Oml1VdVG1l5sprl7rwQOA5vEkN/uS18yLz+UtSyQxB6bHhSEH2FyNE5atgqfSFnJxWt1QgP0tEnac6Y0oosy0b2xM+QgUHQ6bL9roE2YYSX7evCZ423kSxc32oOU7DpcZwRhU30+sFwCI5962VuisVgx/0qM1roIAcfe2PSwdRqVmSJGTtlOtGNCbyeAXLeA7LO70+k9Ndq5Sx+UPCR3siKiDH7maOteTiqUNjPVFi3ByAgOm1YBoI2zxnScgHZQGJejKKZbqI5kS3R5oktyYoAyURdSJeEuMPbI+mSE8jUoiEOs4MsQKiynBisxz1qqry/WJsHbJWr2dYJo6zViUCGUek2ZGRwMEnmegl3Tz3x0j9V/v2FGkD20MsM9i+GlChljNDS9ECSvPKNROMBCA"
+      }
+    }
+  ],
+  "ignoreDeps": [
+    "implementation:bukkit"
+  ]
+}
