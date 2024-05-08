@@ -6,7 +6,7 @@ annotations = "24.1.0"
 shadow = "8.1.2"
 brigadier = "1.0.18"
 gson = "2.10.1"
-adventure = "4.16.0"
+adventure = "4.17.0"
 adventure-platform = "4.3.2"
 viaversion = "4.9.4-darkcube-20240419.214635-1"
 
