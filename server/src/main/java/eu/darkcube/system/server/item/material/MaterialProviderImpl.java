@@ -7,10 +7,10 @@
 
 package eu.darkcube.system.server.item.material;
 
-import eu.cloudnetservice.driver.inject.InjectionLayer;
+import eu.darkcube.system.provider.InternalProvider;
 
 class MaterialProviderImpl {
-    private static final MaterialProvider provider = InjectionLayer.ext().instance(MaterialProvider.class);
+    private static final MaterialProvider provider = InternalProvider.instance().instance(MaterialProvider.class);
 
     static Material of(Object platformMaterial) {
         return provider.of(platformMaterial);

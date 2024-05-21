@@ -7,11 +7,12 @@
 
 package eu.darkcube.system.util;
 
-import eu.cloudnetservice.driver.inject.InjectionLayer;
 import eu.darkcube.system.libs.org.jetbrains.annotations.ApiStatus;
+import eu.darkcube.system.provider.InternalProvider;
 
-@ApiStatus.Internal record AdventureSupportHolder() {
-    private static final AdventureSupport instance = InjectionLayer.ext().instance(AdventureSupport.class);
+@ApiStatus.Internal
+record AdventureSupportHolder() {
+    private static final AdventureSupport instance = InternalProvider.instance().instance(AdventureSupport.class);
 
     public AdventureSupportHolder {
         throw new AssertionError();
@@ -19,7 +20,7 @@ import eu.darkcube.system.libs.org.jetbrains.annotations.ApiStatus;
 
     static AdventureSupport instance() {
         var instance = AdventureSupportHolder.instance;
-        if (instance == null) throw new AssertionError("UserAPI not initialized");
+        if (instance == null) throw new AssertionError("AdventureSupport not initialized");
         return instance;
     }
 }

@@ -7,11 +7,12 @@
 
 package eu.darkcube.system.userapi;
 
-import eu.cloudnetservice.driver.inject.InjectionLayer;
 import eu.darkcube.system.libs.org.jetbrains.annotations.ApiStatus;
+import eu.darkcube.system.provider.InternalProvider;
 
-@ApiStatus.Internal record UserAPIHolder() {
-    private static final UserAPI instance = InjectionLayer.boot().instance(UserAPI.class);
+@ApiStatus.Internal
+record UserAPIHolder() {
+    private static final UserAPI instance = InternalProvider.instance().instance(UserAPI.class);
 
     public UserAPIHolder {
         throw new AssertionError();

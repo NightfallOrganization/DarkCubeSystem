@@ -1,0 +1,10 @@
+{
+  "runtimeModule": true,
+  "group": "eu.darkcube.system.cloudnet.modules",
+  "name": "DarkCubeSystem",
+  "version": "$version",
+  "author": "DasBabyPixel",
+  "description": "DarkCubeSystem library and basic functionality for all servers",
+  "main": "eu.darkcube.system.impl.cloudnet.DarkCubeSystemModule",
+  "storesSensitiveData": true
+}

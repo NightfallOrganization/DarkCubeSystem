@@ -23,8 +23,11 @@ plugins {
 
 rootProject.name = "darkcubesystem"
 
-includeSubProjects("", "bukkit", "api", "server", "proxy", "minestom", "libs")
-includeSubProjects("implementation", "velocity", "minestom", "module", "common", "server")
+includeSubProjects("", "bukkit", "proxy", "minestom", "libs")
+includeSubProjects("api", "cloudnet")
+includeSubProjects("server", "cloudnet")
+includeSubProjects("implementation", "common", "server", "velocity", "minestom", "cloudnet", "standalone")
+includeSubProjects("implementation:provider", "cloudnet", "standalone")
 includeSubProjects("implementation:bukkit", "1.8.8", "latest")
 
 fun includeSubProjects(root: String, vararg subProjects: String) {

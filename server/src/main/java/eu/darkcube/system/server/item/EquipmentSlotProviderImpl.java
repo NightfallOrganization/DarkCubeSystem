@@ -7,11 +7,11 @@
 
 package eu.darkcube.system.server.item;
 
-import eu.cloudnetservice.driver.inject.InjectionLayer;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
+import eu.darkcube.system.provider.InternalProvider;
 
 class EquipmentSlotProviderImpl {
-    private static final EquipmentSlotProvider provider = InjectionLayer.ext().instance(EquipmentSlotProvider.class);
+    private static final EquipmentSlotProvider provider = InternalProvider.instance().instance(EquipmentSlotProvider.class);
 
     static @NotNull EquipmentSlot of(@NotNull Object platformObject) {
         return provider.of(platformObject);

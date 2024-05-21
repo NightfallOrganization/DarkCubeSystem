@@ -10,7 +10,8 @@ package eu.darkcube.system.util.data;
 import java.util.Collection;
 import java.util.function.Supplier;
 
-import eu.cloudnetservice.driver.document.Document;
+import eu.darkcube.system.libs.com.google.gson.JsonObject;
+import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Unmodifiable;
@@ -51,7 +52,7 @@ public interface PersistentDataStorage {
      * @return the removed data
      */
     @Nullable
-    <T> T remove(@NotNull Key key, @SuppressWarnings("NullableProblems") @NotNull PersistentDataType<T> type);
+    <T> T remove(@NotNull Key key, @NotNull PersistentDataType<T> type);
 
     /**
      * @param key  the key
@@ -63,6 +64,8 @@ public interface PersistentDataStorage {
     <T> T get(@NotNull Key key, @NotNull PersistentDataType<T> type);
 
     /**
+     * Gets the data at the specified {@code key}, setting it to the return value of {@code defaultValue} if not present and returning that value
+     *
      * @param key          the key
      * @param type         the type
      * @param defaultValue the default value
@@ -92,17 +95,17 @@ public interface PersistentDataStorage {
     void clear();
 
     /**
-     * Loads all the data from a {@link Document}<br>
+     * Loads all the data from a {@link JsonObject}<br>
      * <b>This WILL be cleared, previous data will be REMOVED</b>
      *
-     * @param document the document to load the data from
+     * @param object the object to load the data from
      */
-    void loadFromJsonDocument(Document document);
+    void loadFromJsonObject(JsonObject object);
 
     /**
-     * @return a jsonDocument with all the data
+     * @return a jsonObject with all the data
      */
-    Document storeToJsonDocument();
+    JsonObject storeToJsonObject();
 
     /**
      * @return an unmodifiable view of all {@link UpdateNotifier}s

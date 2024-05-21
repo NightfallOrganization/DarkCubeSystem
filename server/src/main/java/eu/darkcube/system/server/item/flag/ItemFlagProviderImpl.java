@@ -7,11 +7,11 @@
 
 package eu.darkcube.system.server.item.flag;
 
-import eu.cloudnetservice.driver.inject.InjectionLayer;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
+import eu.darkcube.system.provider.InternalProvider;
 
 class ItemFlagProviderImpl {
-    private static final ItemFlagProvider provider = InjectionLayer.ext().instance(ItemFlagProvider.class);
+    private static final ItemFlagProvider provider = InternalProvider.instance().instance(ItemFlagProvider.class);
 
     public static @NotNull ItemFlag of(@NotNull Object platformItemFlag) {
         return provider.of(platformItemFlag);

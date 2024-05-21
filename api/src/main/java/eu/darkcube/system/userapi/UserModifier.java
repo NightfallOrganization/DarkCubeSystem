@@ -10,13 +10,15 @@ package eu.darkcube.system.userapi;
 import eu.darkcube.system.annotations.Api;
 import eu.darkcube.system.libs.org.jetbrains.annotations.ApiStatus;
 
-@Api public interface UserModifier {
+@Api
+public interface UserModifier {
 
     /**
      * <p>Called when a {@link User} is loaded.</p>
      * <p>This is guaranteed to be called before anyone can interact with the user object.</p>
      */
-    @Api default void onLoad(User user) {
+    @Api
+    default void onLoad(User user) {
     }
 
     /**
@@ -26,7 +28,8 @@ import eu.darkcube.system.libs.org.jetbrains.annotations.ApiStatus;
      * @see #onLoad(User)
      * @see #onUnload(UserData)
      */
-    @Api default void onUnload(User user) {
+    @Api
+    default void onUnload(User user) {
     }
 
     /**
@@ -38,6 +41,8 @@ import eu.darkcube.system.libs.org.jetbrains.annotations.ApiStatus;
      *
      * @see #onUnload(User)
      */
-    @ApiStatus.Experimental @Api default void onUnload(UserData userData) {
+    @ApiStatus.Experimental
+    @Api
+    default void onUnload(UserData userData) {
     }
 }

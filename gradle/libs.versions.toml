@@ -3,12 +3,22 @@ metadata.format.version = "1.1"
 [versions]
 cloudnet = "4.0.0-RC9"
 annotations = "24.1.0"
-shadow = "8.1.2"
 brigadier = "1.0.18"
 gson = "2.10.1"
 adventure = "4.16.0"
 adventure-platform = "4.3.2"
+luckperms = "5.4"
 viaversion = "4.9.4-darkcube-20240419.214635-1"
+caffeine = "3.1.8"
+
+minestom = "7f15222468"
+minestom-extensions = "1.2.0"
+
+shadow = "8.1.2"
+paperweight-userdev = "1.5.12"
+idea-ext = "1.1.8"
+
+velocity = "3.1.1"
 
 [libraries]
 viaversion = { group = "com.viaversion", name = "viaversion-api", version.ref = "viaversion" }
@@ -24,11 +34,18 @@ adventure-text-serializer-legacy = { group = "net.kyori", name = "adventure-text
 adventure-platform-bukkit = { group = "net.kyori", name = "adventure-platform-bukkit", version.ref = "adventure-platform" }
 brigadier = { group = "com.mojang", name = "brigadier", version.ref = "brigadier" }
 annotations = { group = "org.jetbrains", name = "annotations", version.ref = "annotations" }
+luckperms = { group = "net.luckperms", name = "api", version.ref = "luckperms" }
+caffeine = { group = "com.github.ben-manes.caffeine", name = "caffeine", version.ref = "caffeine" }
+
+minestom = { group = "eu.darkcube", name = "minestom", version.ref = "minestom" }
+minestom-extensions = { group = "dev.hollowcube", name = "minestom-ce-extensions", version.ref = "minestom-extensions" }
 
 cloudnet-driver = { group = "eu.cloudnetservice.cloudnet", name = "driver", version.ref = "cloudnet" }
 cloudnet-bridge = { group = "eu.cloudnetservice.cloudnet", name = "bridge", version.ref = "cloudnet" }
 cloudnet-node = { group = "eu.cloudnetservice.cloudnet", name = "node", version.ref = "cloudnet" }
 cloudnet-wrapper = { group = "eu.cloudnetservice.cloudnet", name = "wrapper-jvm", version.ref = "cloudnet" }
+
+velocity = { group = "com.velocitypowered", name = "velocity-api", version.ref = "velocity" }
 
 [bundles]
 adventure = [
@@ -39,6 +56,12 @@ adventure = [
     "adventure-text-serializer-legacy",
     "adventure-text-serializer-plain"
 ]
+minestom = [
+    "minestom",
+    "minestom-extensions"
+]
 
 [plugins]
 shadow = { id = "io.github.goooler.shadow", version.ref = "shadow" }
+paperweight-userdev = { id = "io.papermc.paperweight.userdev", version.ref = "paperweight-userdev" }
+idea-ext = { id = "org.jetbrains.gradle.plugin.idea-ext", version.ref = "idea-ext" }

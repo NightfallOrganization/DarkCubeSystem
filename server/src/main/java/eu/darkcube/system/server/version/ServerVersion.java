@@ -10,10 +10,12 @@ package eu.darkcube.system.server.version;
 import eu.darkcube.system.annotations.Api;
 import eu.darkcube.system.version.Version;
 
-@Api public interface ServerVersion extends Version {
+@Api
+public interface ServerVersion extends Version {
     static ServerVersion version() {
         return (ServerVersion) Version.version();
     }
 
-    @Api int protocolVersion();
+    @Api
+    int protocolVersion();
 }

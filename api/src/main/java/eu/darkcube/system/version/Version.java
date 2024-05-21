@@ -13,12 +13,14 @@ import eu.darkcube.system.provider.Provider;
 /**
  * Obtain an instance with {@link #version()}.
  */
-@Api public interface Version {
+@Api
+public interface Version {
 
     static Version version() {
         return VersionHolder.instance();
     }
 
-    @Api Provider provider();
+    @Api
+    Provider provider();
 
 }

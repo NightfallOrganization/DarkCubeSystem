@@ -7,6 +7,8 @@
 
 package eu.darkcube.system.util.data;
 
+import eu.darkcube.system.util.Key;
+
 public interface MetaDataStorage {
 
     /**

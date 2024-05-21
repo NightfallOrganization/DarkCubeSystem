@@ -7,10 +7,10 @@
 
 package eu.darkcube.system.server.item;
 
-import eu.cloudnetservice.driver.inject.InjectionLayer;
+import eu.darkcube.system.provider.InternalProvider;
 
 class ItemProviderImpl {
-    private static final ItemProvider provider = InjectionLayer.ext().instance(ItemProvider.class);
+    private static final ItemProvider provider = InternalProvider.instance().instance(ItemProvider.class);
 
     static ItemProvider itemProvider() {
         return provider;

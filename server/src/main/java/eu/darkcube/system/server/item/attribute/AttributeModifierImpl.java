@@ -7,11 +7,11 @@
 
 package eu.darkcube.system.server.item.attribute;
 
-import eu.cloudnetservice.driver.inject.InjectionLayer;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
+import eu.darkcube.system.provider.InternalProvider;
 
 class AttributeModifierImpl {
-    private static final AttributeModifierProvider provider = InjectionLayer.ext().instance(AttributeModifierProvider.class);
+    private static final AttributeModifierProvider provider = InternalProvider.instance().instance(AttributeModifierProvider.class);
 
     public static @NotNull AttributeModifier of(@NotNull Object platformAttributeModifier) {
         return provider.of(platformAttributeModifier);

@@ -27,7 +27,7 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.github.benmanes.caffeine.cache.Caffeine;
+import eu.darkcube.system.libs.com.github.benmanes.caffeine.cache.Caffeine;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Contract;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;

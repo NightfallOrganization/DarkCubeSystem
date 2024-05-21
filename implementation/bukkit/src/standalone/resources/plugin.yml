@@ -1,0 +1,8 @@
+main: eu.darkcube.system.impl.bukkit.standalone.BukkitStandalone
+name: System
+version: $version
+api-version: 1.13
+load: POSTWORLD
+softdepend:
+  - ProtocolLib
+  - ViaVersion

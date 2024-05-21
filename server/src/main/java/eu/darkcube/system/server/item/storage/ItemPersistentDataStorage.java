@@ -7,8 +7,8 @@
 
 package eu.darkcube.system.server.item.storage;
 
+import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.server.item.ItemBuilder;
-import eu.darkcube.system.util.data.Key;
 import eu.darkcube.system.util.data.PersistentDataStorage;
 import eu.darkcube.system.util.data.PersistentDataType;
 

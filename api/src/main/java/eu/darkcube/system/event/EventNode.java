@@ -14,10 +14,10 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import eu.darkcube.system.annotations.ThreadSafe;
-import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import eu.darkcube.system.libs.org.jetbrains.annotations.ApiStatus;
+import eu.darkcube.system.libs.org.jetbrains.annotations.Contract;
+import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
+import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 
 /**
  * Represents a single node in an event graph.
@@ -176,19 +176,23 @@ public sealed interface EventNode<T> permits EventNodeImpl {
     }
 
     @Contract(pure = true)
-    @NotNull Class<T> getEventType();
+    @NotNull
+    Class<T> getEventType();
 
     @Contract(pure = true)
-    @NotNull String getName();
+    @NotNull
+    String getName();
 
     @Contract(pure = true)
     int getPriority();
 
     @Contract(value = "_ -> this")
-    @NotNull EventNode<T> setPriority(int priority);
+    @NotNull
+    EventNode<T> setPriority(int priority);
 
     @Contract(pure = true)
-    @Nullable EventNode<? super T> getParent();
+    @Nullable
+    EventNode<? super T> getParent();
 
     /**
      * Returns an unmodifiable view of the children in this node.
@@ -197,7 +201,8 @@ public sealed interface EventNode<T> permits EventNodeImpl {
      * @see #removeChild(EventNode)
      */
     @Contract(pure = true)
-    @NotNull Set<@NotNull EventNode<T>> getChildren();
+    @NotNull
+    Set<@NotNull EventNode<T>> getChildren();
 
     /**
      * Locates all child nodes with the given name and event type recursively starting at this node.
@@ -267,7 +272,8 @@ public sealed interface EventNode<T> permits EventNodeImpl {
      * @return this, can be used for chaining
      */
     @Contract(value = "_ -> this")
-    @NotNull EventNode<T> addChild(@NotNull EventNode<? extends T> child);
+    @NotNull
+    EventNode<T> addChild(@NotNull EventNode<? extends T> child);
 
     /**
      * Directly removes the given child from this node.
@@ -276,10 +282,12 @@ public sealed interface EventNode<T> permits EventNodeImpl {
      * @return this, can be used for chaining
      */
     @Contract(value = "_ -> this")
-    @NotNull EventNode<T> removeChild(@NotNull EventNode<? extends T> child);
+    @NotNull
+    EventNode<T> removeChild(@NotNull EventNode<? extends T> child);
 
     @Contract(value = "_ -> this")
-    @NotNull EventNode<T> addListener(@NotNull EventListener<? extends T> listener);
+    @NotNull
+    EventNode<T> addListener(@NotNull EventListener<? extends T> listener);
 
     @Contract(value = "_, _ -> this")
     default <E extends T> @NotNull EventNode<T> addListener(@NotNull Class<E> eventType, @NotNull Consumer<@NotNull E> listener) {
@@ -287,7 +295,8 @@ public sealed interface EventNode<T> permits EventNodeImpl {
     }
 
     @Contract(value = "_ -> this")
-    @NotNull EventNode<T> removeListener(@NotNull EventListener<? extends T> listener);
+    @NotNull
+    EventNode<T> removeListener(@NotNull EventListener<? extends T> listener);
 
     /**
      * Maps a specific object to a node.

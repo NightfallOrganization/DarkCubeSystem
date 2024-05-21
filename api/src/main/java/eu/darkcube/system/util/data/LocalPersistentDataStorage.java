@@ -18,7 +18,8 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 
-import eu.cloudnetservice.driver.document.Document;
+import eu.darkcube.system.libs.com.google.gson.JsonObject;
+import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.UnmodifiableView;
 
@@ -26,15 +27,15 @@ public class LocalPersistentDataStorage implements PersistentDataStorage {
     protected final ReadWriteLock lock = new ReentrantReadWriteLock();
     protected final Map<Key, Object> cache = new HashMap<>();
     protected final Collection<@NotNull UpdateNotifier> updateNotifiers = new CopyOnWriteArrayList<>();
-    protected final Document.Mutable data = Document.newJsonDocument();
+    protected final JsonObject data = new JsonObject();
 
-    public void appendDocument(Document document) {
+    public void appendDocument(JsonObject document) {
         try {
             lock.writeLock().lock();
-            for (String key : document.keys()) {
-                cache.remove(Key.fromString(key));
+            for (var key : document.keySet()) {
+                cache.remove(Key.key(key));
             }
-            data.append(document);
+            data.asMap().putAll(document.asMap());
         } finally {
             lock.writeLock().unlock();
         }
@@ -51,8 +52,8 @@ public class LocalPersistentDataStorage implements PersistentDataStorage {
         List<Key> keys = new ArrayList<>();
         try {
             lock.readLock().lock();
-            for (String s : data.keys()) {
-                keys.add(Key.fromString(s));
+            for (var s : data.keySet()) {
+                keys.add(Key.key(s));
             }
         } finally {
             lock.readLock().unlock();
@@ -69,7 +70,8 @@ public class LocalPersistentDataStorage implements PersistentDataStorage {
                 return;
             }
             cache.put(key, data);
-            type.serialize(this.data, key.toString(), data);
+            var json = type.serialize(data);
+            this.data.add(key.toString(), json);
         } finally {
             lock.writeLock().unlock();
         }
@@ -81,12 +83,12 @@ public class LocalPersistentDataStorage implements PersistentDataStorage {
         T ret;
         try {
             lock.writeLock().lock();
-            if (!data.contains(key.toString())) {
+            if (!data.has(key.toString())) {
                 return null;
             }
             var old = (T) cache.remove(key);
             if (old == null) {
-                old = type.deserialize(data, key.toString());
+                old = type.deserialize(data.get(key.toString()));
             }
             data.remove(key.toString());
             ret = type.clone(old);
@@ -120,10 +122,10 @@ public class LocalPersistentDataStorage implements PersistentDataStorage {
                     // TODO Corrupt cache. This happens when the PServer uses its unsafe modify strategy
                 }
             }
-            if (!data.contains(key.toString())) {
+            if (!data.has(key.toString())) {
                 return null;
             }
-            var value = type.clone(type.deserialize(data, key.toString()));
+            var value = type.clone(type.deserialize(data.get(key.toString())));
             cache.put(key, value);
             return type.clone(value);
         } finally {
@@ -155,13 +157,14 @@ public class LocalPersistentDataStorage implements PersistentDataStorage {
                     // TODO Corrupt cache. This happens when the PServer uses its unsafe modify strategy
                 }
             }
-            if (data.contains(key.toString())) {
-                var value = type.clone(type.deserialize(data, key.toString()));
+            if (data.has(key.toString())) {
+                var value = type.clone(type.deserialize(data.get(key.toString())));
                 cache.put(key, value);
                 return type.clone(value);
             }
             var val = type.clone(defaultValue.get());
-            type.serialize(data, key.toString(), val);
+            var json = type.serialize(val);
+            data.add(key.toString(), json);
             cache.put(key, val);
             ret = val;
         } finally {
@@ -175,7 +178,7 @@ public class LocalPersistentDataStorage implements PersistentDataStorage {
     public <T> void setIfNotPresent(@NotNull Key key, @NotNull PersistentDataType<T> type, @NotNull T data) {
         try {
             lock.readLock().lock();
-            if (this.data.contains(key.toString())) {
+            if (this.data.has(key.toString())) {
                 return;
             }
         } finally {
@@ -183,11 +186,12 @@ public class LocalPersistentDataStorage implements PersistentDataStorage {
         }
         try {
             lock.writeLock().lock();
-            if (this.data.contains(key.toString())) {
+            if (this.data.has(key.toString())) {
                 return;
             }
             data = type.clone(data);
-            type.serialize(this.data, key.toString(), data);
+            var json = type.serialize(data);
+            this.data.add(key.toString(), json);
             cache.put(key, data);
         } finally {
             lock.writeLock().unlock();
@@ -199,7 +203,7 @@ public class LocalPersistentDataStorage implements PersistentDataStorage {
     public boolean has(@NotNull Key key) {
         try {
             lock.readLock().lock();
-            return data.contains(key.toString());
+            return data.has(key.toString());
         } finally {
             lock.readLock().unlock();
         }
@@ -209,7 +213,7 @@ public class LocalPersistentDataStorage implements PersistentDataStorage {
     public void clear() {
         try {
             lock.writeLock().lock();
-            data.clear();
+            data.asMap().clear();
             cache.clear();
         } finally {
             lock.writeLock().unlock();
@@ -218,12 +222,12 @@ public class LocalPersistentDataStorage implements PersistentDataStorage {
     }
 
     @Override
-    public void loadFromJsonDocument(Document document) {
+    public void loadFromJsonObject(JsonObject object) {
         try {
             lock.writeLock().lock();
-            data.clear();
+            data.asMap().clear();
             cache.clear();
-            data.append(document);
+            data.asMap().putAll(object.asMap());
         } finally {
             lock.writeLock().unlock();
         }
@@ -231,10 +235,10 @@ public class LocalPersistentDataStorage implements PersistentDataStorage {
     }
 
     @Override
-    public Document storeToJsonDocument() {
+    public JsonObject storeToJsonObject() {
         try {
             lock.readLock().lock();
-            return data.immutableCopy();
+            return data.deepCopy();
         } finally {
             lock.readLock().unlock();
         }
@@ -266,7 +270,7 @@ public class LocalPersistentDataStorage implements PersistentDataStorage {
     }
 
     protected void notifyNotifiers() {
-        for (UpdateNotifier updateNotifier : updateNotifiers) {
+        for (var updateNotifier : updateNotifiers) {
             updateNotifier.notify(this);
         }
     }

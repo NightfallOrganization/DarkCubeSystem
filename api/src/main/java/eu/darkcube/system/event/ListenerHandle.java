@@ -7,8 +7,8 @@
 
 package eu.darkcube.system.event;
 
-import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
+import eu.darkcube.system.libs.org.jetbrains.annotations.ApiStatus;
+import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 
 /**
  * Represents a key to a listenable event, retrievable from {@link EventNode#getHandle(Class)}.

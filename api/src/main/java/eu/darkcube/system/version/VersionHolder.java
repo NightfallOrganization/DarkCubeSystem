@@ -7,11 +7,12 @@
 
 package eu.darkcube.system.version;
 
-import eu.cloudnetservice.driver.inject.InjectionLayer;
 import eu.darkcube.system.libs.org.jetbrains.annotations.ApiStatus;
+import eu.darkcube.system.provider.InternalProvider;
 
-@ApiStatus.Internal record VersionHolder() {
-    private static final Version instance = InjectionLayer.ext().instance(Version.class);
+@ApiStatus.Internal
+record VersionHolder() {
+    private static final Version instance = InternalProvider.instance().instance(Version.class);
 
     static Version instance() {
         return instance;

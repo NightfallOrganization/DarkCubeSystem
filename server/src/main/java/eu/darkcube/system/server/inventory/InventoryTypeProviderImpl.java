@@ -7,10 +7,10 @@
 
 package eu.darkcube.system.server.inventory;
 
-import eu.cloudnetservice.driver.inject.InjectionLayer;
+import eu.darkcube.system.provider.InternalProvider;
 
 class InventoryTypeProviderImpl {
-    private static final InventoryTypeProvider provider = InjectionLayer.ext().instance(InventoryTypeProvider.class);
+    private static final InventoryTypeProvider provider = InternalProvider.instance().instance(InventoryTypeProvider.class);
 
     public static InventoryTypeProvider inventoryTypeProvider() {
         return provider;

@@ -9,6 +9,8 @@ package eu.darkcube.system.util.data;
 
 import java.util.concurrent.ConcurrentHashMap;
 
+import eu.darkcube.system.util.Key;
+
 public class BasicMetaDataStorage implements MetaDataStorage {
 
     public final ConcurrentHashMap<Key, Object> data = new ConcurrentHashMap<>();

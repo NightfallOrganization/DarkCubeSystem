@@ -7,7 +7,7 @@
 
 package eu.darkcube.system.util.data;
 
-import eu.cloudnetservice.driver.document.Document;
+import eu.darkcube.system.libs.com.google.gson.JsonElement;
 
 /**
  * @param <T> the data type
@@ -15,9 +15,9 @@ import eu.cloudnetservice.driver.document.Document;
  */
 public interface PersistentDataType<T> {
 
-    T deserialize(Document doc, String key);
+    T deserialize(JsonElement json);
 
-    void serialize(Document.Mutable doc, String key, T data);
+    JsonElement serialize(T data);
 
     /**
      * @param object the object to clone

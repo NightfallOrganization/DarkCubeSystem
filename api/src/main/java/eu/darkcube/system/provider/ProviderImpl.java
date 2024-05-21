@@ -22,7 +22,7 @@ class ProviderImpl implements Provider {
 
     @Override
     public <T> @NotNull T service(@NotNull Class<T> serviceClass) {
-        Object o = services.get(serviceClass);
+        var o = services.get(serviceClass);
         if (o == null) throw new ServiceNotRegisteredException(serviceClass.getName());
         return serviceClass.cast(o);
     }

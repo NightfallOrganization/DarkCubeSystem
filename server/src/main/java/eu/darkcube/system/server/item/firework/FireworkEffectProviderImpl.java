@@ -7,11 +7,11 @@
 
 package eu.darkcube.system.server.item.firework;
 
-import eu.cloudnetservice.driver.inject.InjectionLayer;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
+import eu.darkcube.system.provider.InternalProvider;
 
 class FireworkEffectProviderImpl {
-    private static final FireworkEffectProvider provider = InjectionLayer.ext().instance(FireworkEffectProvider.class);
+    private static final FireworkEffectProvider provider = InternalProvider.instance().instance(FireworkEffectProvider.class);
 
     public static @NotNull FireworkEffect of(@NotNull Object platformFireworkEffect) {
         return provider.of(platformFireworkEffect);

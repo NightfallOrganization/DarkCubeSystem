@@ -12,7 +12,8 @@ import java.util.UUID;
 import eu.darkcube.system.annotations.Api;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 
-@Api public interface UserAPI {
+@Api
+public interface UserAPI {
 
     static @NotNull UserAPI instance() {
         return UserAPIHolder.instance();
@@ -23,7 +24,8 @@ import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
      *
      * @deprecated {@link #instance()}
      */
-    @Deprecated(forRemoval = true) static @NotNull UserAPI getInstance() {
+    @Deprecated(forRemoval = true)
+    static @NotNull UserAPI getInstance() {
         return instance();
     }
 
@@ -33,18 +35,22 @@ import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
      * @param uniqueId the player uniqueId
      * @return the {@link User}
      */
-    @NotNull User user(UUID uniqueId);
+    @NotNull
+    User user(UUID uniqueId);
 
     /**
      * Old method for acquiring a user.
      *
      * @deprecated {@link #user(UUID)}
      */
-    @Deprecated(forRemoval = true) default @NotNull User getUser(UUID uuid) {
+    @Deprecated(forRemoval = true)
+    default @NotNull User getUser(UUID uuid) {
         return user(uuid);
     }
 
-    @Api void addModifier(UserModifier modifier);
+    @Api
+    void addModifier(UserModifier modifier);
 
-    @Api void removeModifier(UserModifier modifier);
+    @Api
+    void removeModifier(UserModifier modifier);
 }

@@ -16,6 +16,7 @@ public interface User extends ForwardingAudience.Single, CommandExecutor, UserDa
     /**
      * @return the user's data
      */
-    @Api UserData userData();
+    @Api
+    UserData userData();
 
 }

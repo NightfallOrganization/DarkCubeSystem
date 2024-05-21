@@ -7,263 +7,110 @@
 
 package eu.darkcube.system.util.data;
 
+import java.io.IOException;
 import java.lang.reflect.Array;
+import java.lang.reflect.Type;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 
-import eu.cloudnetservice.driver.document.Document;
+import eu.darkcube.system.libs.com.google.gson.Gson;
+import eu.darkcube.system.libs.com.google.gson.GsonBuilder;
+import eu.darkcube.system.libs.com.google.gson.JsonArray;
+import eu.darkcube.system.libs.com.google.gson.JsonElement;
+import eu.darkcube.system.libs.com.google.gson.JsonObject;
+import eu.darkcube.system.libs.com.google.gson.TypeAdapter;
+import eu.darkcube.system.libs.com.google.gson.stream.JsonReader;
+import eu.darkcube.system.libs.com.google.gson.stream.JsonWriter;
+import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 
 public class PersistentDataTypes {
-    public static final PersistentDataType<BigInteger> BIGINTEGER = new PersistentDataType<>() {
+    public static final Gson GSON = new GsonBuilder().registerTypeHierarchyAdapter(Key.class, new TypeAdapter<Key>() {
         @Override
-        public BigInteger deserialize(Document doc, String key) {
-            return doc.readObject(key, BigInteger.class);
+        public void write(JsonWriter out, Key value) throws IOException {
+            out.value(value.toString());
         }
 
         @Override
-        public void serialize(Document.Mutable doc, String key, BigInteger data) {
-            doc.append(key, data);
+        public Key read(JsonReader in) throws IOException {
+            return Key.key(in.nextString());
         }
-
-        @Override
-        public BigInteger clone(BigInteger object) {
-            return object;
+    }).create();
+    public static final PersistentDataType<BigInteger> BIGINTEGER = simpleImmutable(BigInteger.class);
+    public static final PersistentDataType<UUID> UUID = create(json -> {
+        var array = json.getAsJsonArray();
+        return new UUID(array.get(0).getAsLong(), array.get(1).getAsLong());
+    }, uuid -> {
+        var array = new JsonArray(2);
+        array.add(uuid.getMostSignificantBits());
+        array.add(uuid.getLeastSignificantBits());
+        return array;
+    }, uuid -> uuid);
+    public static final PersistentDataType<JsonElement> JSON_ELEMENT = simple(JsonElement.class, JsonElement::deepCopy);
+    public static final PersistentDataType<JsonObject> JSON_OBJECT = simple(JsonObject.class, JsonObject::deepCopy);
+    public static final PersistentDataType<String> STRING = simpleImmutable(String.class);
+    public static final PersistentDataType<byte[]> BYTE_ARRAY = new Builder<byte[]>().addSimpleDeserializer(byte[].class).addDeserializer(json -> Base64.getDecoder().decode(json.getAsString())).addSimpleSerializer(byte[].class).addClone(byte[]::clone).build();
+    public static final PersistentDataType<Boolean> BOOLEAN = simpleImmutable(Boolean.class);
+    public static final PersistentDataType<Integer> INTEGER = simpleImmutable(Integer.class);
+    public static final PersistentDataType<Long> LONG = simpleImmutable(Long.class);
+    public static final PersistentDataType<Double> DOUBLE = simpleImmutable(Double.class);
+    public static final PersistentDataType<int[]> INT_ARRAY = new Builder<int[]>().addSimpleDeserializer(int[].class).addDeserializer(json -> {
+        var bytes = BYTE_ARRAY.deserialize(json);
+        var buf = ByteBuffer.wrap(bytes).asIntBuffer();
+        var len = buf.get();
+        var ar = new int[len];
+        for (var i = 0; buf.remaining() > 0; i++) {
+            ar[i] = buf.get();
         }
-    };
-    public static final PersistentDataType<UUID> UUID = new PersistentDataType<>() {
-        @Override
-        public UUID deserialize(Document doc, String key) {
-            var a = doc.readObject(key, long[].class);
-            return new UUID(a[0], a[1]);
-        }
-
-        @Override
-        public void serialize(Document.Mutable doc, String key, UUID data) {
-            doc.append(key, new long[]{data.getMostSignificantBits(), data.getLeastSignificantBits()});
-        }
-
-        @Override
-        public UUID clone(UUID object) {
-            return object;
-        }
-    };
-    public static final PersistentDataType<Document> DOCUMENT = new PersistentDataType<>() {
-        @Override
-        public Document deserialize(Document doc, String key) {
-            return doc.readDocument(key);
-        }
-
-        @Override
-        public void serialize(Document.Mutable doc, String key, Document data) {
-            doc.append(key, data);
-        }
-
-        @Override
-        public Document clone(Document object) {
-            return object.immutableCopy();
-        }
-    };
-    public static final PersistentDataType<String> STRING = new PersistentDataType<>() {
-        @Override
-        public String deserialize(Document doc, String key) {
-            return doc.getString(key);
-        }
-
-        @Override
-        public void serialize(Document.Mutable doc, String key, String data) {
-            doc.append(key, data);
-        }
-
-        @Override
-        public String clone(String object) {
-            return object;
-        }
-    };
-    public static final PersistentDataType<byte[]> BYTE_ARRAY = new PersistentDataType<>() {
-        @Override
-        public byte[] deserialize(Document doc, String key) {
-            try {
-                return doc.readObject(key, byte[].class);
-            } catch (Throwable throwable) {
-                try {
-                    return Base64.getDecoder().decode(doc.getString(key));
-                } catch (Throwable ignored) {
-                    throw throwable;
-                }
-            }
-        }
-
-        @Override
-        public void serialize(Document.Mutable doc, String key, byte[] data) {
-            doc.append(key, data);
-        }
-
-        @Override
-        public byte[] clone(byte[] object) {
-            return object.clone();
-        }
-    };
-    public static final PersistentDataType<Boolean> BOOLEAN = new PersistentDataType<>() {
-        @Override
-        public Boolean deserialize(Document doc, String key) {
-            return doc.getBoolean(key);
-        }
-
-        @Override
-        public void serialize(Document.Mutable doc, String key, Boolean data) {
-            doc.append(key, data);
-        }
-
-        @Override
-        public Boolean clone(Boolean object) {
-            return object;
-        }
-    };
-    public static final PersistentDataType<Integer> INTEGER = new PersistentDataType<>() {
-
-        @Override
-        public Integer deserialize(Document doc, String key) {
-            return doc.getInt(key);
-        }
-
-        @Override
-        public void serialize(Document.Mutable doc, String key, Integer data) {
-            doc.append(key, data);
-        }
-
-        @Override
-        public Integer clone(Integer object) {
-            return object;
-        }
-    };
-    public static final PersistentDataType<Long> LONG = new PersistentDataType<>() {
-        @Override
-        public Long deserialize(Document doc, String key) {
-            return doc.getLong(key);
-        }
-
-        @Override
-        public void serialize(Document.Mutable doc, String key, Long data) {
-            doc.append(key, data);
-        }
-
-        @Override
-        public Long clone(Long object) {
-            return object;
-        }
-    };
-    public static final PersistentDataType<Double> DOUBLE = new PersistentDataType<>() {
-        @Override
-        public Double deserialize(Document doc, String key) {
-            return doc.getDouble(key);
-        }
-
-        @Override
-        public void serialize(Document.Mutable doc, String key, Double data) {
-            doc.append(key, data);
-        }
-
-        @Override
-        public Double clone(Double object) {
-            return object;
-        }
-    };
-    public static final PersistentDataType<int[]> INT_ARRAY = new PersistentDataType<int[]>() {
-        @Override
-        public int[] deserialize(Document doc, String key) {
-            try {
-                return doc.readObject(key, int[].class);
-            } catch (Throwable throwable) {
-                try {
-                    var bytes = BYTE_ARRAY.deserialize(doc, key);
-                    var buf = ByteBuffer.wrap(bytes).asIntBuffer();
-                    var len = buf.get();
-                    var ar = new int[len];
-                    for (var i = 0; buf.remaining() > 0; i++) {
-                        ar[i] = buf.get();
-                    }
-                    return ar;
-                } catch (Throwable ignored) {
-                    throw throwable;
-                }
-            }
-        }
-
-        @Override
-        public void serialize(Document.Mutable doc, String key, int[] data) {
-            doc.append(key, data);
-        }
-
-        @Override
-        public int[] clone(int[] object) {
-            return object.clone();
-        }
-    };
+        return ar;
+    }).addSimpleSerializer(int[].class).addClone(int[]::clone).build();
 
     public static <T> PersistentDataType<Set<T>> set(PersistentDataType<T> dataType) {
         var l = list(dataType);
-        return new PersistentDataType<Set<T>>() {
-            @Override
-            public Set<T> deserialize(Document doc, String key) {
-                return new HashSet<>(l.deserialize(doc, key));
+        return map(l, List::copyOf, Set::copyOf, set -> {
+            var s = new ArrayList<T>();
+            for (var t : set) {
+                s.add(dataType.clone(t));
             }
-
-            @Override
-            public void serialize(Document.Mutable doc, String key, Set<T> data) {
-                l.serialize(doc, key, new ArrayList<>(data));
-            }
-
-            @Override
-            public Set<T> clone(Set<T> object) {
-                Set<T> set = new HashSet<>();
-                for (var value : object) {
-                    set.add(dataType.clone(value));
-                }
-                return set;
-            }
-        };
+            return Set.copyOf(s);
+        });
     }
 
     public static <T> PersistentDataType<List<T>> list(PersistentDataType<T> dataType) {
-        return new PersistentDataType<>() {
-            @Override
-            public List<T> deserialize(Document doc, String key) {
-                List<T> l = new ArrayList<>();
-                var i = 0;
-                var d = doc.readDocument(key);
-                while (d.contains(Integer.toString(i))) {
-                    l.add(dataType.deserialize(d, Integer.toString(i++)));
-                }
-                return l;
+        return new Builder<List<T>>().addDeserializer(json -> {
+            var obj = json.getAsJsonObject();
+            var list = new ArrayList<T>();
+            var i = 0;
+            while (obj.has(Integer.toString(i))) {
+                list.add(dataType.deserialize(obj.get(Integer.toString(i++))));
             }
-
-            @Override
-            public void serialize(Document.Mutable doc, String key, List<T> data) {
-                var d = Document.newJsonDocument();
-                var i = 0;
-                for (var t : data) {
-                    dataType.serialize(d, Integer.toString(i++), t);
-                }
-                doc.append(key, d);
+            return List.copyOf(list);
+        }).addDeserializer(json -> {
+            var array = json.getAsJsonArray();
+            var list = new ArrayList<T>();
+            for (var element : array) {
+                list.add(dataType.deserialize(element));
             }
-
-            @Override
-            public List<T> clone(List<T> object) {
-                List<T> list = new ArrayList<>();
-                for (var value : object) {
-                    list.add(dataType.clone(value));
-                }
-                return list;
+            return List.copyOf(list);
+        }).addSerializer(list -> {
+            var array = new JsonArray();
+            for (var t : list) {
+                array.add(dataType.serialize(t));
             }
-        };
+            return array;
+        }).addClone(list -> {
+            var l = new ArrayList<T>();
+            for (var t : list) {
+                l.add(dataType.clone(t));
+            }
+            return List.copyOf(l);
+        }).build();
     }
 
     @SuppressWarnings("Convert2MethodRef")
@@ -272,41 +119,111 @@ public class PersistentDataTypes {
     }
 
     public static <T extends Enum<T>> PersistentDataType<T> enumType(Class<T> cls) {
-        return new PersistentDataType<T>() {
-            @Override
-            public T deserialize(Document doc, String key) {
-                return doc.readObject(key, cls);
-            }
+        return simpleImmutable(cls);
+    }
 
-            @Override
-            public void serialize(Document.Mutable doc, String key, T data) {
-                doc.append(key, data);
-            }
+    public static <T> PersistentDataType<T> simpleImmutable(Type type) {
+        return simple(type, t -> t);
+    }
 
-            @Override
-            public T clone(T object) {
-                return object;
-            }
-        };
+    public static <T> Function<JsonElement, T> simpleDeserializer(Type type) {
+        return json -> GSON.fromJson(json, type);
+    }
+
+    public static <T> Function<T, JsonElement> simpleSerialize(Type type) {
+        return data -> GSON.toJsonTree(data, type);
+    }
+
+    public static <T> PersistentDataType<T> simple(Type type, Function<T, T> clone) {
+        return create(simpleDeserializer(type), simpleSerialize(type), clone);
+    }
+
+    public static <T> PersistentDataType<T> create(Function<JsonElement, T> deserialize, Function<T, JsonElement> serialize, Function<T, T> clone) {
+        return new Builder<T>().addDeserializer(deserialize).addSerializer(serialize).addClone(clone).build();
     }
 
     public static <T, V> PersistentDataType<T> map(PersistentDataType<V> type, Function<T, V> serialize, Function<V, T> deserialize, Function<T, T> clone) {
-        return new PersistentDataType<T>() {
-            @Override
-            public T deserialize(Document doc, String key) {
-                return deserialize.apply(type.deserialize(doc, key));
-            }
-
-            @Override
-            public void serialize(Document.Mutable doc, String key, T data) {
-                type.serialize(doc, key, serialize.apply(data));
-            }
-
-            @Override
-            public T clone(T object) {
-                return clone.apply(object);
-            }
-        };
+        return create(json -> deserialize.apply(type.deserialize(json)), data -> type.serialize(serialize.apply(data)), clone);
     }
 
+    public static class Builder<T> {
+        private final List<Function<T, JsonElement>> serializers = new ArrayList<>();
+        private final List<Function<JsonElement, T>> deserializers = new ArrayList<>();
+        private final List<Function<T, T>> clones = new ArrayList<>();
+
+        public Builder<T> addSerializer(Function<T, JsonElement> serializer) {
+            serializers.add(serializer);
+            return this;
+        }
+
+        public Builder<T> addSimpleSerializer(Type type) {
+            return addSerializer(simpleSerialize(type));
+        }
+
+        public Builder<T> addDeserializer(Function<JsonElement, T> deserializer) {
+            deserializers.add(deserializer);
+            return this;
+        }
+
+        public Builder<T> addSimpleDeserializer(Type type) {
+            return addDeserializer(simpleDeserializer(type));
+        }
+
+        public Builder<T> addClone(Function<T, T> clone) {
+            clones.add(clone);
+            return this;
+        }
+
+        public PersistentDataType<T> build() {
+            var s = List.copyOf(serializers);
+            var d = List.copyOf(deserializers);
+            if (s.isEmpty()) throw new IllegalStateException("Serializers may not be empty");
+            if (d.isEmpty()) throw new IllegalStateException("Deserializers may not be empty");
+            var des = combine(d);
+            var ser = combine(s);
+            var c = clones.isEmpty() ? List.of((Function<T, T>) t -> des.apply(ser.apply(t))) : List.copyOf(clones);
+            var clo = combine(c);
+            return new PersistentDataType<>() {
+                @Override
+                public T deserialize(JsonElement json) {
+                    return des.apply(json);
+                }
+
+                @Override
+                public JsonElement serialize(T data) {
+                    return ser.apply(data);
+                }
+
+                @Override
+                public T clone(T object) {
+                    return clo.apply(object);
+                }
+            };
+        }
+
+        private static <T, V> Function<T, V> combine(List<Function<T, V>> functions) {
+            if (functions.size() == 1) return functions.getFirst();
+            return t -> {
+                Throwable exception = null;
+                for (var i = 0; i < functions.size(); i++) {
+                    var function = functions.get(i);
+                    try {
+                        return function.apply(t);
+                    } catch (Throwable throwable) {
+                        if (exception == null) {
+                            exception = throwable;
+                        } else {
+                            exception.addSuppressed(throwable);
+                        }
+                    }
+                }
+                switch (exception) {
+                    case null -> throw new NoSuchMethodError("No deserializer registered for " + t);
+                    case RuntimeException runtime -> throw runtime;
+                    case Error error -> throw error;
+                    default -> throw new Error(exception);
+                }
+            };
+        }
+    }
 }

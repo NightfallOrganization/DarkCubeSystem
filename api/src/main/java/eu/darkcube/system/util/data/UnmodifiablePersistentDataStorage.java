@@ -10,7 +10,8 @@ package eu.darkcube.system.util.data;
 import java.util.Collection;
 import java.util.function.Supplier;
 
-import eu.cloudnetservice.driver.document.Document;
+import eu.darkcube.system.libs.com.google.gson.JsonObject;
+import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Unmodifiable;
 import eu.darkcube.system.libs.org.jetbrains.annotations.UnmodifiableView;
@@ -68,13 +69,13 @@ public class UnmodifiablePersistentDataStorage implements PersistentDataStorage 
     }
 
     @Override
-    public void loadFromJsonDocument(Document document) {
+    public void loadFromJsonObject(JsonObject object) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Document storeToJsonDocument() {
-        return storage.storeToJsonDocument();
+    public JsonObject storeToJsonObject() {
+        return storage.storeToJsonObject();
     }
 
     @Override

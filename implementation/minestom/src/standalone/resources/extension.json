@@ -1,0 +1,5 @@
+{
+  "entrypoint": "eu.darkcube.system.impl.minestom.standalone.MinestomStandalone",
+  "name": "DarkCubeSystem",
+  "version": "$version"
+}

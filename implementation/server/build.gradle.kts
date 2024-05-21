@@ -11,5 +11,6 @@ plugins {
 }
 
 dependencies {
+    api(projects.darkcubesystemImplementationCommon)
     api(projects.darkcubesystemServer)
 }
