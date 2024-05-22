@@ -12,29 +12,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up JDK 21
-      uses: actions/setup-java@v4
-      with:
-        java-version: '21'
-        distribution: 'temurin'
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
 
-    - name: Setup Caching
-      uses: actions/cache@v4
-      with:
-        key: gradle-cache-${{ github.ref }}
-        path: |
-          ~/.gradle
-          **/.gradle
-          **/build
-        restore-keys: |
-          gradle-cache-${{ github.ref}}
-          gradle-cache-
+      - name: Setup Caching
+        uses: actions/cache@v4
+        with:
+          key: gradle-cache-${{ github.ref }}
+          path: |
+            ~/.gradle
+            **/.gradle
+            **/build
+          restore-keys: |
+            gradle-cache-${{ github.ref }}
+            gradle-cache-${{ github.base_ref }}
 
-    - name: Print Branch
-      run: echo Running on branch ${{ github.ref }}
-    - name: Print Runner
-      run: echo Runner ${{ runner.os }}
+      - name: Print Branch
+        run: |
+          echo Base ref ${{ github.base_ref }}
+          echo Head ref ${{ github.head_ref }}
+          echo Ref ${{ github.ref }}
+      - name: Print Runner
+        run: echo Runner ${{ runner.os }}
 
-    - name: Build with Gradle Wrapper
-      run: ./gradlew -PDarkCubeUsername="${{ secrets.REPOSITORY_USERNAME }}" -PDarkCubePassword="${{ secrets.REPOSITORY_PASSWORD }}" build --no-configuration-cache
+      - name: Build with Gradle Wrapper
+        run: ./gradlew -PDarkCubeUsername="${{ secrets.REPOSITORY_USERNAME }}" -PDarkCubePassword="${{ secrets.REPOSITORY_PASSWORD }}" build --no-configuration-cache
