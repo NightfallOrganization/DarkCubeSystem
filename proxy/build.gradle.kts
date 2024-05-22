@@ -13,3 +13,11 @@ plugins {
 dependencies {
     api(projects.darkcubesystemApi)
 }
+
+publishing {
+    publications {
+        register<MavenPublication>("maven") {
+            from(components["java"])
+        }
+    }
+}

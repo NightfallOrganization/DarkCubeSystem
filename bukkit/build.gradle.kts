@@ -17,3 +17,11 @@ dependencies {
     api(projects.darkcubesystemServer)
     api(projects.darkcubesystemImplementationProvider)
 }
+
+publishing {
+    publications {
+        register<MavenPublication>("maven") {
+            from(components["java"])
+        }
+    }
+}

@@ -16,3 +16,11 @@ dependencies {
     api(projects.darkcubesystemServer)
     api(libs.cloudnet.wrapper)
 }
+
+publishing {
+    publications {
+        register<MavenPublication>("maven") {
+            from(components["java"])
+        }
+    }
+}

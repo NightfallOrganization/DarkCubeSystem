@@ -14,3 +14,11 @@ dependencies {
     api(projects.darkcubesystemServer)
     api(libs.bundles.minestom)
 }
+
+publishing {
+    publications {
+        register<MavenPublication>("maven") {
+            from(components["java"])
+        }
+    }
+}

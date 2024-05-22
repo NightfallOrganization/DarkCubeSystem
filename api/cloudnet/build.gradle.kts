@@ -14,3 +14,11 @@ dependencies {
     api(projects.darkcubesystemApi)
     api(libs.cloudnet.driver)
 }
+
+publishing {
+    publications {
+        register<MavenPublication>("maven") {
+            from(components["java"])
+        }
+    }
+}
