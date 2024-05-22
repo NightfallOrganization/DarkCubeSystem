@@ -19,8 +19,20 @@ jobs:
         java-version: '21'
         distribution: 'temurin'
 
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
+#    - name: Setup Gradle
+#      uses: gradle/actions/setup-gradle@v3
+
+    - name: Setup Caching
+      uses: actions/cache@v4
+      with:
+        key: gradle-cache-${{ github.ref }}
+        path: |
+          ~/.gradle
+          **/.gradle
+          **/build
+        restore-keys: |
+          gradle-cache-${{ github.ref}}
+          gradle-cache-
 
     - name: Print Branch
       run: echo Running on branch ${{ github.ref }}
