@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [ "master" ]
 
+env:
+  CACHE_PATHS: |
+    ~/.gradle
+    **/.gradle
+    **/build
+
 jobs:
   build:
 
@@ -19,14 +25,24 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Setup Caching
+      - name: Setup Caching for Branch
+        if: ${{ github.head_ref == null }}
+        run: echo Using Cache gradle-cache-${{ github.ref_name }}
         uses: actions/cache@v4
         with:
-          key: gradle-cache-${{ github.ref }}
-          path: |
-            ~/.gradle
-            **/.gradle
-            **/build
+          key: gradle-cache-${{ github.ref_name }}
+          path: $CACHE_PATHS
+          restore-keys: |
+            gradle-cache-${{ github.ref_name }}
+      - name: Setup Caching for PR
+        if: ${{ github.head_ref != null }}
+        run: |
+          echo Using Cache gradle-cache-${{ github.head_ref }}
+          echo Using Cache gradle-cache-${{ github.base_ref }}
+        uses: actions/cache@v4
+        with:
+          key: gradle-cache-${{ github.head_ref }}
+          path: $CACHE_PATHS
           restore-keys: |
             gradle-cache-${{ github.head_ref }}
             gradle-cache-${{ github.base_ref }}
