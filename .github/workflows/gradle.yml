@@ -7,10 +7,11 @@ on:
     branches: [ "master" ]
 
 env:
-  CACHE_PATHS: |
-    ~/.gradle
-    **/.gradle
-    **/build
+  CACHE_PATHS: "[
+      \"~/.gradle\",
+      \"**/.gradle\",
+      \"**/build\"
+    ]"
 
 jobs:
   build:
@@ -27,16 +28,18 @@ jobs:
 
       - name: Setup Caching for Branch
         if: ${{ github.head_ref == null }}
+        id: cache-branch
         uses: actions/cache@v4
         with:
           key: gradle-cache-${{ github.ref_name }}
           path: $CACHE_PATHS
       - name: Setup Caching for PR
         if: ${{ github.head_ref != null }}
+        id: cache-pr
         uses: actions/cache@v4
         with:
           key: gradle-cache-${{ github.head_ref }}
-          path: $CACHE_PATHS
+          path: ${{ fromJson(env.CACHE_PATHS) }}
           restore-keys: |
             gradle-cache-${{ github.base_ref }}
 
@@ -46,9 +49,9 @@ jobs:
           echo Head ref ${{ github.head_ref }}
           echo Ref ${{ github.ref }}
           echo Ref Name ${{ github.ref_name }}
-          echo "Cache path: $CACHE_PATHS"
+          echo "Cache path: ${{ fromJson(env.CACHE_PATHS) }}"
       - name: Print Runner
         run: echo Runner ${{ runner.os }}
 
-      - name: Build with Gradle Wrapper
-        run: ./gradlew -PDarkCubeUsername="${{ secrets.REPOSITORY_USERNAME }}" -PDarkCubePassword="${{ secrets.REPOSITORY_PASSWORD }}" build --no-configuration-cache
+#      - name: Build with Gradle Wrapper
+#        run: ./gradlew -PDarkCubeUsername="${{ secrets.REPOSITORY_USERNAME }}" -PDarkCubePassword="${{ secrets.REPOSITORY_PASSWORD }}" build --no-configuration-cache
