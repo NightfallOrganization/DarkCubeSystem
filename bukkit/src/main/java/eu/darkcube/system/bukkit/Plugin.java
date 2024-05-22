@@ -11,8 +11,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Locale;
 
 import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
+import eu.darkcube.system.libs.net.kyori.adventure.key.Keyed;
 import eu.darkcube.system.libs.net.kyori.adventure.key.Namespaced;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.util.data.PersistentDataStorage;
@@ -32,7 +34,7 @@ public abstract class Plugin extends JavaPlugin implements Namespaced {
     private final Key key;
 
     public Plugin(String pluginName) {
-        this(Key.key(pluginName, pluginName));
+        this(Key.key(pluginName.toLowerCase(Locale.ROOT), pluginName.toLowerCase(Locale.ROOT)));
     }
 
     public Plugin(Key key) {
@@ -42,7 +44,7 @@ public abstract class Plugin extends JavaPlugin implements Namespaced {
 
     @Override
     public @NotNull String namespace() {
-        return getName();
+        return key.namespace();
     }
 
     public PersistentDataStorage persistentDataStorage() {
