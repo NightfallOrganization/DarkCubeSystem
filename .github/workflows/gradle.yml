@@ -7,11 +7,10 @@ on:
     branches: [ "master" ]
 
 env:
-  CACHE_PATHS: "[
-      \"~/.gradle\",
-      \"**/.gradle\",
-      \"**/build\"
-    ]"
+  CACHE_PATHS: |
+    ~/.gradle
+    **/.gradle
+    **/build
 
 jobs:
   build:
@@ -39,7 +38,7 @@ jobs:
         uses: actions/cache@v4
         with:
           key: gradle-cache-${{ github.head_ref }}
-          path: ${{ fromJson(env.CACHE_PATHS) }}
+          path: $CACHE_PATHS
           restore-keys: |
             gradle-cache-${{ github.base_ref }}
 
@@ -49,7 +48,7 @@ jobs:
           echo Head ref ${{ github.head_ref }}
           echo Ref ${{ github.ref }}
           echo Ref Name ${{ github.ref_name }}
-          echo "Cache path: ${{ fromJson(env.CACHE_PATHS) }}"
+          echo "Cache path: $CACHE_PATHS"
       - name: Print Runner
         run: echo Runner ${{ runner.os }}
 
