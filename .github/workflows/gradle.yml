@@ -25,7 +25,7 @@ jobs:
     - name: Print Branch
       run: echo Running on branch ${{ github.ref }}
     - name: Print Runner
-      run: Runner ${{ runner.os }}
+      run: echo Runner ${{ runner.os }}
 
     - name: Build with Gradle Wrapper
       run: ./gradlew -PDarkCubeUsername="${{ secrets.REPOSITORY_USERNAME }}" -PDarkCubePassword="${{ secrets.REPOSITORY_PASSWORD }}" build --no-configuration-cache
