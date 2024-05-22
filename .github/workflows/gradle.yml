@@ -27,7 +27,6 @@ jobs:
 
       - name: Setup Caching for Branch
         if: ${{ github.head_ref == null }}
-        run: echo Using Cache gradle-cache-${{ github.ref_name }}
         uses: actions/cache@v4
         with:
           key: gradle-cache-${{ github.ref_name }}
@@ -36,9 +35,6 @@ jobs:
             gradle-cache-${{ github.ref_name }}
       - name: Setup Caching for PR
         if: ${{ github.head_ref != null }}
-        run: |
-          echo Using Cache gradle-cache-${{ github.head_ref }}
-          echo Using Cache gradle-cache-${{ github.base_ref }}
         uses: actions/cache@v4
         with:
           key: gradle-cache-${{ github.head_ref }}
