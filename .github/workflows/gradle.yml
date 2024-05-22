@@ -46,7 +46,7 @@ jobs:
           echo Head ref ${{ github.head_ref }}
           echo Ref ${{ github.ref }}
           echo Ref Name ${{ github.ref_name }}
-          echo Cache path: $CACHE_PATHS
+          echo "Cache path: $CACHE_PATHS"
       - name: Print Runner
         run: echo Runner ${{ runner.os }}
 
