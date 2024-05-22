@@ -38,7 +38,7 @@ jobs:
         uses: actions/cache@v4
         with:
           key: gradle-cache-${{ github.head_ref }}
-          path: $CACHE_PATHS
+          path: ${{ env.CACHE_PATHS }}
           restore-keys: |
             gradle-cache-${{ github.base_ref }}
 
