@@ -13,8 +13,6 @@ pluginManagement {
         maven("https://nexus.darkcube.eu/repository/darkcube-group/") {
             name = "DarkCube"
             credentials(PasswordCredentials::class)
-            println(credentials.username)
-            println(credentials.password)
         }
     }
 }

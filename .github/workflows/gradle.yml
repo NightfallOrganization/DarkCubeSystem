@@ -66,4 +66,4 @@ jobs:
     - name: Generate and submit dependency graph
       uses: gradle/actions/dependency-submission@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0
       with:
-        additional-arguments: -PDarkCubeUsername="${{ secrets.REPOSITORY_USERNAME }}" -PDarkCubePassword="${{ secrets.REPOSITORY_PASSWORD }}" --no-configuration-cache
+        additional-arguments: -PDarkCubeUsername=${{ secrets.REPOSITORY_USERNAME }} -PDarkCubePassword=${{ secrets.REPOSITORY_PASSWORD }} --no-configuration-cache
