@@ -9,8 +9,6 @@ package eu.darkcube.system.impl.velocity.cloudnet;
 
 import static eu.darkcube.system.impl.velocity.BuildConstants.*;
 
-import javax.inject.Inject;
-
 import com.velocitypowered.api.event.EventManager;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
@@ -18,6 +16,7 @@ import com.velocitypowered.api.plugin.Dependency;
 import com.velocitypowered.api.plugin.Plugin;
 import eu.darkcube.system.cloudnet.packets.PacketRequestProtocolVersionDeclaration;
 import eu.darkcube.system.link.LinkManager;
+import javax.inject.Inject;
 import org.slf4j.Logger;
 
 @Plugin(id = ID, name = NAME, authors = {AUTHOR_DASBABYPIXEL}, version = VERSION, dependencies = @Dependency(id = "viaversion", optional = true))
