@@ -28,7 +28,7 @@ jobs:
             **/.gradle
             **/build
           restore-keys: |
-            gradle-cache-${{ github.ref }}
+            gradle-cache-${{ github.head_ref }}
             gradle-cache-${{ github.base_ref }}
 
       - name: Print Branch
@@ -36,6 +36,7 @@ jobs:
           echo Base ref ${{ github.base_ref }}
           echo Head ref ${{ github.head_ref }}
           echo Ref ${{ github.ref }}
+          echo Ref Name ${{ github.ref_name }}
       - name: Print Runner
         run: echo Runner ${{ runner.os }}
 
