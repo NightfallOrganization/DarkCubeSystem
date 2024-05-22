@@ -31,8 +31,6 @@ jobs:
         with:
           key: gradle-cache-${{ github.ref_name }}
           path: $CACHE_PATHS
-          restore-keys: |
-            gradle-cache-${{ github.ref_name }}
       - name: Setup Caching for PR
         if: ${{ github.head_ref != null }}
         uses: actions/cache@v4
@@ -40,7 +38,6 @@ jobs:
           key: gradle-cache-${{ github.head_ref }}
           path: $CACHE_PATHS
           restore-keys: |
-            gradle-cache-${{ github.head_ref }}
             gradle-cache-${{ github.base_ref }}
 
       - name: Print Branch
@@ -49,6 +46,7 @@ jobs:
           echo Head ref ${{ github.head_ref }}
           echo Ref ${{ github.ref }}
           echo Ref Name ${{ github.ref_name }}
+          echo Cache path: $CACHE_PATHS
       - name: Print Runner
         run: echo Runner ${{ runner.os }}
 
