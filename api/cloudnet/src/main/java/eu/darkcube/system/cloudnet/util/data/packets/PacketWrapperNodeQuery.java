@@ -12,10 +12,16 @@ import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 
 public class PacketWrapperNodeQuery extends Packet {
 
+    private final String table;
     private final Key storageKey;
 
-    public PacketWrapperNodeQuery(Key storageKey) {
+    public PacketWrapperNodeQuery(String table, Key storageKey) {
+        this.table = table;
         this.storageKey = storageKey;
+    }
+
+    public String table() {
+        return table;
     }
 
     public Key storageKey() {

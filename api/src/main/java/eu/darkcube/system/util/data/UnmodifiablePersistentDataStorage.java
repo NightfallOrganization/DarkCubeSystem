@@ -8,11 +8,13 @@
 package eu.darkcube.system.util.data;
 
 import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
 import eu.darkcube.system.libs.com.google.gson.JsonObject;
 import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
+import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Unmodifiable;
 import eu.darkcube.system.libs.org.jetbrains.annotations.UnmodifiableView;
 
@@ -69,12 +71,12 @@ public class UnmodifiablePersistentDataStorage implements PersistentDataStorage 
     }
 
     @Override
-    public void loadFromJsonObject(JsonObject object) {
+    public void loadFromJsonObject(@NotNull JsonObject object) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public JsonObject storeToJsonObject() {
+    public @NotNull JsonObject storeToJsonObject() {
         return storage.storeToJsonObject();
     }
 
@@ -85,6 +87,26 @@ public class UnmodifiablePersistentDataStorage implements PersistentDataStorage 
 
     @Override
     public void clearCache() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public @NotNull <T> CompletableFuture<Void> setIfNotPresentAsync(@NotNull Key key, @NotNull PersistentDataType<T> type, @NotNull T data) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public @NotNull <T> CompletableFuture<Void> setAsync(@NotNull Key key, @NotNull PersistentDataType<T> type, @NotNull T data) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public @NotNull CompletableFuture<Void> loadFromJsonObjectAsync(@NotNull JsonObject object) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public @NotNull <T> CompletableFuture<@Nullable T> removeAsync(@NotNull Key key, @NotNull PersistentDataType<T> type) {
         throw new UnsupportedOperationException();
     }
 

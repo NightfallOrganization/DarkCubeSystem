@@ -14,7 +14,7 @@ import eu.darkcube.system.cloudnet.util.data.packets.PacketWrapperNodeDataClearS
 class HandlerClearSet implements PacketHandler<PacketWrapperNodeDataClearSet> {
     @Override
     public Packet handle(PacketWrapperNodeDataClearSet packet) {
-        SynchronizedPersistentDataStorages.storage(packet.storageKey()).loadFromJsonObject(packet.data());
+        SynchronizedPersistentDataStorages.storage(packet.table(), packet.storageKey()).loadFromJsonObject(packet.data());
         return null;
     }
 }

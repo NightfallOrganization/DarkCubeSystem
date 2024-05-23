@@ -15,7 +15,7 @@ import eu.darkcube.system.cloudnet.util.data.packets.PacketWrapperNodeQuery;
 class HandlerQuery implements PacketHandler<PacketWrapperNodeQuery> {
     @Override
     public Packet handle(PacketWrapperNodeQuery packet) {
-        var storage = SynchronizedPersistentDataStorages.storage(packet.storageKey());
+        var storage = SynchronizedPersistentDataStorages.storage(packet.table(), packet.storageKey());
         return new PacketData(storage.storeToJsonObject());
     }
 }

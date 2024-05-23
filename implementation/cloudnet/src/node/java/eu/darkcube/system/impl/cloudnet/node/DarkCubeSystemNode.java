@@ -13,11 +13,11 @@ import eu.cloudnetservice.driver.event.EventManager;
 import eu.darkcube.system.cloudnet.packetapi.PacketAPI;
 import eu.darkcube.system.impl.cloudnet.ModuleImplementation;
 import eu.darkcube.system.impl.cloudnet.node.userapi.NodeUserAPI;
-import eu.darkcube.system.impl.cloudnet.node.util.data.NodePluginPersistentDataProvider;
+import eu.darkcube.system.impl.cloudnet.node.util.data.NodeCustomPersistentDataProvider;
 import eu.darkcube.system.impl.cloudnet.node.util.data.SynchronizedPersistentDataStorages;
 import eu.darkcube.system.provider.InternalProvider;
 import eu.darkcube.system.userapi.UserAPI;
-import eu.darkcube.system.util.data.PluginPersistentDataProvider;
+import eu.darkcube.system.util.data.CustomPersistentDataProvider;
 
 @Singleton
 public class DarkCubeSystemNode implements ModuleImplementation {
@@ -31,7 +31,7 @@ public class DarkCubeSystemNode implements ModuleImplementation {
         this.userAPI = userAPI;
         this.eventManager = eventManager;
         InternalProvider.instance().register(UserAPI.class, userAPI);
-        InternalProvider.instance().register(PluginPersistentDataProvider.class, new NodePluginPersistentDataProvider());
+        InternalProvider.instance().register(CustomPersistentDataProvider.class, new NodeCustomPersistentDataProvider());
     }
 
     @Override

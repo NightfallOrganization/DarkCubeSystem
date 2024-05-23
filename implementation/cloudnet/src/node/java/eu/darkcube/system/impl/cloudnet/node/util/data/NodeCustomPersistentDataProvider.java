@@ -8,12 +8,13 @@
 package eu.darkcube.system.impl.cloudnet.node.util.data;
 
 import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
+import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
+import eu.darkcube.system.util.data.CustomPersistentDataProvider;
 import eu.darkcube.system.util.data.PersistentDataStorage;
-import eu.darkcube.system.util.data.PluginPersistentDataProvider;
 
-public class NodePluginPersistentDataProvider implements PluginPersistentDataProvider {
+public class NodeCustomPersistentDataProvider implements CustomPersistentDataProvider {
     @Override
-    public PersistentDataStorage persistentData(Key key) {
-        return SynchronizedPersistentDataStorages.storage(key);
+    public @NotNull PersistentDataStorage persistentData(@NotNull String table, @NotNull Key key) {
+        return SynchronizedPersistentDataStorages.storage(table, key);
     }
 }

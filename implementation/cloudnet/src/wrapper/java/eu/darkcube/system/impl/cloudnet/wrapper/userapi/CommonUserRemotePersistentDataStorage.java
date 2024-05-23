@@ -154,12 +154,12 @@ public class CommonUserRemotePersistentDataStorage implements CommonPersistentDa
     }
 
     @Override
-    public void loadFromJsonObject(JsonObject json) {
+    public void loadFromJsonObject(@NotNull JsonObject json) {
         new PacketWNUserPersistentDataLoad(uniqueId, json.deepCopy()).sendQuery(PacketWNUserPersistentDataLoad.Result.class);
     }
 
     @Override
-    public JsonObject storeToJsonObject() {
+    public @NotNull JsonObject storeToJsonObject() {
         try {
             lock.readLock().lock();
             return data.deepCopy();

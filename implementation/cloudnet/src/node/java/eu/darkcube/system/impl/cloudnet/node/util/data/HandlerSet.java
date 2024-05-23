@@ -14,7 +14,7 @@ import eu.darkcube.system.cloudnet.util.data.packets.PacketWrapperNodeDataSet;
 class HandlerSet implements PacketHandler<PacketWrapperNodeDataSet> {
     @Override
     public Packet handle(PacketWrapperNodeDataSet packet) {
-        SynchronizedPersistentDataStorages.storage(packet.storageKey()).set(packet.entryKey(), packet.data());
+        SynchronizedPersistentDataStorages.storage(packet.table(), packet.storageKey()).set(packet.entryKey(), packet.data());
         return null;
     }
 }

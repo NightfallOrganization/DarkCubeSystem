@@ -15,7 +15,7 @@ import eu.darkcube.system.impl.cloudnet.wrapper.userapi.WrapperUserAPI;
 import eu.darkcube.system.impl.cloudnet.wrapper.util.data.WrapperPluginPersistentDataProvider;
 import eu.darkcube.system.provider.InternalProvider;
 import eu.darkcube.system.userapi.UserAPI;
-import eu.darkcube.system.util.data.PluginPersistentDataProvider;
+import eu.darkcube.system.util.data.CustomPersistentDataProvider;
 
 @Singleton
 public class DarkCubeSystemWrapper implements ModuleImplementation {
@@ -25,7 +25,7 @@ public class DarkCubeSystemWrapper implements ModuleImplementation {
     public DarkCubeSystemWrapper(WrapperUserAPI userAPI) {
         this.userAPI = userAPI;
         InternalProvider.instance().register(UserAPI.class, userAPI);
-        InternalProvider.instance().register(PluginPersistentDataProvider.class, new WrapperPluginPersistentDataProvider());
+        InternalProvider.instance().register(CustomPersistentDataProvider.class, new WrapperPluginPersistentDataProvider());
     }
 
     @Override

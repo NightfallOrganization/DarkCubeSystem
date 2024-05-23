@@ -7,14 +7,13 @@
 
 package eu.darkcube.system.impl.cloudnet.node.util.data;
 
-import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import com.google.common.collect.HashBiMap;
-import eu.cloudnetservice.driver.database.Database;
 import eu.cloudnetservice.driver.database.DatabaseProvider;
 import eu.cloudnetservice.driver.inject.InjectionLayer;
 import eu.darkcube.system.cloudnet.packetapi.PacketAPI;
@@ -27,44 +26,50 @@ import eu.darkcube.system.libs.com.google.gson.JsonObject;
 import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 
 public class SynchronizedPersistentDataStorages {
-    static final Database database;
+    private static final DatabaseProvider databaseProvider;
     private static final Gson gson = new Gson();
     private static final ReferenceQueue<SynchronizedPersistentDataStorage> queue = new ReferenceQueue<>();
     private static final Lock lock = new ReentrantLock(false);
-    private static final HashBiMap<Key, Reference<? extends SynchronizedPersistentDataStorage>> storages = HashBiMap.create();
+    private static final Map<String, Map<Key, StorageReference>> storages = new HashMap<>();
 
     static {
-        var databaseProvider = InjectionLayer.boot().instance(DatabaseProvider.class);
-        database = databaseProvider.database("persistent_data");
+        databaseProvider = InjectionLayer.boot().instance(DatabaseProvider.class);
         PacketAPI.instance().registerHandler(PacketWrapperNodeDataSet.class, new HandlerSet());
         PacketAPI.instance().registerHandler(PacketWrapperNodeDataClearSet.class, new HandlerClearSet());
         PacketAPI.instance().registerHandler(PacketWrapperNodeDataRemove.class, new HandlerRemove());
         PacketAPI.instance().registerHandler(PacketWrapperNodeQuery.class, new HandlerQuery());
-        new CollectorHandler();
+        new CollectorHandler().start();
     }
 
-    public static SynchronizedPersistentDataStorage storage(Key key) {
+    public static String toString(Key key) {
+        if (key.namespace().isEmpty()) return key.value();
+        return key.asString();
+    }
+
+    public static SynchronizedPersistentDataStorage storage(String table, Key key) {
         lock.lock();
-        Reference<? extends SynchronizedPersistentDataStorage> ref;
-        ref = storages.getOrDefault(key, null);
+        var map = storages.get(table);
+        var ref = map.getOrDefault(key, null);
         var storage = ref == null ? null : ref.get();
         if (storage == null) {
-            storage = new SynchronizedPersistentDataStorage(key);
+            var database = databaseProvider.database(table);
+            var toString = toString(key);
+            storage = new SynchronizedPersistentDataStorage(database, key);
             var doc = database.get(key.value());
             if (doc != null) {
                 database.delete(key.value());
-                database.insert(key.toString(), doc);
+                database.insert(toString, doc);
                 var object = gson.fromJson(doc.serializeToString(), JsonObject.class);
                 storage.loadFromJsonObject(object);
             } else {
-                doc = database.get(key.toString());
+                doc = database.get(toString);
                 if (doc != null) {
                     var object = gson.fromJson(doc.serializeToString(), JsonObject.class);
                     storage.loadFromJsonObject(object);
                 }
             }
-            ref = new SoftReference<>(storage);
-            storages.put(key, ref);
+            ref = new StorageReference(storage, queue, table, key);
+            storages.computeIfAbsent(table, s -> new HashMap<>()).put(key, ref);
         }
         lock.unlock();
         return storage;
@@ -76,11 +81,21 @@ public class SynchronizedPersistentDataStorages {
     public static void exit() {
     }
 
+    private static class StorageReference extends SoftReference<SynchronizedPersistentDataStorage> {
+        private final String table;
+        private final Key key;
+
+        public StorageReference(SynchronizedPersistentDataStorage referent, ReferenceQueue<? super SynchronizedPersistentDataStorage> q, String table, Key key) {
+            super(referent, q);
+            this.table = table;
+            this.key = key;
+        }
+    }
+
     private static class CollectorHandler extends Thread {
         public CollectorHandler() {
             setName("SynchronizedStorageGCHandler");
             setDaemon(true);
-            start();
         }
 
         @Override
@@ -88,9 +103,13 @@ public class SynchronizedPersistentDataStorages {
             // noinspection InfiniteLoopStatement
             while (true) {
                 try {
-                    var reference = queue.remove();
+                    var reference = (StorageReference) queue.remove();
                     lock.lock();
-                    storages.inverse().remove(reference);
+                    var map = storages.get(reference.table);
+                    map.remove(reference.key);
+                    if (map.isEmpty()) {
+                        storages.remove(reference.table);
+                    }
                     lock.unlock();
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);

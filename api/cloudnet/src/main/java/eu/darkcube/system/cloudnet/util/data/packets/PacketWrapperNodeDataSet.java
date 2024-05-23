@@ -12,14 +12,20 @@ import eu.darkcube.system.libs.com.google.gson.JsonElement;
 import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 
 public class PacketWrapperNodeDataSet extends Packet {
+    private final String table;
     private final Key storageKey;
     private final Key entryKey;
     private final JsonElement data;
 
-    public PacketWrapperNodeDataSet(Key storageKey, Key entryKey, JsonElement data) {
+    public PacketWrapperNodeDataSet(String table, Key storageKey, Key entryKey, JsonElement data) {
+        this.table = table;
         this.storageKey = storageKey;
         this.entryKey = entryKey;
         this.data = data;
+    }
+
+    public String table() {
+        return table;
     }
 
     public JsonElement data() {

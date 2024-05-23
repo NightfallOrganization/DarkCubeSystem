@@ -207,7 +207,7 @@ public class UserLocalPersistentDataStorage implements CommonPersistentDataStora
     }
 
     @Override
-    public void loadFromJsonObject(JsonObject json) {
+    public void loadFromJsonObject(@NotNull JsonObject json) {
         try {
             lock.writeLock().lock();
             data.asMap().clear();
@@ -220,7 +220,7 @@ public class UserLocalPersistentDataStorage implements CommonPersistentDataStora
     }
 
     @Override
-    public JsonObject storeToJsonObject() {
+    public @NotNull JsonObject storeToJsonObject() {
         try {
             lock.readLock().lock();
             return data.deepCopy();

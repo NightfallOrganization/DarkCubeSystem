@@ -13,21 +13,28 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import eu.darkcube.system.libs.org.jetbrains.annotations.ApiStatus;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 
 public class AsyncExecutor {
 
     private static ScheduledExecutorService scheduledService;
     private static ExecutorService cachedService;
+    private static ExecutorService virtualService;
 
+    @ApiStatus.Internal
     public static void start() {
-        scheduledService = Executors.newScheduledThreadPool(1, new DefaultThreadFactory());
-        cachedService = Executors.newCachedThreadPool(new DefaultThreadFactory());
+        var factory = new DefaultThreadFactory();
+        scheduledService = Executors.newScheduledThreadPool(1, factory);
+        cachedService = Executors.newCachedThreadPool(factory);
+        virtualService = Executors.newVirtualThreadPerTaskExecutor();
     }
 
+    @ApiStatus.Internal
     public static void stop() {
         cachedService.shutdown();
         scheduledService.shutdown();
+        virtualService.shutdown();
     }
 
     public static ScheduledExecutorService scheduledService() {
@@ -36,6 +43,10 @@ public class AsyncExecutor {
 
     public static ExecutorService cachedService() {
         return cachedService;
+    }
+
+    public static ExecutorService virtualService() {
+        return virtualService;
     }
 
     @Deprecated(forRemoval = true)

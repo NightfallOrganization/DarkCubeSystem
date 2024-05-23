@@ -7,9 +7,11 @@
 
 package eu.darkcube.system.impl.cloudnet.node.util.data;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -17,6 +19,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 
+import eu.cloudnetservice.driver.database.Database;
 import eu.cloudnetservice.driver.document.DocumentFactory;
 import eu.darkcube.system.cloudnet.util.data.packets.PacketNodeWrapperDataClearSet;
 import eu.darkcube.system.cloudnet.util.data.packets.PacketNodeWrapperDataRemove;
@@ -36,6 +39,7 @@ import eu.darkcube.system.util.data.UnmodifiablePersistentDataStorage;
  */
 public class SynchronizedPersistentDataStorage implements PersistentDataStorage {
     private final Key key;
+    private final Database database;
     private final ReadWriteLock lock = new ReentrantReadWriteLock(false);
     private final JsonObject data = new JsonObject();
     private final Map<Key, Object> cache = new HashMap<>();
@@ -43,7 +47,8 @@ public class SynchronizedPersistentDataStorage implements PersistentDataStorage 
     private final AtomicBoolean saving = new AtomicBoolean(false);
     private final AtomicBoolean saveAgain = new AtomicBoolean(false);
 
-    SynchronizedPersistentDataStorage(Key key) {
+    SynchronizedPersistentDataStorage(Database database, Key key) {
+        this.database = database;
         this.key = key;
     }
 
@@ -54,12 +59,20 @@ public class SynchronizedPersistentDataStorage implements PersistentDataStorage 
 
     @Override
     public @NotNull Collection<Key> keys() {
+        List<Key> keys = new ArrayList<>();
         try {
             lock.readLock().lock();
-            return data.keySet().stream().map(Key::key).toList();
+            for (var s : data.keySet()) {
+                if (s.contains(":")) {
+                    keys.add(Key.key(s));
+                } else {
+                    keys.add(Key.key("", s));
+                }
+            }
         } finally {
             lock.readLock().unlock();
         }
+        return Collections.unmodifiableCollection(keys);
     }
 
     @Override
@@ -82,6 +95,10 @@ public class SynchronizedPersistentDataStorage implements PersistentDataStorage 
 
     @Override
     public <T> T remove(@NotNull Key key, @Nullable PersistentDataType<T> type) {
+        return remove0(key, type);
+    }
+
+    public <T> T remove0(@NotNull Key key, @Nullable PersistentDataType<T> type) {
         T ret;
         try {
             lock.writeLock().lock();
@@ -211,7 +228,7 @@ public class SynchronizedPersistentDataStorage implements PersistentDataStorage 
     }
 
     @Override
-    public void loadFromJsonObject(JsonObject object) {
+    public void loadFromJsonObject(@NotNull JsonObject object) {
         try {
             lock.writeLock().lock();
             clearData();
@@ -224,7 +241,7 @@ public class SynchronizedPersistentDataStorage implements PersistentDataStorage 
     }
 
     @Override
-    public JsonObject storeToJsonObject() {
+    public @NotNull JsonObject storeToJsonObject() {
         try {
             lock.readLock().lock();
             return data.deepCopy();
@@ -272,7 +289,7 @@ public class SynchronizedPersistentDataStorage implements PersistentDataStorage 
     private void save() {
         if (saving.compareAndSet(false, true)) {
             var document = DocumentFactory.json().parse(storeToJsonObject().toString());
-            var fut = SynchronizedPersistentDataStorages.database.insertAsync(key.toString(), document);
+            var fut = database.insertAsync(SynchronizedPersistentDataStorages.toString(key), document);
             fut.thenAccept(success -> {
                 if (success) {
                     saving.set(false);

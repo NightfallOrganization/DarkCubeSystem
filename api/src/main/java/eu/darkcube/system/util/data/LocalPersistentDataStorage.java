@@ -222,7 +222,7 @@ public class LocalPersistentDataStorage implements PersistentDataStorage {
     }
 
     @Override
-    public void loadFromJsonObject(JsonObject object) {
+    public void loadFromJsonObject(@NotNull JsonObject object) {
         try {
             lock.writeLock().lock();
             data.asMap().clear();
@@ -235,7 +235,7 @@ public class LocalPersistentDataStorage implements PersistentDataStorage {
     }
 
     @Override
-    public JsonObject storeToJsonObject() {
+    public @NotNull JsonObject storeToJsonObject() {
         try {
             lock.readLock().lock();
             return data.deepCopy();

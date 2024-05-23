@@ -8,11 +8,13 @@
 package eu.darkcube.system.util.data;
 
 import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
+import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 
-public interface PluginPersistentDataProvider {
-    static PluginPersistentDataProvider pluginPersistentDataProvider() {
-        return PluginPersistentDataProviderImpl.instance();
+public interface CustomPersistentDataProvider {
+    static CustomPersistentDataProvider dataProvider() {
+        return CustomPersistentDataProviderHolder.instance();
     }
 
-    PersistentDataStorage persistentData(Key key);
+    @NotNull
+    PersistentDataStorage persistentData(@NotNull String table, @NotNull Key key);
 }

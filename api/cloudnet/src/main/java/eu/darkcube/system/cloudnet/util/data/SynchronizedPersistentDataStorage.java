@@ -121,15 +121,17 @@ public class SynchronizedPersistentDataStorage implements PersistentDataStorage 
         });
     }
 
+    private final String table;
     private final Key key;
     private final ReadWriteLock lock = new ReentrantReadWriteLock(false);
     private final Map<Key, Object> cache = new HashMap<>();
     private final Collection<@NotNull UpdateNotifier> updateNotifiers = new CopyOnWriteArrayList<>();
     private final JsonObject data = new JsonObject();
 
-    public SynchronizedPersistentDataStorage(Key key) {
+    public SynchronizedPersistentDataStorage(String table, Key key) {
+        this.table = table;
         this.key = key;
-        this.data.asMap().putAll(new PacketWrapperNodeQuery(key).sendQuery(PacketData.class).data().asMap());
+        this.data.asMap().putAll(new PacketWrapperNodeQuery(table, key).sendQuery(PacketData.class).data().asMap());
         storages.put(key, new WeakStorageReference(this));
     }
 
@@ -153,7 +155,11 @@ public class SynchronizedPersistentDataStorage implements PersistentDataStorage 
         try {
             lock.readLock().lock();
             for (var s : data.keySet()) {
-                keys.add(Key.key(s));
+                if (s.contains(":")) {
+                    keys.add(Key.key(s));
+                } else {
+                    keys.add(Key.key("", s));
+                }
             }
         } finally {
             lock.readLock().unlock();
@@ -164,7 +170,7 @@ public class SynchronizedPersistentDataStorage implements PersistentDataStorage 
     @Override
     public <T> void set(@NotNull Key key, @NotNull PersistentDataType<T> type, @NotNull T data) {
         var json = type.serialize(data);
-        var result = new PacketWrapperNodeDataSet(this.key, key, json).sendQuery(PacketWrapperNodeDataSet.Result.class);
+        var result = new PacketWrapperNodeDataSet(table, this.key, key, json).sendQuery(PacketWrapperNodeDataSet.Result.class);
         if (!result.confirmed()) {
             throw new RuntimeException("Failed to set data for DataStorage " + this.key + " at key " + key);
         }
@@ -172,7 +178,7 @@ public class SynchronizedPersistentDataStorage implements PersistentDataStorage 
 
     @Override
     public <T> T remove(@NotNull Key key, @NotNull PersistentDataType<T> type) {
-        var confirmation = new PacketWrapperNodeDataRemove(this.key, key).sendQuery(PacketWrapperNodeDataRemove.Result.class);
+        var confirmation = new PacketWrapperNodeDataRemove(table, this.key, key).sendQuery(PacketWrapperNodeDataRemove.Result.class);
         if (confirmation.removed() == null) {
             return null;
         }
@@ -259,12 +265,12 @@ public class SynchronizedPersistentDataStorage implements PersistentDataStorage 
     }
 
     @Override
-    public void loadFromJsonObject(JsonObject json) {
-        new PacketWrapperNodeDataClearSet(key, json).sendQuery(PacketWrapperNodeDataClearSet.Result.class);
+    public void loadFromJsonObject(@NotNull JsonObject json) {
+        new PacketWrapperNodeDataClearSet(table, key, json).sendQuery(PacketWrapperNodeDataClearSet.Result.class);
     }
 
     @Override
-    public JsonObject storeToJsonObject() {
+    public @NotNull JsonObject storeToJsonObject() {
         try {
             lock.readLock().lock();
             return data.deepCopy();
