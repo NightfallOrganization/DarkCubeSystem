@@ -59,6 +59,7 @@ jobs:
         if: ${{ github.head_ref == null }} && ${{ steps.restore-cache-branch.outputs.cache-hit }}
         id: delete-cache-branch
         run: |
+          echo ${{ steps.restore-cache-branch.outputs.cache-hit }}
           echo ${{ steps.restore-cache-branch.outputs.cache-primary-key }}
           gh cache delete ${{ steps.restore-cache-branch.outputs.cache-primary-key }}
         env:
