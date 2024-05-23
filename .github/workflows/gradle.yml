@@ -56,7 +56,7 @@ jobs:
 #        run: ./gradlew -PDarkCubeUsername="${{ secrets.REPOSITORY_USERNAME }}" -PDarkCubePassword="${{ secrets.REPOSITORY_PASSWORD }}" build --no-configuration-cache --no-daemon
 
       - name: Delete Cache for Branch
-        if: ${{ github.head_ref == null }} && ${{ steps.restore-cache-branch.outputs.cache-hit }}
+        if: ${{ github.head_ref == null }} && ${{ steps.restore-cache-branch.outputs.cache-hit }} == true
         id: delete-cache-branch
         run: |
           echo ${{ steps.restore-cache-branch.outputs.cache-hit }}
