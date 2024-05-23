@@ -15,6 +15,18 @@
     {
       "matchHost": "https://repo1.maven.org/maven2/",
       "enabled": false
+    },
+    {
+      "matchHost": "docker.io",
+      "enabled": false
+    },
+    {
+      "matchHost": "api.github.com",
+      "enabled": false
+    },
+    {
+      "matchHost": "github.com",
+      "enabled": false
     }
   ],
   "packageRules": [
