@@ -10,6 +10,7 @@ package eu.darkcube.system.bukkit.provider.via;
 import java.util.List;
 import java.util.UUID;
 
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import eu.darkcube.system.bukkit.commandapi.CommandSource;
 import eu.darkcube.system.libs.com.mojang.brigadier.ParseResults;
 import eu.darkcube.system.libs.com.mojang.brigadier.suggestion.Suggestions;
@@ -29,22 +30,22 @@ class ViaSupportWrapper implements ViaSupport {
     }
 
     @Override
-    public int version(UUID uuid) {
+    public ProtocolVersion version(UUID uuid) {
         return via.version(uuid);
     }
 
     @Override
-    public int serverVersion() {
+    public ProtocolVersion serverVersion() {
         return via.serverVersion();
     }
 
     @Override
-    public int[] supportedVersions() {
+    public ProtocolVersion[] supportedVersions() {
         return via.supportedVersions();
     }
 
     @Override
-    public List<String> tabComplete(int playerVersion, Player player, String commandLine, ParseResults<CommandSource> parse, Suggestions suggestions) {
+    public List<String> tabComplete(ProtocolVersion playerVersion, Player player, String commandLine, ParseResults<CommandSource> parse, Suggestions suggestions) {
         return via.tabComplete(playerVersion, player, commandLine, parse, suggestions);
     }
 }

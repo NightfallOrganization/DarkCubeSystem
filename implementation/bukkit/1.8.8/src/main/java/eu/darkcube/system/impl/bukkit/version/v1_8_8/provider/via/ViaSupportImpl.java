@@ -13,6 +13,7 @@ import java.util.List;
 import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.protocol.AbstractProtocol;
 import com.viaversion.viaversion.api.protocol.packet.mapping.PacketMappings;
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import com.viaversion.viaversion.api.type.Type;
 import com.viaversion.viaversion.libs.gson.JsonElement;
 import com.viaversion.viaversion.protocols.protocol1_12_1to1_12.ClientboundPackets1_12_1;
@@ -103,7 +104,7 @@ public class ViaSupportImpl extends AbstractViaSupport {
     }
 
     @Override
-    public List<String> tabComplete(int playerVersion, Player player, String commandLine, ParseResults<CommandSource> parse, Suggestions suggestions) {
+    public List<String> tabComplete(ProtocolVersion playerVersion, Player player, String commandLine, ParseResults<CommandSource> parse, Suggestions suggestions) {
         var id = ViaTabExecutor.work(commandLine, suggestions);
         return Collections.singletonList(TAB_COMPLETE_CANCEL + id);
     }

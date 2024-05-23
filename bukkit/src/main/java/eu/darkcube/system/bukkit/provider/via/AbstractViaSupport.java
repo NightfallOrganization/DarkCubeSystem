@@ -10,6 +10,7 @@ package eu.darkcube.system.bukkit.provider.via;
 import java.util.UUID;
 
 import com.viaversion.viaversion.api.Via;
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 
 public abstract class AbstractViaSupport implements ViaSupport {
     public AbstractViaSupport() {
@@ -25,17 +26,17 @@ public abstract class AbstractViaSupport implements ViaSupport {
     }
 
     @Override
-    public int version(UUID uuid) {
-        return Via.getAPI().getPlayerVersion(uuid);
+    public ProtocolVersion version(UUID uuid) {
+        return Via.getAPI().getPlayerProtocolVersion(uuid);
     }
 
     @Override
-    public int[] supportedVersions() {
-        return Via.getManager().getProtocolManager().getSupportedVersions().stream().mapToInt(i -> i).toArray();
+    public ProtocolVersion[] supportedVersions() {
+        return Via.getManager().getProtocolManager().getSupportedVersions().toArray(ProtocolVersion[]::new);
     }
 
     @Override
-    public int serverVersion() {
-        return Via.getAPI().getServerVersion().highestSupportedVersion();
+    public ProtocolVersion serverVersion() {
+        return Via.getAPI().getServerVersion().highestSupportedProtocolVersion();
     }
 }

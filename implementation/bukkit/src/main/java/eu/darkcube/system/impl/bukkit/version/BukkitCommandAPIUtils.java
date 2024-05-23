@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import eu.darkcube.system.bukkit.commandapi.CommandAPI;
 import eu.darkcube.system.bukkit.commandapi.CommandSource;
 import eu.darkcube.system.bukkit.provider.via.ViaSupport;
@@ -43,10 +44,9 @@ public abstract class BukkitCommandAPIUtils implements BukkitVersion.BukkitComma
                 var via = Version.version().provider().service(ViaSupport.class);
                 if (via.supported()) {
                     var server = via.serverVersion();
-                    if (server < 393) { // TODO: Move this into MC version 1.8
+                    if (server.olderThan(ProtocolVersion.v1_13)) { // TODO: Move this into MC version 1.8
                         var version = via.version(p.getUniqueId());
-                        if (version < 393) { // 393 is the version for 1.13
-                            // https://minecraft.fandom.com/wiki/Protocol_version
+                        if (version.olderThan(ProtocolVersion.v1_13)) {
                             source.sendMessage(Component.text(" "));
                             source.sendCompletions(commandLine, suggestions);
                         } else {

@@ -7,6 +7,9 @@
 
 package eu.darkcube.system.impl.bukkit.cloudnet;
 
+import java.util.Arrays;
+
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import eu.cloudnetservice.driver.ComponentInfo;
 import eu.cloudnetservice.driver.event.EventManager;
 import eu.cloudnetservice.driver.inject.InjectionLayer;
@@ -73,8 +76,8 @@ public class BukkitCloudNet extends DarkCubeSystemBukkit {
 
     public void declareVersion() {
         var via = ServerVersion.version().provider().service(ViaSupport.class);
-        var supported = via.supported() ? via.supportedVersions() : new int[0];
-        if (supported.length == 0) supported = new int[]{ServerVersion.version().protocolVersion()};
-        new PacketDeclareProtocolVersion(InjectionLayer.boot().instance(ComponentInfo.class).componentName(), supported).sendAsync();
+        var supported = via.supported() ? via.supportedVersions() : new ProtocolVersion[0];
+        if (supported.length == 0) supported = new ProtocolVersion[]{ProtocolVersion.getProtocol(ServerVersion.version().protocolVersion())};
+        new PacketDeclareProtocolVersion(InjectionLayer.boot().instance(ComponentInfo.class).componentName(), Arrays.stream(supported).mapToInt(ProtocolVersion::getVersion).toArray()).sendAsync();
     }
 }

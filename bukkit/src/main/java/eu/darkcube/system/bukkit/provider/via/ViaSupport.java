@@ -10,6 +10,7 @@ package eu.darkcube.system.bukkit.provider.via;
 import java.util.List;
 import java.util.UUID;
 
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import eu.darkcube.system.bukkit.commandapi.CommandSource;
 import eu.darkcube.system.libs.com.mojang.brigadier.ParseResults;
 import eu.darkcube.system.libs.com.mojang.brigadier.suggestion.Suggestions;
@@ -24,12 +25,12 @@ public interface ViaSupport {
 
     boolean supported();
 
-    int version(UUID uuid);
+    ProtocolVersion version(UUID uuid);
 
-    int serverVersion();
+    ProtocolVersion serverVersion();
 
-    int[] supportedVersions();
+    ProtocolVersion[] supportedVersions();
 
-    List<String> tabComplete(int playerVersion, Player player, String commandLine, ParseResults<CommandSource> parse, Suggestions suggestions);
+    List<String> tabComplete(ProtocolVersion playerVersion, Player player, String commandLine, ParseResults<CommandSource> parse, Suggestions suggestions);
 
 }
