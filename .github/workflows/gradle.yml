@@ -8,7 +8,7 @@ on:
 
 env:
   DEPENDENCY_CACHE_PATHS: |
-    **/.gradle
+    **/.gradle/caches/paperweight
     ~/.gradle/caches
   BUILD_CACHE_PATHS: |
     **/build
@@ -27,7 +27,7 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
-      - name: Determine Cache Variables
+      - name: Prepare Cache
         id: cache-vars
         env:
           HEAD_REF: ${{ github.head_ref }}
@@ -47,6 +47,9 @@ jobs:
             echo "build-cache-key=build-cache-$REF_NAME" >> "$GITHUB_OUTPUT"
             echo "dependency-cache-key=dependency-cache-$REF_NAME" >> "$GITHUB_OUTPUT"
           fi
+          echo "Current Hash: ${{ hashFiles(env.GRADLE_CACHE_PATHS) }}"
+          echo "Current Hash: ${{ hashFiles(env.BUILD_CACHE_PATHS) }}"
+          echo "Current Hash: ${{ hashFiles(env.DEPENDENCY_CACHE_PATHS) }}"
 
       - name: Restore Gradle Cache
         id: restore-gradle-cache
@@ -72,6 +75,12 @@ jobs:
 
       - name: Build with Gradle Wrapper
         run: ./gradlew -PDarkCubeUsername="${{ secrets.REPOSITORY_USERNAME }}" -PDarkCubePassword="${{ secrets.REPOSITORY_PASSWORD }}" build --no-configuration-cache --no-daemon
+
+      - name: Evaluate Changed Cache Files
+        run: |
+          echo "Current Hash: ${{ hashFiles(env.GRADLE_CACHE_PATHS) }}"
+          echo "Current Hash: ${{ hashFiles(env.BUILD_CACHE_PATHS) }}"
+          echo "Current Hash: ${{ hashFiles(env.DEPENDENCY_CACHE_PATHS) }}"
 
       - name: Delete previous Gradle Cache
         if: ${{ steps.restore-gradle-cache.outputs.cache-hit }}
