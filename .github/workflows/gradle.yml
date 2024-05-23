@@ -9,6 +9,7 @@ on:
 env:
   CACHE_PATHS: |
     ~/.gradle/caches
+    ~/.gradle/wrapper
     **/.gradle
     **/build
 
