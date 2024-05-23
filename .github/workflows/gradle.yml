@@ -25,17 +25,17 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Setup Caching for Branch
+      - name: Restore Cache for Branch
         if: ${{ github.head_ref == null }}
         id: cache-branch
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           key: gradle-cache-${{ github.ref_name }}
           path: ${{ env.CACHE_PATHS }}
-      - name: Setup Caching for PR
+      - name: Restore Cache for PR
         if: ${{ github.head_ref != null }}
         id: cache-pr
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           key: gradle-cache-${{ github.head_ref }}
           path: ${{ env.CACHE_PATHS }}
@@ -53,4 +53,17 @@ jobs:
         run: echo Runner ${{ runner.os }}
 
       - name: Build with Gradle Wrapper
-        run: ./gradlew -PDarkCubeUsername="${{ secrets.REPOSITORY_USERNAME }}" -PDarkCubePassword="${{ secrets.REPOSITORY_PASSWORD }}" build --no-configuration-cache
+        run: ./gradlew -PDarkCubeUsername="${{ secrets.REPOSITORY_USERNAME }}" -PDarkCubePassword="${{ secrets.REPOSITORY_PASSWORD }}" build --no-configuration-cache --no-daemon
+
+      - name: Save Cache for Branch
+        if: ${{ github.head_ref == null }}
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.CACHE_PATHS }}
+          key: gradle-cache-${{ github.ref_name }}
+      - name: Save Cache for PR
+        if: ${{ github.head_ref != null }}
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.CACHE_PATHS }}
+          key: gradle-cache-${{ github.head_ref }}
