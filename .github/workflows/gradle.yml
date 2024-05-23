@@ -52,13 +52,14 @@ jobs:
       - name: Print Runner
         run: echo Runner ${{ runner.os }}
 
-      - name: Build with Gradle Wrapper
-        run: ./gradlew -PDarkCubeUsername="${{ secrets.REPOSITORY_USERNAME }}" -PDarkCubePassword="${{ secrets.REPOSITORY_PASSWORD }}" build --no-configuration-cache --no-daemon
+#      - name: Build with Gradle Wrapper
+#        run: ./gradlew -PDarkCubeUsername="${{ secrets.REPOSITORY_USERNAME }}" -PDarkCubePassword="${{ secrets.REPOSITORY_PASSWORD }}" build --no-configuration-cache --no-daemon
 
       - name: Delete Cache for Branch
         if: ${{ github.head_ref == null }} && ${{ steps.restore-cache-branch.outputs.cache-hit }}
         id: delete-cache-branch
         run: |
+          echo ${{ steps.restore-cache-branch.outputs.cache-primary-key }}
           gh cache delete ${{ steps.restore-cache-branch.outputs.cache-primary-key }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
