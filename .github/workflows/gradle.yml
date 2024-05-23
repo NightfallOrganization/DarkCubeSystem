@@ -15,7 +15,7 @@ env:
   BUILD_CACHE_PATHS: |
     **/build
   GRADLE_CACHE_PATHS: |
-    ${{ env.GRADLE_USER_HOME }}/wrapper
+    .gradle/home/wrapper
 
 jobs:
   build:
