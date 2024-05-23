@@ -7,7 +7,7 @@
 
 package eu.darkcube.system.util.data;
 
-import eu.darkcube.system.util.Key;
+import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 
 public interface MetaDataStorage {
 

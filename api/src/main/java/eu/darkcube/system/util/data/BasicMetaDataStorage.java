@@ -9,7 +9,7 @@ package eu.darkcube.system.util.data;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-import eu.darkcube.system.util.Key;
+import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 
 public class BasicMetaDataStorage implements MetaDataStorage {
 
