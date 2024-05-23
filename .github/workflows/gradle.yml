@@ -8,14 +8,14 @@ on:
 
 env:
   GRADLE_USER_HOME: |
-    ./.gradle/home
+    .gradle/home
   DEPENDENCY_CACHE_PATHS: |
     **/.gradle/caches/paperweight
     ~/.gradle/caches
   BUILD_CACHE_PATHS: |
     **/build
   GRADLE_CACHE_PATHS: |
-    $GRADLE_USER_HOME/wrapper
+    ${{ env.GRADLE_USER_HOME }}/wrapper
 
 jobs:
   build:
