@@ -27,14 +27,14 @@ jobs:
 
       - name: Restore Cache for Branch
         if: ${{ github.head_ref == null }}
-        id: cache-branch
+        id: restore-cache-branch
         uses: actions/cache/restore@v4
         with:
           key: gradle-cache-${{ github.ref_name }}
           path: ${{ env.CACHE_PATHS }}
       - name: Restore Cache for PR
         if: ${{ github.head_ref != null }}
-        id: cache-pr
+        id: restore-cache-pr
         uses: actions/cache/restore@v4
         with:
           key: gradle-cache-${{ github.head_ref }}
@@ -60,10 +60,10 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ${{ env.CACHE_PATHS }}
-          key: gradle-cache-${{ github.ref_name }}
+          key: ${{ steps.restore-cache-branch.outputs.cache-primary-key }}
       - name: Save Cache for PR
         if: ${{ github.head_ref != null }}
         uses: actions/cache/save@v4
         with:
           path: ${{ env.CACHE_PATHS }}
-          key: gradle-cache-${{ github.head_ref }}
+          key: ${{ steps.restore-cache-pr.outputs.cache-primary-key }}
