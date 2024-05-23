@@ -8,7 +8,7 @@ gson = "2.10.1"
 adventure = "4.16.0"
 adventure-platform = "4.3.2"
 luckperms = "5.4"
-viaversion = "4.9.4-darkcube-20240419.214635-1"
+viaversion = "4.10.2"
 caffeine = "3.1.8"
 
 minestom = "7f15222468"
