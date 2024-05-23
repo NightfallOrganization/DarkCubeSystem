@@ -7,14 +7,17 @@ on:
     branches: [ "master" ]
 
 env:
-  CACHE_PATHS: |
-    ~/.gradle/caches
-    ~/.gradle/wrapper
+  DEPENDENCY_CACHE_PATHS: |
     **/.gradle
+    ~/.gradle/caches
+  BUILD_CACHE_PATHS: |
     **/build
+  GRADLE_CACHE_PATHS: |
+    ~/.gradle/wrapper
 
 jobs:
   build:
+
 
     runs-on: ubuntu-latest
 
@@ -25,62 +28,80 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+      - name: Determine Cache Variables
+        id: cache-vars
+        env:
+          GRADLE_CACHE: ${{ env.GRADLE_CACHE_PATHS }}
+          BUILD_CACHE: ${{ env.BUILD_CACHE_PATHS }}
+          DEPENDENCY_CACHE: ${{ env.DEPENDENCY_CACHE_PATHS }}
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          PR=$(if [ "$HEAD_REF" = "" ]; then echo false; else echo true; fi)
+          if [ "$PR" = "true" ]; then
+            echo "key=gradle-cache-$HEAD_REF" >> "$GITHUB_OUTPUT"
+            echo "restore-keys=gradle-cache-$BASE_REF" >> "$GITHUB_OUTPUT"
+          else
+            echo "key=gradle-cache-$REF_NAME" >> "$GITHUB_OUTPUT"
+          fi
+#      - name: Restore Cache for Branch
+#        if: ${{ github.head_ref == null }}
+#        id: restore-cache-branch
+#        uses: actions/cache/restore@v4
+#        with:
+#          key: gradle-cache-${{ github.ref_name }}
+#          path: ${{ env.CACHE_PATHS }}
+#      - name: Restore Cache for PR
+#        if: ${{ github.head_ref != null }}
+#        id: restore-cache-pr
+#        uses: actions/cache/restore@v4
+#        with:
+#          key: gradle-cache-${{ github.head_ref }}
+#          path: ${{ env.CACHE_PATHS }}
+#          restore-keys: |
+#            gradle-cache-${{ github.base_ref }}
 
-      - name: Restore Cache for Branch
-        if: ${{ github.head_ref == null }}
-        id: restore-cache-branch
-        uses: actions/cache/restore@v4
-        with:
-          key: gradle-cache-${{ github.ref_name }}
-          path: ${{ env.CACHE_PATHS }}
-      - name: Restore Cache for PR
-        if: ${{ github.head_ref != null }}
-        id: restore-cache-pr
-        uses: actions/cache/restore@v4
-        with:
-          key: gradle-cache-${{ github.head_ref }}
-          path: ${{ env.CACHE_PATHS }}
-          restore-keys: |
-            gradle-cache-${{ github.base_ref }}
-
-      - name: Print Branch
+      - name: Print Debug Infos
         run: |
           echo Base ref ${{ github.base_ref }}
           echo Head ref ${{ github.head_ref }}
           echo Ref ${{ github.ref }}
           echo Ref Name ${{ github.ref_name }}
           echo "Cache path: $CACHE_PATHS"
-      - name: Print Runner
-        run: echo Runner ${{ runner.os }}
+          echo Runner ${{ runner.os }}
+          echo key ${{ steps.cache-vars.outputs.key }}
+          echo restore-keys ${{ steps.cache-vars.outputs.restore-keys }}
+          
 
-      - name: Build with Gradle Wrapper
-        run: ./gradlew -PDarkCubeUsername="${{ secrets.REPOSITORY_USERNAME }}" -PDarkCubePassword="${{ secrets.REPOSITORY_PASSWORD }}" build --no-configuration-cache --no-daemon
-
-      - name: Delete Cache for Branch
-        if: ${{ github.head_ref == null && steps.restore-cache-branch.outputs.cache-hit }}
-        id: delete-cache-branch
-        run: |
-          gh cache delete ${{ steps.restore-cache-branch.outputs.cache-primary-key }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Delete Cache for PR
-        if: ${{ github.head_ref != null && steps.restore-cache-pr.outputs.cache-hit }}
-        id: delete-cache-pr
-        run: |
-          gh cache delete ${{ steps.restore-cache-pr.outputs.cache-primary-key }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Save Cache for Branch
-        if: ${{ github.head_ref == null }}
-        uses: actions/cache/save@v4
-        with:
-          path: ${{ env.CACHE_PATHS }}
-          key: ${{ steps.restore-cache-branch.outputs.cache-primary-key }}
-      - name: Save Cache for PR
-        if: ${{ github.head_ref != null }}
-        uses: actions/cache/save@v4
-        with:
-          path: ${{ env.CACHE_PATHS }}
-          key: ${{ steps.restore-cache-pr.outputs.cache-primary-key }}
+#      - name: Build with Gradle Wrapper
+#        run: ./gradlew -PDarkCubeUsername="${{ secrets.REPOSITORY_USERNAME }}" -PDarkCubePassword="${{ secrets.REPOSITORY_PASSWORD }}" build --no-configuration-cache --no-daemon
+#
+#      - name: Delete Cache for Branch
+#        if: ${{ github.head_ref == null && steps.restore-cache-branch.outputs.cache-hit }}
+#        id: delete-cache-branch
+#        run: |
+#          gh cache delete ${{ steps.restore-cache-branch.outputs.cache-primary-key }}
+#        env:
+#          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#
+#      - name: Delete Cache for PR
+#        if: ${{ github.head_ref != null && steps.restore-cache-pr.outputs.cache-hit }}
+#        id: delete-cache-pr
+#        run: |
+#          gh cache delete ${{ steps.restore-cache-pr.outputs.cache-primary-key }}
+#        env:
+#          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#
+#      - name: Save Cache for Branch
+#        if: ${{ github.head_ref == null }}
+#        uses: actions/cache/save@v4
+#        with:
+#          path: ${{ env.CACHE_PATHS }}
+#          key: ${{ steps.restore-cache-branch.outputs.cache-primary-key }}
+#      - name: Save Cache for PR
+#        if: ${{ github.head_ref != null }}
+#        uses: actions/cache/save@v4
+#        with:
+#          path: ${{ env.CACHE_PATHS }}
+#          key: ${{ steps.restore-cache-pr.outputs.cache-primary-key }}
