@@ -60,12 +60,16 @@ jobs:
         id: delete-cache-branch
         run: |
           gh cache delete ${{ steps.restore-cache-branch.outputs.cache-primary-key }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Delete Cache for PR
         if: ${{ github.head_ref != null }} && ${{ steps.restore-cache-pr.outputs.cache-hit }}
         id: delete-cache-pr
         run: |
           gh cache delete ${{ steps.restore-cache-pr.outputs.cache-primary-key }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Save Cache for Branch
         if: ${{ github.head_ref == null }}
