@@ -31,38 +31,45 @@ jobs:
       - name: Determine Cache Variables
         id: cache-vars
         env:
-          GRADLE_CACHE: ${{ env.GRADLE_CACHE_PATHS }}
-          BUILD_CACHE: ${{ env.BUILD_CACHE_PATHS }}
-          DEPENDENCY_CACHE: ${{ env.DEPENDENCY_CACHE_PATHS }}
           HEAD_REF: ${{ github.head_ref }}
           BASE_REF: ${{ github.base_ref }}
           REF_NAME: ${{ github.ref_name }}
         run: |
           PR=$(if [ "$HEAD_REF" = "" ]; then echo false; else echo true; fi)
           if [ "$PR" = "true" ]; then
-            echo "key=gradle-cache-$HEAD_REF" >> "$GITHUB_OUTPUT"
-            echo "restore-keys=gradle-cache-$BASE_REF" >> "$GITHUB_OUTPUT"
+            echo "gradle-cache-key=gradle-cache-$HEAD_REF" >> "$GITHUB_OUTPUT"
+            echo "gradle-cache-restore-keys=gradle-cache-$BASE_REF" >> "$GITHUB_OUTPUT"
+            echo "build-cache-key=build-cache-$HEAD_REF" >> "$GITHUB_OUTPUT"
+            echo "build-cache-restore-keys=build-cache-$BASE_REF" >> "$GITHUB_OUTPUT"
+            echo "dependency-cache-key=dependency-cache-$HEAD_REF" >> "$GITHUB_OUTPUT"
+            echo "dependency-cache-restore-keys=dependency-cache-$BASE_REF" >> "$GITHUB_OUTPUT"
           else
-            echo "key=gradle-cache-$REF_NAME" >> "$GITHUB_OUTPUT"
+            echo "gradle-cache-key=gradle-cache-$REF_NAME" >> "$GITHUB_OUTPUT"
+            echo "build-cache-key=build-cache-$REF_NAME" >> "$GITHUB_OUTPUT"
+            echo "dependency-cache-key=dependency-cache-$REF_NAME" >> "$GITHUB_OUTPUT"
           fi
 
-
-#      - name: Restore Cache for Branch
-#        if: ${{ github.head_ref == null }}
-#        id: restore-cache-branch
-#        uses: actions/cache/restore@v4
-#        with:
-#          key: gradle-cache-${{ github.ref_name }}
-#          path: ${{ env.CACHE_PATHS }}
-#      - name: Restore Cache for PR
-#        if: ${{ github.head_ref != null }}
-#        id: restore-cache-pr
-#        uses: actions/cache/restore@v4
-#        with:
-#          key: gradle-cache-${{ github.head_ref }}
-#          path: ${{ env.CACHE_PATHS }}
-#          restore-keys: |
-#            gradle-cache-${{ github.base_ref }}
+      - name: Restore Gradle Cache
+        id: restore-gradle-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.GRADLE_CACHE_PATHS }}
+          key: ${{ steps.cache-vars.outputs.gradle-cache-key }}
+          restore-keys: ${{ steps.cache-vars.outputs.gradle-cache-restore-keys }}
+      - name: Restore Build Cache
+        id: restore-build-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.BUILD_CACHE_PATHS }}
+          key: ${{ steps.cache-vars.outputs.build-cache-key }}
+          restore-keys: ${{ steps.cache-vars.outputs.build-cache-restore-keys }}
+      - name: Restore Dependency Cache
+        id: restore-dependency-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.DEPENDENCY_CACHE_PATHS }}
+          key: ${{ steps.cache-vars.outputs.dependency-cache-key }}
+          restore-keys: ${{ steps.cache-vars.outputs.dependency-cache-restore-keys }}
 
       - name: Print Debug Infos
         run: |
@@ -72,13 +79,53 @@ jobs:
           echo Ref Name ${{ github.ref_name }}
           echo "Cache path: $CACHE_PATHS"
           echo Runner ${{ runner.os }}
-          echo key ${{ steps.cache-vars.outputs.key }}
-          echo restore-keys ${{ steps.cache-vars.outputs.restore-keys }}
-          
 
-#      - name: Build with Gradle Wrapper
-#        run: ./gradlew -PDarkCubeUsername="${{ secrets.REPOSITORY_USERNAME }}" -PDarkCubePassword="${{ secrets.REPOSITORY_PASSWORD }}" build --no-configuration-cache --no-daemon
-#
+
+      - name: Build with Gradle Wrapper
+        run: ./gradlew -PDarkCubeUsername="${{ secrets.REPOSITORY_USERNAME }}" -PDarkCubePassword="${{ secrets.REPOSITORY_PASSWORD }}" build --no-configuration-cache --no-daemon
+
+      - name: Delete previous Gradle Cache
+        if: ${{ steps.restore-gradle-cache.outputs.cache-hit }}
+        id: delete-gradle-cache
+        run: |
+          gh cache delete ${{ steps.restore-gradle-cache.outputs.cache-primary-key }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Delete previous Build Cache
+        if: ${{ steps.restore-build-cache.outputs.cache-hit }}
+        id: delete-build-cache
+        run: |
+          gh cache delete ${{ steps.restore-build-cache.outputs.cache-primary-key }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Delete previous Dependency Cache
+        if: ${{ steps.restore-dependency-cache.outputs.cache-hit }}
+        id: delete-dependency-cache
+        run: |
+          gh cache delete ${{ steps.restore-dependency-cache.outputs.cache-primary-key }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+      - name: Save new Gradle Cache
+        id: save-gradle-cache
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.GRADLE_CACHE_PATHS }}
+          key: ${{ steps.cache-vars.outputs.gradle-cache-key }}
+      - name: Save new Build Cache
+        id: save-build-cache
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.BUILD_CACHE_PATHS }}
+          key: ${{ steps.cache-vars.outputs.build-cache-key }}
+      - name: Save new Dependency Cache
+        id: save-dependency-cache
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.DEPENDENCY_CACHE_PATHS }}
+          key: ${{ steps.cache-vars.outputs.dependency-cache-key }}
+
 #      - name: Delete Cache for Branch
 #        if: ${{ github.head_ref == null && steps.restore-cache-branch.outputs.cache-hit }}
 #        id: delete-cache-branch
