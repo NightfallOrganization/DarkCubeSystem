@@ -13,6 +13,16 @@
       }
     }
   ],
+  "packageRules": [
+    {
+      "matchManagers": [
+        "gradle"
+      ],
+      "registryUrls": [
+        "https://nexus.darkcube.eu/repository/darkcube-group/"
+      ]
+    }
+  ],
   "ignoreDeps": [
     "implementation:bukkit"
   ]
