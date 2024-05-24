@@ -7,8 +7,8 @@ on:
     branches: [ "master" ]
 
 env:
-  GRADLE_USER_HOME: |
-    ~/.gradle
+  CUSTOM_GRADLE_USER_HOME: |
+    gradle-user-home
   DEPENDENCY_CACHE_PATHS: |
     **/.gradle/caches/paperweight
     ~/.gradle/caches
