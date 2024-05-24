@@ -79,7 +79,9 @@ jobs:
           echo "Current Hash: ${{ hashFiles(env.DEPENDENCY_CACHE_PATHS) }}"
 
       - name: Build with Gradle Wrapper
-        run: ./gradlew -PDarkCubeUsername="${{ secrets.REPOSITORY_USERNAME }}" -PDarkCubePassword="${{ secrets.REPOSITORY_PASSWORD }}" build --no-configuration-cache --no-daemon
+        run: ./gradlew -PDarkCubeUsername="${{ secrets.REPOSITORY_USERNAME }}" -PDarkCubePassword="${{ secrets.REPOSITORY_PASSWORD }}" build --no-configuration-cache --no-daemon --info --stacktrace
+        env:
+          GRADLE_USER_HOME: ${{ env.CUSTOM_GRADLE_USER_HOME }}
 
       - name: Evaluate Changed Cache Files
         run: |
