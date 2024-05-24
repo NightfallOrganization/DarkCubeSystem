@@ -82,7 +82,7 @@ jobs:
       - name: Build with Gradle Wrapper
         run: ./gradlew -PDarkCubeUsername="${{ secrets.REPOSITORY_USERNAME }}" -PDarkCubePassword="${{ secrets.REPOSITORY_PASSWORD }}" build --no-configuration-cache --no-daemon
         env:
-          GRADLE_USER_HOME: ${{ env.GRADLE_USER_HOME }}
+          GRADLE_USER_HOME22: ${{ env.GRADLE_USER_HOME }}
 
       - name: Evaluate Changed Cache Files
         run: |
