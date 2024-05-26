@@ -13,8 +13,6 @@ plugins {
     id("eu.darkcube.darkcube")
 }
 
-println(gradle.gradleUserHomeDir.canonicalPath)
-
 val cloudnetJarPlugins = configurations.register("plugins") { isTransitive = false }
 val cloudnetJarInject = configurations.register("inject") { isTransitive = false }
 val cloudnetJar = configurations.register("cloudnetJar") { isTransitive = false }
