@@ -7,8 +7,6 @@ on:
     branches: [ "master" ]
 
 env:
-  CUSTOM_GRADLE_USER_HOME: |
-    gradle-user-home
   DEPENDENCY_CACHE_PATHS: |
     **/.gradle/caches/paperweight
     ~/.gradle/caches
@@ -72,22 +70,8 @@ jobs:
           key: ${{ steps.cache-vars.outputs.dependency-cache-key }}
           restore-keys: ${{ steps.cache-vars.outputs.dependency-cache-restore-keys }}
 
-      - name: Store Cache Checksums
-        run: |
-          echo "Current Hash: ${{ hashFiles(env.GRADLE_CACHE_PATHS) }}"
-          echo "Current Hash: ${{ hashFiles(env.BUILD_CACHE_PATHS) }}"
-          echo "Current Hash: ${{ hashFiles(env.DEPENDENCY_CACHE_PATHS) }}"
-
       - name: Build with Gradle Wrapper
-        run: ./gradlew -PDarkCubeUsername="${{ secrets.REPOSITORY_USERNAME }}" -PDarkCubePassword="${{ secrets.REPOSITORY_PASSWORD }}" build --no-configuration-cache --no-daemon --info --stacktrace --debug --no-parallel
-        env:
-          GRADLE_USER_HOME: ${{ env.CUSTOM_GRADLE_USER_HOME }}
-
-      - name: Evaluate Changed Cache Files
-        run: |
-          echo "Current Hash: ${{ hashFiles(env.GRADLE_CACHE_PATHS) }}"
-          echo "Current Hash: ${{ hashFiles(env.BUILD_CACHE_PATHS) }}"
-          echo "Current Hash: ${{ hashFiles(env.DEPENDENCY_CACHE_PATHS) }}"
+        run: ./gradlew -PDarkCubeUsername="${{ secrets.REPOSITORY_USERNAME }}" -PDarkCubePassword="${{ secrets.REPOSITORY_PASSWORD }}" build --no-daemon --stacktrace
 
       - name: Delete previous Gradle Cache
         if: ${{ steps.restore-gradle-cache.outputs.cache-hit }}
