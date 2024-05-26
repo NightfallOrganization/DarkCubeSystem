@@ -24,6 +24,7 @@ import eu.darkcube.system.cloudnet.util.data.packets.PacketWrapperNodeQuery;
 import eu.darkcube.system.libs.com.google.gson.Gson;
 import eu.darkcube.system.libs.com.google.gson.JsonObject;
 import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
+import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 
 public class SynchronizedPersistentDataStorages {
     private static final DatabaseProvider databaseProvider;
@@ -48,8 +49,8 @@ public class SynchronizedPersistentDataStorages {
 
     public static SynchronizedPersistentDataStorage storage(String table, Key key) {
         lock.lock();
-        var map = storages.get(table);
-        var ref = map.getOrDefault(key, null);
+        @Nullable var map = storages.get(table);
+        @Nullable var ref = map == null ? null : map.getOrDefault(key, null);
         var storage = ref == null ? null : ref.get();
         if (storage == null) {
             var database = databaseProvider.database(table);
