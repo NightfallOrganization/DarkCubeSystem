@@ -37,6 +37,10 @@
       "registryUrls": [
         "https://nexus.darkcube.eu/repository/darkcube-group/"
       ]
+    },
+    {
+      "matchPackagePatterns": ["^eu.cloudnetservice.cloudnet"],
+      "allowedVersions": "!/-SNAPSHOT$/"
     }
   ],
   "ignoreDeps": [
