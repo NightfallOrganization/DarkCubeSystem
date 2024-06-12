@@ -29,7 +29,6 @@
       "enabled": false
     }
   ],
-  "ignoreUnstable": false,
   "packageRules": [
     {
       "matchManagers": [
