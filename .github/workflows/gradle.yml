@@ -71,7 +71,7 @@ jobs:
           restore-keys: ${{ steps.cache-vars.outputs.dependency-cache-restore-keys }}
 
       - name: Build with Gradle Wrapper
-        run: ./gradlew -PDarkCubeUsername="${{ secrets.REPOSITORY_USERNAME }}" -PDarkCubePassword="${{ secrets.REPOSITORY_PASSWORD }}" build --no-daemon --stacktrace
+        run: ./gradlew -PDarkCubeUsername="${{ secrets.REPOSITORY_USERNAME }}" -PDarkCubePassword="${{ secrets.REPOSITORY_PASSWORD }}" build --configuration-cache-problems=warn --no-daemon --stacktrace
 
       - name: Delete previous Gradle Cache
         if: ${{ steps.restore-gradle-cache.outputs.cache-hit }}
