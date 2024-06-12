@@ -75,7 +75,7 @@ jobs:
         run: ./gradlew -PDarkCubeUsername="${{ secrets.REPOSITORY_USERNAME }}" -PDarkCubePassword="${{ secrets.REPOSITORY_PASSWORD }}" build --configuration-cache-problems=warn --no-daemon --stacktrace
 
       - name: Delete previous Gradle Cache
-        if: ${{ steps.restore-gradle-cache.outputs.cache-hit }}
+        if: ${{ steps.restore-gradle-cache.outputs.cache-hit == 'true' }}
         id: delete-gradle-cache
         run: |
           echo ${{ steps.restore-gradle-cache.outputs.cache-hit }}
@@ -83,14 +83,14 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Delete previous Build Cache
-        if: ${{ steps.restore-build-cache.outputs.cache-hit }}
+        if: ${{ steps.restore-build-cache.outputs.cache-hit == 'true' }}
         id: delete-build-cache
         run: |
           gh cache delete ${{ steps.restore-build-cache.outputs.cache-primary-key }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Delete previous Dependency Cache
-        if: ${{ steps.restore-dependency-cache.outputs.cache-hit }}
+        if: ${{ steps.restore-dependency-cache.outputs.cache-hit == 'true' }}
         id: delete-dependency-cache
         run: |
           gh cache delete ${{ steps.restore-dependency-cache.outputs.cache-primary-key }}
