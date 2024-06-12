@@ -16,7 +16,7 @@ minestom = "7f15222468"
 minestom-extensions = "1.2.0"
 
 shadow = "8.1.2"
-paperweight-userdev = "1.7.1"
+paperweight-userdev = "1.7.2-SNAPSHOT"
 idea-ext = "1.1.8"
 
 velocity = "3.1.1"
