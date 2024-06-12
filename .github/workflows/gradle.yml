@@ -12,6 +12,7 @@ env:
     ~/.gradle/caches
   BUILD_CACHE_PATHS: |
     **/build
+    .gradle/configuration-cache
   GRADLE_CACHE_PATHS: |
     ~/.gradle/wrapper
 
@@ -77,6 +78,7 @@ jobs:
         if: ${{ steps.restore-gradle-cache.outputs.cache-hit }}
         id: delete-gradle-cache
         run: |
+          echo ${{ steps.restore-gradle-cache.outputs.cache-hit }}
           gh cache delete ${{ steps.restore-gradle-cache.outputs.cache-primary-key }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
