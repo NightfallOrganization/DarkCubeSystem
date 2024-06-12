@@ -25,7 +25,7 @@ public record Color(int rgb) {
      * space.
      *
      * @return the red component.
-     * @see #getRGB
+     * @see #rgb()
      */
     public int red() {
         return (rgb() >> 16) & 0xFF;
@@ -36,7 +36,7 @@ public record Color(int rgb) {
      * space.
      *
      * @return the green component.
-     * @see #getRGB
+     * @see #rgb()
      */
     public int green() {
         return (rgb() >> 8) & 0xFF;
@@ -47,7 +47,7 @@ public record Color(int rgb) {
      * space.
      *
      * @return the blue component.
-     * @see #getRGB
+     * @see #rgb()
      */
     public int blue() {
         return (rgb()) & 0xFF;
@@ -57,7 +57,7 @@ public record Color(int rgb) {
      * Returns the alpha component in the range 0-255.
      *
      * @return the alpha component.
-     * @see #getRGB
+     * @see #rgb()
      */
     public int alpha() {
         return (rgb() >> 24) & 0xff;

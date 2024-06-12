@@ -15,6 +15,7 @@ import eu.cloudnetservice.driver.event.EventManager;
 import eu.cloudnetservice.driver.inject.InjectionLayer;
 import eu.cloudnetservice.wrapper.holder.ServiceInfoHolder;
 import eu.darkcube.system.bukkit.provider.via.ViaSupport;
+import eu.darkcube.system.bukkit.version.BukkitVersion;
 import eu.darkcube.system.cloudnet.packetapi.PacketAPI;
 import eu.darkcube.system.cloudnet.packets.PacketDeclareProtocolVersion;
 import eu.darkcube.system.cloudnet.packets.PacketRequestProtocolVersionDeclaration;
@@ -49,7 +50,7 @@ public class BukkitCloudNet extends DarkCubeSystemBukkit {
             });
             declareVersion();
         };
-        if (ServerVersion.version().provider().service(ViaSupport.class).supported()) {
+        if (BukkitVersion.version().provider().service(ViaSupport.class).supported()) {
             Bukkit.getScheduler().runTaskLater(this, run, 5);
         } else {
             run.run();
@@ -75,7 +76,7 @@ public class BukkitCloudNet extends DarkCubeSystemBukkit {
     }
 
     public void declareVersion() {
-        var via = ServerVersion.version().provider().service(ViaSupport.class);
+        var via = BukkitVersion.version().provider().service(ViaSupport.class);
         var supported = via.supported() ? via.supportedVersions() : new ProtocolVersion[0];
         if (supported.length == 0) supported = new ProtocolVersion[]{ProtocolVersion.getProtocol(ServerVersion.version().protocolVersion())};
         new PacketDeclareProtocolVersion(InjectionLayer.boot().instance(ComponentInfo.class).componentName(), Arrays.stream(supported).mapToInt(ProtocolVersion::getVersion).toArray()).sendAsync();

@@ -14,7 +14,7 @@ import eu.darkcube.system.cloudnet.util.data.packets.PacketWrapperNodeDataRemove
 class HandlerRemove implements PacketHandler<PacketWrapperNodeDataRemove> {
     @Override
     public Packet handle(PacketWrapperNodeDataRemove packet) {
-        SynchronizedPersistentDataStorages.storage(packet.table(), packet.storageKey()).remove0(packet.entryKey(), null);
-        return null;
+        var removed = SynchronizedPersistentDataStorages.storage(packet.table(), packet.storageKey()).remove(packet.entryKey());
+        return new PacketWrapperNodeDataRemove.Result(true, removed);
     }
 }

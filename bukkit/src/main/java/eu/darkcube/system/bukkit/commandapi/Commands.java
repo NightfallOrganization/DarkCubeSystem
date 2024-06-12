@@ -29,10 +29,12 @@ import eu.darkcube.system.libs.com.mojang.brigadier.suggestion.Suggestions;
 import eu.darkcube.system.libs.com.mojang.brigadier.tree.CommandNode;
 import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
 import eu.darkcube.system.libs.net.kyori.adventure.text.format.NamedTextColor;
+import eu.darkcube.system.libs.org.jetbrains.annotations.ApiStatus;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.util.AdventureSupport;
 import org.bukkit.command.CommandSender;
 
+@ApiStatus.Internal
 public class Commands {
 
     private final CommandDispatcher<CommandSource> dispatcher = new CommandDispatcher<>();
@@ -72,7 +74,7 @@ public class Commands {
 
     public void unregisterByPrefix(String prefix) {
         for (var entry : new HashSet<>(commandEntries)) {
-            if (!entry.executor.getPrefix().equals(prefix)) {
+            if (!entry.executor.prefix().equals(prefix)) {
                 continue;
             }
             for (var original : new HashSet<>(entry.nodes)) {
@@ -89,11 +91,11 @@ public class Commands {
 
     public void unregisterPrefixlessByPrefix(String prefix) {
         for (var entry : new HashSet<>(commandEntries)) {
-            if (!entry.executor.getPrefix().equals(prefix)) {
+            if (!entry.executor.prefix().equals(prefix)) {
                 continue;
             }
             for (var original : new HashSet<>(entry.nodes)) {
-                if (original.prefixless) {
+                if (!original.isPrefixed) {
                     if (unregister(dispatcher.getRoot(), original)) {
                         BukkitVersion.version().commandApiUtils().unregister(original.source.getName());
                         entry.nodes.remove(original);
@@ -106,15 +108,17 @@ public class Commands {
         }
     }
 
-    public void unregister(Command command) {
+    public CommandEntry unregister(Command command) {
         for (var entry : new ArrayList<>(commandEntries)) {
             if (entry.executor.equals(command)) {
                 for (var original : entry.nodes) {
                     unregister(dispatcher.getRoot(), original);
                 }
                 commandEntries.remove(entry);
+                return entry;
             }
         }
+        throw new IllegalStateException("Command " + command.name() + " was not found");
     }
 
     private boolean unregister(CommandNode<CommandSource> parent, CommandEntry.OriginalCommandTree original) {
@@ -134,30 +138,41 @@ public class Commands {
         return false;
     }
 
-    public void register(Command executor) {
+    public CommandEntry register(Command executor) {
         Collection<CommandEntry.OriginalCommandTree> nodes = new HashSet<>();
-        for (var name : executor.getNames()) {
-            nodes.add(new CommandEntry.OriginalCommandTree(dispatcher.register(executor.builder(name)), true));
-            nodes.add(new CommandEntry.OriginalCommandTree(dispatcher.register(executor.builder(executor.getPrefix() + ":" + name)), false));
+        for (var name : executor.names()) {
+            nodes.add(new CommandEntry.OriginalCommandTree(dispatcher.register(executor.builder(name)), false));
+            nodes.add(new CommandEntry.OriginalCommandTree(dispatcher.register(executor.builder(executor.prefix() + ":" + name)), true));
         }
-        commandEntries.add(new CommandEntry(executor, nodes));
+        var entry = new CommandEntry(executor, nodes);
+        commandEntries.add(entry);
+        return entry;
     }
 
-    public void executeCommand(CommandSender sender, final String commandLine) {
-        var source = CommandSource.create(sender);
+    public Collection<CommandEntry> commandEntries() {
+        return commandEntries;
+    }
+
+    public void executeCommand(CommandSender sender, String commandLine) {
+        executeCommand(CommandSource.create(sender), commandLine);
+    }
+
+    public int executeCommand(CommandSource source, final String commandLine) {
         var parse = dispatcher.parse(commandLine, source);
         try {
-            dispatcher.execute(parse);
+            return dispatcher.execute(parse);
         } catch (CommandSyntaxException ex) {
             var failedCursor = ex.getCursor();
+            System.out.println("Failed cursor: " + failedCursor);
             if (failedCursor == 0) {
-                return; // Happens when someone tries to execute a main command (PluginCommand) that requires a condition which is not met
-            }
-            if (failedCursor == -1) {
-                return; // When there is no context to the exception. Use #createWithContext to work around this
+                return -1; // Happens when someone tries to execute a main command (PluginCommand) that requires a condition which is not met
             }
 
             source.sendMessage(Component.text(ex.getMessage(), NamedTextColor.RED));
+
+            if (failedCursor == -1) {
+                return -1; // When there is no context to the exception. Use #createWithContext to work around this
+            }
 
             if (failedCursor == commandLine.length()) {
                 final var commandLineNext = commandLine + " ";
@@ -166,6 +181,7 @@ public class Commands {
             } else {
                 getTabCompletions(parse).thenAccept(completions2 -> source.sendCompletions(commandLine, completions2, usages(parse)));
             }
+            return -1;
         } catch (Throwable ex) {
             var writer = new StringWriter();
             ex.printStackTrace(new PrintWriter(writer));
@@ -177,6 +193,7 @@ public class Commands {
             }
             AdventureSupport.adventureSupport().audienceProvider().console().sendMessage(c);
             source.sendMessage(Component.text("An error occurred while attempting to execute the command", NamedTextColor.RED));
+            return -1;
         }
     }
 
@@ -194,18 +211,18 @@ public class Commands {
         void parse(StringReader reader) throws CommandSyntaxException;
     }
 
-    private record CommandEntry(Command executor, Collection<OriginalCommandTree> nodes) {
-        private static class OriginalCommandTree {
-            private final eu.darkcube.system.libs.com.mojang.brigadier.Command<CommandSource> command;
-            private final CommandNode<CommandSource> source;
-            private final Collection<OriginalCommandTree> children;
-            private final boolean prefixless;
+    public record CommandEntry(Command executor, Collection<OriginalCommandTree> nodes) {
+        public static class OriginalCommandTree {
+            public final eu.darkcube.system.libs.com.mojang.brigadier.Command<CommandSource> command;
+            public final CommandNode<CommandSource> source;
+            public final Collection<OriginalCommandTree> children;
+            public final boolean isPrefixed;
 
-            public OriginalCommandTree(CommandNode<CommandSource> node, boolean prefixless) {
+            public OriginalCommandTree(CommandNode<CommandSource> node, boolean isPrefixed) {
                 this.source = node;
                 this.command = node.getCommand();
                 this.children = new HashSet<>();
-                this.prefixless = prefixless;
+                this.isPrefixed = isPrefixed;
                 for (var child : node.getChildren()) {
                     children.add(new OriginalCommandTree(child, false));
                 }
@@ -213,7 +230,7 @@ public class Commands {
 
             @Override
             public String toString() {
-                return "OriginalCommandTree{" + "command=" + command + ", source=" + source + ", children=" + children + ", prefixless=" + prefixless + '}';
+                return "OriginalCommandTree{" + "command=" + command + ", source=" + source + ", children=" + children + ", isPrefixed=" + isPrefixed + '}';
             }
         }
     }

@@ -28,15 +28,21 @@ public abstract class BukkitVersionImpl implements BukkitVersion {
     public void enabled(DarkCubeSystemBukkit system) {
     }
 
-    @Override public int protocolVersion() {
+    public void loaded(DarkCubeSystemBukkit system) {
+    }
+
+    @Override
+    public int protocolVersion() {
         return protocolVersion;
     }
 
-    @Override public BukkitCommandAPIUtils commandApiUtils() {
+    @Override
+    public BukkitCommandAPIUtils commandApiUtils() {
         return commandApiUtils;
     }
 
-    @Override public Provider provider() {
+    @Override
+    public Provider provider() {
         return provider;
     }
 }

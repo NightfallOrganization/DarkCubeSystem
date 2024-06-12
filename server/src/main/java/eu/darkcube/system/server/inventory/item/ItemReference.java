@@ -7,7 +7,16 @@
 
 package eu.darkcube.system.server.inventory.item;
 
+import eu.darkcube.system.annotations.Api;
+import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
+
 public interface ItemReference {
+    @Api
+    @NotNull
+    static ItemReference createFor(@NotNull Object item) {
+        return ItemReferenceProviderImpl.PROVIDER.createFor(item);
+    }
+
     /**
      * @return whether the item is async
      */

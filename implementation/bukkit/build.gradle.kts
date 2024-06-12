@@ -62,7 +62,7 @@ configurations.consumable("cloudnetInject") {
 }
 
 dependencies {
-    compileOnly("org.spigotmc:spigot-api:1.8.8-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.20.6-R0.1-SNAPSHOT")
     compileOnly(libs.viaversion)
     api(projects.darkcubesystemBukkit)
     api(projects.darkcubesystemImplementationServer)

@@ -13,14 +13,15 @@ plugins {
 
 configurations.consumable("version") {
     outgoing.artifact(tasks.jar) {
-        name = "v1_20_R2"
+        name = "v1_20_6"
     }
 }
 
 dependencies {
-    paperweightDevelopmentBundle("io.papermc.paper:dev-bundle:1.20.2-R0.1-20231113.183409-94")
+    paperweightDevelopmentBundle("io.papermc.paper:dev-bundle:1.20.6-R0.1-SNAPSHOT")
     implementation(projects.darkcubesystemImplementationBukkit)
     compileOnly(libs.cloudnet.driver)
+    api(libs.viaversion.common)
 }
 
 tasks {

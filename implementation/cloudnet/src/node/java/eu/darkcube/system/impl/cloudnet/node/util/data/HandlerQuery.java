@@ -9,13 +9,12 @@ package eu.darkcube.system.impl.cloudnet.node.util.data;
 
 import eu.darkcube.system.cloudnet.packetapi.Packet;
 import eu.darkcube.system.cloudnet.packetapi.PacketHandler;
-import eu.darkcube.system.cloudnet.util.data.packets.PacketData;
 import eu.darkcube.system.cloudnet.util.data.packets.PacketWrapperNodeQuery;
 
 class HandlerQuery implements PacketHandler<PacketWrapperNodeQuery> {
     @Override
     public Packet handle(PacketWrapperNodeQuery packet) {
         var storage = SynchronizedPersistentDataStorages.storage(packet.table(), packet.storageKey());
-        return new PacketData(storage.storeToJsonObject());
+        return new PacketWrapperNodeQuery.Response(storage.storeToJsonObject());
     }
 }

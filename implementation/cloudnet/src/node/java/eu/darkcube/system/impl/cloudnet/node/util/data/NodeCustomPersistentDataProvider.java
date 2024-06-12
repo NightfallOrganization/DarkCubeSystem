@@ -15,6 +15,6 @@ import eu.darkcube.system.util.data.PersistentDataStorage;
 public class NodeCustomPersistentDataProvider implements CustomPersistentDataProvider {
     @Override
     public @NotNull PersistentDataStorage persistentData(@NotNull String table, @NotNull Key key) {
-        return SynchronizedPersistentDataStorages.storage(table, key);
+        return SynchronizedPersistentDataStorages.storageTuple(table, key)._2();
     }
 }

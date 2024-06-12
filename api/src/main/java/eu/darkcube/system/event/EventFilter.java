@@ -19,10 +19,6 @@ import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
  * The handler represents a "target" of the event. This can be used
  * to create filters for all events of a specific type using information
  * about the target.
- * <p>
- * For example, the target of a {@link PlayerEvent} is a {@link Player} so
- * you could create a player event filter which checks if the target player
- * is in creative mode.
  *
  * @param <E> The event type to filter
  * @param <H> The handler type to filter on.

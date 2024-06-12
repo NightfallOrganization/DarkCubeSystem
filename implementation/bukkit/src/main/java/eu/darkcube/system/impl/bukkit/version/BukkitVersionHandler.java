@@ -7,13 +7,15 @@
 
 package eu.darkcube.system.impl.bukkit.version;
 
+import eu.darkcube.system.impl.bukkit.DarkCubeSystemBukkit;
+
 public interface BukkitVersionHandler {
-    default void onLoad() {
+    default void onLoad(DarkCubeSystemBukkit system) {
     }
 
-    default void onEnable() {
+    default void onEnable(DarkCubeSystemBukkit system) {
     }
 
-    default void onDisable() {
+    default void onDisable(DarkCubeSystemBukkit system) {
     }
 }

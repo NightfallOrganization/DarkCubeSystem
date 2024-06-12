@@ -13,6 +13,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.server.PluginDisableEvent;
+import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.plugin.Plugin;
 
 public abstract class PluginLink extends Link {
@@ -51,6 +52,13 @@ public abstract class PluginLink extends Link {
         public void handle(PluginDisableEvent event) {
             if (event.getPlugin().getName().equals(pluginName)) {
                 disable();
+            }
+        }
+
+        @EventHandler
+        public void handle(PluginEnableEvent event) {
+            if (event.getPlugin().getName().equals(pluginName)) {
+                enable();
             }
         }
     }

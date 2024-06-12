@@ -23,7 +23,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 
 import eu.darkcube.system.cloudnet.packetapi.PacketAPI;
-import eu.darkcube.system.cloudnet.util.data.packets.PacketData;
 import eu.darkcube.system.cloudnet.util.data.packets.PacketNodeWrapperDataClearSet;
 import eu.darkcube.system.cloudnet.util.data.packets.PacketNodeWrapperDataRemove;
 import eu.darkcube.system.cloudnet.util.data.packets.PacketNodeWrapperDataSet;
@@ -131,7 +130,7 @@ public class SynchronizedPersistentDataStorage implements PersistentDataStorage 
     public SynchronizedPersistentDataStorage(String table, Key key) {
         this.table = table;
         this.key = key;
-        this.data.asMap().putAll(new PacketWrapperNodeQuery(table, key).sendQuery(PacketData.class).data().asMap());
+        this.data.asMap().putAll(new PacketWrapperNodeQuery(table, key).sendQuery(PacketWrapperNodeQuery.Response.class).data().asMap());
         storages.put(key, new WeakStorageReference(this));
     }
 
@@ -223,7 +222,7 @@ public class SynchronizedPersistentDataStorage implements PersistentDataStorage 
         }
         var data = defaultValue.get();
         var json = type.serialize(data);
-        var result = new PacketWrapperNodeGetOrDefault(this.key, key, json).sendQuery(PacketWrapperNodeGetOrDefault.Result.class);
+        var result = new PacketWrapperNodeGetOrDefault(table, this.key, key, json).sendQuery(PacketWrapperNodeGetOrDefault.Result.class);
         var parsed = type.deserialize(result.data());
         try {
             lock.writeLock().lock();

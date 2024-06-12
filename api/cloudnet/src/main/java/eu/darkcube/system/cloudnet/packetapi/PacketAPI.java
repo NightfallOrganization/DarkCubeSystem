@@ -232,11 +232,7 @@ public class PacketAPI {
                         var response = handler.handle(received);
 
                         if (query) {
-                            var buf = DataBuf.empty();
-                            buf.writeByte(TYPE_QUERY_RESPONSE);
-                            buf.writeUniqueId(queryId);
-                            PacketSerializer.serialize(response, buf);
-                            prepareMessage(buf).target(e.sender().toTarget()).build().send();
+                            preparePacket(response, queryId, TYPE_QUERY_RESPONSE).target(e.sender().toTarget()).build().send();
                         } else if (response != null) {
                             Logger.getLogger("PacketAPI").warning("Gave a response packet to a Packet that isn't a query packet! Handler: " + handler.getClass().getName());
                         }

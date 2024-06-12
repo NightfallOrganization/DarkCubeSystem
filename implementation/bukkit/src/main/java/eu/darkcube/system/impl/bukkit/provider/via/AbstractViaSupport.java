@@ -5,12 +5,13 @@
  * The above copyright notice shall be included in all copies of this software.
  */
 
-package eu.darkcube.system.bukkit.provider.via;
+package eu.darkcube.system.impl.bukkit.provider.via;
 
 import java.util.UUID;
 
 import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
+import eu.darkcube.system.bukkit.provider.via.ViaSupport;
 
 public abstract class AbstractViaSupport implements ViaSupport {
     public AbstractViaSupport() {

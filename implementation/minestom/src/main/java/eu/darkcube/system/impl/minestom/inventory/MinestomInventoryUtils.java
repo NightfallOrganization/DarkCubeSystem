@@ -7,25 +7,24 @@
 
 package eu.darkcube.system.impl.minestom.inventory;
 
+import eu.darkcube.system.impl.server.util.ComputationUtil;
+import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 import eu.darkcube.system.userapi.User;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.Player;
+import net.minestom.server.item.ItemStack;
 
 class MinestomInventoryUtils {
+    private static final ComputationUtil.Computer<User, ItemStack> ITEM_COMPUTER = ComputationUtil.createCommonItemComputer(ItemStack.class);
+    private static final ComputationUtil.Computer<Void, Player> PLAYER_COMPUTER = ComputationUtil.createPlayerComputer(Player.class, user -> MinecraftServer.getConnectionManager().getOnlinePlayerByUuid(user.uniqueId()));
+
     @Nullable
     static Player player(@Nullable Object player) {
-        while (true) {
-            switch (player) {
-                case null -> {
-                    return null;
-                }
-                case Player minestomPlayer -> {
-                    return minestomPlayer;
-                }
-                case User user -> player = MinecraftServer.getConnectionManager().getOnlinePlayerByUuid(user.uniqueId());
-                default -> throw new IllegalArgumentException("Not a valid player type");
-            }
-        }
+        return PLAYER_COMPUTER.compute(player, null);
+    }
+
+    static @NotNull ItemStack computeItem(@Nullable User user, @NotNull Object item) {
+        return ITEM_COMPUTER.compute(item, user);
     }
 }

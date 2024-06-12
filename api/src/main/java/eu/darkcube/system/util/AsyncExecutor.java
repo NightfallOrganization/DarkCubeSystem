@@ -12,6 +12,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import eu.darkcube.system.libs.org.jetbrains.annotations.ApiStatus;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
@@ -58,6 +60,8 @@ public class AsyncExecutor {
      * The default thread factory.
      */
     private static class DefaultThreadFactory implements ThreadFactory {
+        private static final Logger LOGGER = Logger.getLogger("AsyncExecutor");
+        private static final Thread.UncaughtExceptionHandler UEC = (t, e) -> LOGGER.log(Level.SEVERE, "Uncaught Exception in Thread " + t.getName(), e);
         private final ThreadGroup group;
         private final AtomicInteger threadNumber = new AtomicInteger(1);
         private final String namePrefix;
@@ -70,6 +74,7 @@ public class AsyncExecutor {
         @Override
         public Thread newThread(@NotNull Runnable r) {
             var t = new Thread(group, r, namePrefix + threadNumber.getAndIncrement(), 0);
+            t.setUncaughtExceptionHandler(UEC);
             if (t.isDaemon()) t.setDaemon(false);
             if (t.getPriority() != Thread.NORM_PRIORITY) t.setPriority(Thread.NORM_PRIORITY);
             return t;

@@ -10,6 +10,7 @@ package eu.darkcube.system.bukkit.version;
 import java.util.List;
 
 import eu.darkcube.system.annotations.Api;
+import eu.darkcube.system.bukkit.commandapi.Commands;
 import eu.darkcube.system.bukkit.commandapi.deprecated.Command;
 import eu.darkcube.system.server.version.ServerVersion;
 import org.bukkit.command.CommandSender;
@@ -36,10 +37,10 @@ public interface BukkitVersion extends ServerVersion {
         List<String> tabComplete(CommandSender sender, org.bukkit.command.Command command, String label, String[] args);
 
         @Api
-        void register(eu.darkcube.system.bukkit.commandapi.Command command);
+        void register(Commands.CommandEntry entry);
 
         @Api
-        void unregister(eu.darkcube.system.bukkit.commandapi.Command command);
+        void unregister(Commands.CommandEntry command);
 
         @Api
         void unregister(String name);

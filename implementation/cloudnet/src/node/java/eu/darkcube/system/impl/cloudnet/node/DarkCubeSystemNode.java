@@ -10,8 +10,10 @@ package eu.darkcube.system.impl.cloudnet.node;
 import dev.derklaro.aerogel.Inject;
 import dev.derklaro.aerogel.Singleton;
 import eu.cloudnetservice.driver.event.EventManager;
+import eu.cloudnetservice.node.command.CommandProvider;
 import eu.darkcube.system.cloudnet.packetapi.PacketAPI;
 import eu.darkcube.system.impl.cloudnet.ModuleImplementation;
+import eu.darkcube.system.impl.cloudnet.node.command.CommandDarkCubeSystem;
 import eu.darkcube.system.impl.cloudnet.node.userapi.NodeUserAPI;
 import eu.darkcube.system.impl.cloudnet.node.util.data.NodeCustomPersistentDataProvider;
 import eu.darkcube.system.impl.cloudnet.node.util.data.SynchronizedPersistentDataStorages;
@@ -24,9 +26,11 @@ public class DarkCubeSystemNode implements ModuleImplementation {
     private final NodeListener listener;
     private final NodeUserAPI userAPI;
     private final EventManager eventManager;
+    private final CommandProvider commandProvider;
 
     @Inject
-    public DarkCubeSystemNode(NodeListener listener, NodeUserAPI userAPI, EventManager eventManager) {
+    public DarkCubeSystemNode(CommandProvider commandProvider, NodeListener listener, NodeUserAPI userAPI, EventManager eventManager) {
+        this.commandProvider = commandProvider;
         this.listener = listener;
         this.userAPI = userAPI;
         this.eventManager = eventManager;
@@ -36,6 +40,7 @@ public class DarkCubeSystemNode implements ModuleImplementation {
 
     @Override
     public void start() {
+        commandProvider.register(CommandDarkCubeSystem.class);
         PacketAPI.init();
         userAPI.init();
         eventManager.registerListener(userAPI);
@@ -45,6 +50,7 @@ public class DarkCubeSystemNode implements ModuleImplementation {
 
     @Override
     public void stop() {
+        commandProvider.unregister("darkcubesystem");
         eventManager.unregisterListener(userAPI);
         eventManager.unregisterListener(listener);
         userAPI.exit();

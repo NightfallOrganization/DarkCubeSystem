@@ -22,7 +22,7 @@ import com.viaversion.viaversion.protocols.protocol1_13to1_12_2.Protocol1_13To1_
 import com.viaversion.viaversion.protocols.protocol1_13to1_12_2.storage.TabCompleteTracker;
 import com.viaversion.viaversion.util.GsonUtil;
 import eu.darkcube.system.bukkit.commandapi.CommandSource;
-import eu.darkcube.system.bukkit.provider.via.AbstractViaSupport;
+import eu.darkcube.system.impl.bukkit.provider.via.AbstractViaSupport;
 import eu.darkcube.system.bukkit.util.ReflectionUtils;
 import eu.darkcube.system.impl.bukkit.DarkCubeSystemBukkit;
 import eu.darkcube.system.libs.com.mojang.brigadier.ParseResults;
@@ -100,7 +100,6 @@ public class ViaSupportImpl extends AbstractViaSupport {
 
     @Override
     public void init() {
-
     }
 
     @Override
