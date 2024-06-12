@@ -10,7 +10,7 @@ adventure = "4.17.0"
 adventure-platform = "4.3.2"
 luckperms = "5.4"
 viaversion = "4.10.3-20240523.060439-1"
-caffeine = "3.1.8"
+caffeine = "3.1.9-SNAPSHOT"
 
 minestom = "7f15222468"
 minestom-extensions = "1.2.0"
