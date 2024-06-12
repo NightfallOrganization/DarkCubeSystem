@@ -7,7 +7,6 @@
 
 package eu.darkcube.system.bukkit.commandapi;
 
-import java.util.Collections;
 import java.util.logging.Logger;
 
 import eu.darkcube.system.bukkit.util.BukkitAdventureSupport;
@@ -22,7 +21,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ProxiedCommandSender;
 import org.bukkit.entity.Player;
 
-public class BukkitCommandExecutor implements CommandExecutor, ForwardingAudience {
+public class BukkitCommandExecutor implements CommandExecutor, ForwardingAudience.Single {
 
     private static final Logger logger = Logger.getLogger("System");
     private final CommandSender sender;
@@ -40,9 +39,10 @@ public class BukkitCommandExecutor implements CommandExecutor, ForwardingAudienc
         return new BukkitCommandExecutor(sender);
     }
 
+    @NotNull
     @Override
-    public @NotNull Iterable<? extends Audience> audiences() {
-        return Collections.singleton(audience);
+    public Audience audience() {
+        return audience;
     }
 
     @Override

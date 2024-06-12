@@ -9,7 +9,6 @@ package eu.darkcube.system.bukkit.commandapi;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +41,6 @@ import eu.darkcube.system.libs.net.kyori.adventure.text.format.TextColor;
 import eu.darkcube.system.libs.net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import eu.darkcube.system.libs.net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
-import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.command.BlockCommandSender;
@@ -50,7 +48,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
-public class CommandSource implements ISuggestionProvider, ForwardingAudience {
+public class CommandSource implements ISuggestionProvider, ForwardingAudience.Single {
 
     public static final SimpleCommandExceptionType REQUIRES_PLAYER_EXCEPTION_TYPE = new SimpleCommandExceptionType(new LiteralMessage("You need to be a player!"));
 
@@ -129,8 +127,8 @@ public class CommandSource implements ISuggestionProvider, ForwardingAudience {
     }
 
     @Override
-    public @NotNull Iterable<? extends Audience> audiences() {
-        return Collections.singleton(source);
+    public @NotNull Audience audience() {
+        return source;
     }
 
     public CommandSource withEntity(Entity entity) {
