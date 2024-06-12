@@ -86,4 +86,6 @@ dependencies {
 
     "wrapperCompileOnly"(libs.cloudnet.wrapper)
     "wrapperCompileOnly"(sourceSets.main.map { it.output })
+    "wrapperCompileOnly"(libs.cloudnet.asm) // in cloudnet but not exposed
+    "wrapperCompileOnly"(libs.cloudnet.asm.tree) // in cloudnet but not exposed
 }

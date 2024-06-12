@@ -9,6 +9,7 @@ package eu.darkcube.system.impl.bukkit.version.latest.item;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -34,19 +35,25 @@ import eu.darkcube.system.libs.com.google.gson.stream.JsonReader;
 import eu.darkcube.system.libs.com.google.gson.stream.JsonToken;
 import eu.darkcube.system.libs.com.google.gson.stream.JsonWriter;
 import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
+import eu.darkcube.system.libs.net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import eu.darkcube.system.libs.net.kyori.option.OptionState;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.server.item.ItemBuilder;
+import eu.darkcube.system.server.item.ItemRarity;
 import eu.darkcube.system.server.item.meta.EnchantmentStorageBuilderMeta;
 import eu.darkcube.system.server.item.meta.FireworkBuilderMeta;
 import eu.darkcube.system.server.item.meta.LeatherArmorBuilderMeta;
 import eu.darkcube.system.server.item.meta.SkullBuilderMeta;
 import eu.darkcube.system.util.Color;
+import eu.darkcube.system.util.data.PersistentDataStorage;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagParser;
+import net.minecraft.server.MinecraftServer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.craftbukkit.v1_20_R2.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -54,12 +61,14 @@ import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.FireworkEffectMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.inventory.meta.Repairable;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.persistence.PersistentDataType;
 
 public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBuilder {
     private static final Logger LOGGER = Logger.getLogger("ItemBuilder");
-    private static final NamespacedKey persistentDataKey = new NamespacedKey(DarkCubePlugin.systemPlugin(), "persistentDataStorage");
+    private static final NamespacedKey PERSISTENT_DATA_KEY = new NamespacedKey(DarkCubePlugin.systemPlugin(), "persistentdatastorage");
+    private static final NamespacedKey PERSISTENT_DATA_KEY_LEGACY = new NamespacedKey("system", "persistentdatastorage");
     private static final Gson gson = new GsonBuilder().registerTypeAdapter(ItemStack.class, new TypeAdapter<ItemStack>() {
         @Override
         public void write(JsonWriter writer, ItemStack value) throws IOException {
@@ -68,8 +77,8 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
                 return;
             }
             var nms = CraftItemStack.asNMSCopy(value);
-            var nbt = new CompoundTag();
-            nms.save(nbt);
+            var registries = MinecraftServer.getServer().registryAccess();
+            var nbt = nms.save(registries);
             writer.value(nbt.toString());
         }
 
@@ -86,7 +95,7 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
             } catch (CommandSyntaxException e) {
                 throw new RuntimeException(e);
             }
-            var nbtItem = net.minecraft.world.item.ItemStack.of(nbt);
+            var nbtItem = net.minecraft.world.item.ItemStack.parse(MinecraftServer.getServer().registryAccess(), nbt).orElseThrow();
             return CraftItemStack.asBukkitCopy(nbtItem);
         }
     }).create();
@@ -97,21 +106,24 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
     }
 
     public ItemBuilderImpl(ItemStack item) {
+        var ignoreCloneFailure = false;
         this.item = item.clone();
         item = item.clone();
         item.setItemMeta(item.getItemMeta());
         this.item.setAmount(1);
-        var nms = CraftItemStack.asNMSCopy(item);
         material(item.getType());
         amount(item.getAmount());
-
-        repairCost(nms.getBaseRepairCost());
 
         var meta = this.item.getItemMeta();
 
         if (meta != null) {
             unbreakable(meta.isUnbreakable());
             meta.setUnbreakable(false);
+            if (meta.hasRarity()) {
+                var rarity = ItemRarity.values()[meta.getRarity().ordinal()];
+                rarity(rarity);
+                meta.setRarity(null);
+            }
             if (meta.hasDisplayName()) {
                 displayname = AdventureUtils.convert(meta.displayName());
                 meta.displayName(null);
@@ -135,6 +147,11 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
             if (meta instanceof Damageable damageable) {
                 damage(damageable.getDamage());
                 damageable.setDamage(0);
+            }
+            if (meta instanceof Repairable repairable) {
+                if (repairable.hasRepairCost()) {
+                    repairCost(repairable.getRepairCost());
+                }
             }
             if (meta instanceof FireworkEffectMeta fireworkEffectMeta) {
                 meta(FireworkBuilderMeta.class).fireworkEffect(fireworkEffectMeta.getEffect());
@@ -160,21 +177,58 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
                 meta(LeatherArmorBuilderMeta.class).color(new Color(leatherArmorMeta.getColor().asRGB()));
                 leatherArmorMeta.setColor(null);
             }
-            if (meta.getPersistentDataContainer().has(persistentDataKey)) {
-                var data = meta.getPersistentDataContainer().get(persistentDataKey, PersistentDataType.STRING);
+            if (meta.getPersistentDataContainer().has(PERSISTENT_DATA_KEY_LEGACY)) {
+                var data = meta.getPersistentDataContainer().get(PERSISTENT_DATA_KEY_LEGACY, PersistentDataType.STRING);
                 if (data != null) {
-                    storage.loadFromJsonObject(new Gson().fromJson(data, JsonObject.class));
+                    var json = new Gson().fromJson(data, JsonObject.class);
+                    for (var name : List.copyOf(json.keySet())) {
+                        var split = name.split(":");
+                        var namespace = split[0];
+                        var key = split[1];
+                        var builder = new StringBuilder();
+                        for (var c : namespace.toCharArray()) {
+                            if (Character.isUpperCase(c)) {
+                                builder.append(Character.toLowerCase(c));
+                            } else {
+                                builder.append(c);
+                            }
+                        }
+                        builder.append(":");
+                        for (var c : key.toCharArray()) {
+                            if (Character.isUpperCase(c)) {
+                                builder.append("_").append(Character.toLowerCase(c));
+                            } else {
+                                builder.append(c);
+                            }
+                        }
+                        var constructed = builder.toString();
+                        if (!name.equals(constructed)) {
+                            var element = json.remove(name);
+                            json.add(constructed, element);
+                        }
+                    }
+                    storage.loadFromJsonObject(json);
                 }
-                meta.getPersistentDataContainer().remove(persistentDataKey);
+                ignoreCloneFailure = true;
+                meta.getPersistentDataContainer().remove(PERSISTENT_DATA_KEY_LEGACY);
+            } else if (meta.getPersistentDataContainer().has(PERSISTENT_DATA_KEY)) {
+                var data = meta.getPersistentDataContainer().get(PERSISTENT_DATA_KEY, PersistentDataType.STRING);
+                if (data != null) {
+                    var json = new Gson().fromJson(data, JsonObject.class);
+                    storage.loadFromJsonObject(json);
+                }
+                meta.getPersistentDataContainer().remove(PERSISTENT_DATA_KEY);
             }
             this.item.setItemMeta(meta);
         }
-        var b = build();
-        if (!item.equals(b) && !(item.getType() == b.getType() && item.getType() == Material.AIR)) {
-            LOGGER.severe("Failed to clone item correctly: ");
-            LOGGER.severe(" - " + CraftItemStack.asNMSCopy(item).save(new CompoundTag()));
-            LOGGER.severe(" - " + net.minecraft.world.item.ItemStack.of(CraftItemStack.asNMSCopy(item).save(new CompoundTag())).save(new CompoundTag()));
-            LOGGER.severe(" - " + CraftItemStack.asNMSCopy(b).save(new CompoundTag()));
+        if (!ignoreCloneFailure) {
+            var b = build();
+            if (!item.equals(b) && !(item.getType() == b.getType() && item.getType() == Material.AIR)) {
+                LOGGER.severe("Failed to clone item correctly: ");
+                LOGGER.severe(" - " + CraftItemStack.asNMSCopy(item).save(MinecraftServer.getServer().registryAccess()));
+                LOGGER.severe(" - " + net.minecraft.world.item.ItemStack.parse(MinecraftServer.getServer().registryAccess(), CraftItemStack.asNMSCopy(item).save(MinecraftServer.getServer().registryAccess())).orElseThrow().save(MinecraftServer.getServer().registryAccess()));
+                LOGGER.severe(" - " + CraftItemStack.asNMSCopy(b).save(MinecraftServer.getServer().registryAccess()));
+            }
         }
     }
 
@@ -185,8 +239,7 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
     @Override
     public boolean canBeRepairedBy(ItemBuilder ingredient) {
         var item = build();
-        var nms = CraftItemStack.asNMSCopy(item);
-        return nms.getItem().isValidRepairItem(nms, CraftItemStack.asNMSCopy(ingredient.build()));
+        return ingredient.<ItemStack>build().canRepair(item);
     }
 
     @Override
@@ -195,16 +248,15 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
         var material = ((BukkitMaterialImpl) this.material).bukkitType();
         var item = this.item == null ? new ItemStack(material) : this.item.clone();
 
-        if (material != item.getType()) item.setType(material);
-
-        var nms = CraftItemStack.asNMSCopy(item);
-        nms.setRepairCost(repairCost);
-        item = nms.asBukkitMirror();
+        if (material != item.getType()) item = item.withType(material);
 
         item.setAmount(amount);
         var meta = item.getItemMeta();
         if (meta != null) {
             meta.setUnbreakable(unbreakable);
+            if (rarity != null) {
+                meta.setRarity(org.bukkit.inventory.ItemRarity.values()[rarity.ordinal()]);
+            }
             if (displayname != Component.empty()) {
                 meta.displayName(AdventureUtils.convert(displayname));
             }
@@ -218,13 +270,16 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
                 if (enchantments.isEmpty()) {
                     meta.addEnchant(item.getType() == Material.BOW
                             // Intellij inspection is dumb...
-                            ? Enchantment.PROTECTION_ENVIRONMENTAL : Enchantment.ARROW_INFINITE, 1, true);
+                            ? Enchantment.PROTECTION : Enchantment.INFINITY, 1, true);
                     meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
                 }
             }
             attributeModifiers.forEach((attribute, modifiers) -> modifiers.forEach(modifier -> meta.addAttributeModifier(((BukkitAttribute) attribute).bukkitType(), ((BukkitAttributeModifierImpl) modifier).bukkitType())));
             if (meta instanceof Damageable damageable) {
                 damageable.setDamage(damage);
+            }
+            if (meta instanceof Repairable repairable) {
+                repairable.setRepairCost(repairCost);
             }
             for (var builderMeta : metas) {
                 switch (builderMeta) {
@@ -243,7 +298,7 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
                         }
                         skullMeta.setPlayerProfile(profile);
                     }
-                    case LeatherArmorBuilderMeta leatherArmorBuilderMeta -> ((LeatherArmorMeta) meta).setColor(org.bukkit.Color.fromRGB(leatherArmorBuilderMeta.color().rgb()));
+                    case LeatherArmorBuilderMeta leatherArmorBuilderMeta -> ((LeatherArmorMeta) meta).setColor(org.bukkit.Color.fromARGB(leatherArmorBuilderMeta.color().rgb()));
                     case EnchantmentStorageBuilderMeta enchantmentStorageBuilderMeta -> {
                         for (var entry : enchantmentStorageBuilderMeta.enchantments().entrySet()) {
                             ((EnchantmentStorageMeta) meta).addStoredEnchant(((BukkitEnchantmentImpl) entry.getKey()).bukkitType(), entry.getValue(), true);
@@ -254,7 +309,7 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
             }
             var json = storage.storeToJsonObject();
             if (!json.isEmpty()) {
-                meta.getPersistentDataContainer().set(persistentDataKey, PersistentDataType.STRING, json.toString());
+                meta.getPersistentDataContainer().set(PERSISTENT_DATA_KEY, PersistentDataType.STRING, json.toString());
             }
             item.setItemMeta(meta);
         }

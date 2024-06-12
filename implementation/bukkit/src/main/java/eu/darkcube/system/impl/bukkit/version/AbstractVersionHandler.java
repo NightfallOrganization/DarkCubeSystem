@@ -7,6 +7,7 @@
 
 package eu.darkcube.system.impl.bukkit.version;
 
+import eu.darkcube.system.impl.bukkit.DarkCubeSystemBukkit;
 import eu.darkcube.system.impl.bukkit.item.BukkitEquipmentSlotProvider;
 import eu.darkcube.system.impl.bukkit.item.enchant.BukkitEnchantmentProvider;
 import eu.darkcube.system.impl.bukkit.item.firework.BukkitFireworkEffectProvider;
@@ -21,8 +22,10 @@ import eu.darkcube.system.server.item.material.MaterialProvider;
 import eu.darkcube.system.version.Version;
 
 public abstract class AbstractVersionHandler implements BukkitVersionHandler {
+    protected final BukkitVersionImpl version;
+
     public AbstractVersionHandler() {
-        var version = createVersion();
+        version = createVersion();
         var ext = InternalProvider.instance();
         ext.register(Version.class, version);
         ext.register(ItemFlagProvider.class, new BukkitItemFlagProvider());
@@ -32,5 +35,15 @@ public abstract class AbstractVersionHandler implements BukkitVersionHandler {
         ext.register(EquipmentSlotProvider.class, new BukkitEquipmentSlotProvider());
     }
 
-    protected abstract Version createVersion();
+    @Override
+    public void onLoad(DarkCubeSystemBukkit system) {
+        version.loaded(system);
+    }
+
+    @Override
+    public void onEnable(DarkCubeSystemBukkit system) {
+        version.enabled(system);
+    }
+
+    protected abstract BukkitVersionImpl createVersion();
 }

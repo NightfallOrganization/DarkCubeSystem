@@ -17,6 +17,7 @@ import eu.cloudnetservice.common.concurrent.Task;
 import eu.cloudnetservice.driver.database.Database;
 import eu.cloudnetservice.driver.document.Document;
 import eu.cloudnetservice.driver.document.DocumentFactory;
+import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.util.data.PersistentDataStorage;
 
 class NodeDataSaver {
@@ -24,7 +25,7 @@ class NodeDataSaver {
     private final ConcurrentMap<UUID, Document> dataToSave = new ConcurrentHashMap<>();
     // Writes should be fast so if this queue gets filled with more than 256 entries, we can just let new entries wait
     private final BlockingDeque<UUID> saveQueue = new LinkedBlockingDeque<>(256);
-    private final PersistentDataStorage.UpdateNotifier saveNotifier = storage -> save((UserLocalPersistentDataStorage) storage);
+    private final PersistentDataStorage.UpdateNotifier saveNotifier = storage -> save((UserNodePersistentDataStorage) storage);
     private Task<?> task;
     private volatile boolean exit = false;
 
@@ -56,7 +57,7 @@ class NodeDataSaver {
         return saveNotifier;
     }
 
-    void save(UserLocalPersistentDataStorage storage) {
+    void save(UserNodePersistentDataStorage storage) {
         var data = Document.newJsonDocument();
         data.append("name", storage.name());
         data.append("uuid", storage.uniqueId());

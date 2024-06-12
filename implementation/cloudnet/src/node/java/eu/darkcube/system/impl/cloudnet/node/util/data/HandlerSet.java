@@ -15,6 +15,6 @@ class HandlerSet implements PacketHandler<PacketWrapperNodeDataSet> {
     @Override
     public Packet handle(PacketWrapperNodeDataSet packet) {
         SynchronizedPersistentDataStorages.storage(packet.table(), packet.storageKey()).set(packet.entryKey(), packet.data());
-        return null;
+        return new PacketWrapperNodeDataSet.Result(true);
     }
 }

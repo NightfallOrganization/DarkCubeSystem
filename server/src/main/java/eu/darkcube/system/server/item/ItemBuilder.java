@@ -321,6 +321,13 @@ public interface ItemBuilder {
     ItemBuilder repairCost(int repairCost);
 
     @Api
+    ItemRarity rarity();
+
+    @Api
+    @NotNull
+    ItemBuilder rarity(@NotNull ItemRarity rarity);
+
+    @Api
     @NotNull
     JsonElement serialize();
 

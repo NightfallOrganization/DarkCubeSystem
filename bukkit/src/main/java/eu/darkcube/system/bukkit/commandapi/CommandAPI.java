@@ -43,13 +43,13 @@ public class CommandAPI {
     }
 
     public void register(Command command) {
-        commands.register(command);
-        this.pluginRegisterCommand(command);
+        var entry = commands.register(command);
+        BukkitVersion.version().commandApiUtils().register(entry);
     }
 
     public void unregister(Command command) {
-        commands.unregister(command);
-        BukkitVersion.version().commandApiUtils().unregister(command);
+        var entry = commands.unregister(command);
+        BukkitVersion.version().commandApiUtils().unregister(entry);
     }
 
     public void unregisterByPrefix(String prefix) {
@@ -58,10 +58,6 @@ public class CommandAPI {
 
     public void unregisterPrefixlessByPrefix(String prefix) {
         commands.unregisterPrefixlessByPrefix(prefix);
-    }
-
-    private void pluginRegisterCommand(final Command command) {
-        BukkitVersion.version().commandApiUtils().register(command);
     }
 
     public void unregisterAll() {

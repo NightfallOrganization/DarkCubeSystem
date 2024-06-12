@@ -7,40 +7,61 @@
 
 package eu.darkcube.system.impl.server.inventory.paged;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import eu.darkcube.system.impl.server.inventory.InventoryTemplateImpl;
-import eu.darkcube.system.impl.server.inventory.item.ItemReferenceImpl;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Unmodifiable;
-import eu.darkcube.system.server.inventory.item.ItemReference;
 import eu.darkcube.system.server.inventory.paged.PageSlotSorter;
+import eu.darkcube.system.server.inventory.paged.PagedInventoryContent;
 import eu.darkcube.system.server.inventory.paged.PagedTemplateSettings;
 
 public class PagedTemplateSettingsImpl implements PagedTemplateSettings {
     private final InventoryTemplateImpl<?> template;
-    private final List<ItemReferenceImpl> items;
-    private final Map<Integer, int[]> specialPageSlots;
-    private final PageButtonImpl previousButton = new PageButtonImpl();
-    private final PageButtonImpl nextButton = new PageButtonImpl();
-    private int[] pageSlots = new int[0];
-    private @NotNull PageSlotSorter sorter;
+    // These are public for read-only access without extra memory allocation by duplicating to prevent modification
+    // Access only allowed by internal code
+    public final Map<Integer, int[]> specialPageSlots;
+    public final PageButtonImpl previousButton;
+    public final PageButtonImpl nextButton;
+    public final PagedInventoryContentImpl content;
+    public int[] pageSlots = new int[0];
+    public @NotNull PageSlotSorter sorter;
 
     public PagedTemplateSettingsImpl(InventoryTemplateImpl<?> template) {
         this.template = template;
         this.specialPageSlots = new HashMap<>();
-        this.items = new ArrayList<>();
         this.sorter = PageSlotSorter.Sorters.DEFAULT;
+        this.content = new PagedInventoryContentImpl();
+        this.previousButton = new PageButtonImpl();
+        this.nextButton = new PageButtonImpl();
+    }
+
+    private PagedTemplateSettingsImpl(InventoryTemplateImpl<?> template, Map<Integer, int[]> specialPageSlots, PageButtonImpl previousButton, PageButtonImpl nextButton, PagedInventoryContentImpl content, int[] pageSlots, @NotNull PageSlotSorter sorter) {
+        this.template = template;
+        this.specialPageSlots = specialPageSlots;
+        this.previousButton = previousButton;
+        this.nextButton = nextButton;
+        this.content = content;
+        this.pageSlots = pageSlots;
+        this.sorter = sorter;
     }
 
     @Override
-    public @NotNull ItemReference addItem(@NotNull Object item) {
-        var reference = new ItemReferenceImpl(item);
-        items.add(reference);
-        return reference;
+    public @NotNull PagedTemplateSettingsImpl clone() {
+        var template = this.template;
+        var specialPageSlots = this.specialPageSlots();
+        var previousButton = this.previousButton().clone();
+        var nextButton = this.nextButton().clone();
+        var pageSlots = this.pageSlots();
+        var content = this.content.clone();
+        var sorter = this.sorter;
+        return new PagedTemplateSettingsImpl(template, specialPageSlots, previousButton, nextButton, content, pageSlots, sorter);
+    }
+
+    @Override
+    public @NotNull PagedInventoryContent content() {
+        return content;
     }
 
     @Override
@@ -93,9 +114,5 @@ public class PagedTemplateSettingsImpl implements PagedTemplateSettings {
     @Override
     public @NotNull InventoryTemplateImpl<?> inventoryTemplate() {
         return template;
-    }
-
-    public List<ItemReferenceImpl> items() {
-        return items;
     }
 }

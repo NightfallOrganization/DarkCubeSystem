@@ -7,64 +7,32 @@
 
 package eu.darkcube.system.server.inventory.paged;
 
-import java.lang.reflect.Array;
-import java.util.Collection;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
+import eu.darkcube.system.annotations.Api;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Unmodifiable;
-import eu.darkcube.system.server.inventory.InventoryTemplate;
 import eu.darkcube.system.server.inventory.InventoryTemplateSettings;
-import eu.darkcube.system.server.inventory.item.ItemReference;
-import eu.darkcube.system.userapi.User;
 
-public interface PagedTemplateSettings extends InventoryTemplateSettings {
-    /**
-     * Adds an item to the page.
-     * <p>
-     * Allowed Types:
-     * <ul>
-     *     <li>{@link InventoryTemplate#setItem(int, int, Object)}</li>
-     *     <li>{@link Collection} of any allowed type</li>
-     *     <li>{@link Array} of any allowed type</li>
-     * </ul>
-     *
-     * @param item the item to add.
-     * @return an {@link ItemReference} to allow more configuration
-     */
+@Api
+public interface PagedTemplateSettings extends InventoryTemplateSettings, Cloneable {
+    @Api
     @NotNull
-    ItemReference addItem(@NotNull Object item);
+    PagedTemplateSettings clone();
 
-    /**
-     * Utility method to allow lamdas
-     *
-     * @see #addItem(Object)
-     */
+    @Api
     @NotNull
-    default ItemReference addItem(@NotNull Supplier<@NotNull ?> itemSupplier) {
-        return addItem((Object) itemSupplier);
-    }
+    PagedInventoryContent content();
 
     /**
-     * Utility method to allow lamdas
-     *
-     * @see #addItem(Object)
-     */
-    @NotNull
-    default ItemReference addItem(@NotNull Function<@NotNull User, @NotNull ?> itemFunction) {
-        return addItem((Object) itemFunction);
-    }
-
-    /**
-     * Get a copy of the pageSlots. These slots will be used for paged items added with {@link #addItem(Object)}.
+     * Get a copy of the pageSlots. These slots will be used for paged items.
      * <p>
      * See {@link #pageSlots(int[])} for order of the array
      *
      * @return the slots where paged items will be
      * @see #pageSlots(int[])
      */
+    @Api
     int @NotNull [] pageSlots();
 
     /**
@@ -75,6 +43,7 @@ public interface PagedTemplateSettings extends InventoryTemplateSettings {
      *
      * @param pageSlots the pageSlots to use
      */
+    @Api
     void pageSlots(int @NotNull [] pageSlots);
 
     /**
@@ -84,6 +53,7 @@ public interface PagedTemplateSettings extends InventoryTemplateSettings {
      *
      * @return the sorter used to sort displayed items
      */
+    @Api
     @NotNull
     PageSlotSorter sorter();
 
@@ -94,6 +64,7 @@ public interface PagedTemplateSettings extends InventoryTemplateSettings {
      *
      * @param sorter the sorter used to sort displayed items
      */
+    @Api
     void sorter(@NotNull PageSlotSorter sorter);
 
     /**
@@ -103,6 +74,7 @@ public interface PagedTemplateSettings extends InventoryTemplateSettings {
      *
      * @param pageSlots the pageSlots to use
      */
+    @Api
     void specialPageSlots(int @NotNull [] pageSlots);
 
     /**
@@ -112,6 +84,7 @@ public interface PagedTemplateSettings extends InventoryTemplateSettings {
      * @param size the size to remove
      * @return whether the template was modified
      */
+    @Api
     boolean removeSpecialPageSlots(int size);
 
     /**
@@ -119,13 +92,16 @@ public interface PagedTemplateSettings extends InventoryTemplateSettings {
      *
      * @return the special pageSlots configurations
      */
+    @Api
     @NotNull
     @Unmodifiable
     Map<Integer, int[]> specialPageSlots();
 
+    @Api
     @NotNull
     PageButton nextButton();
 
+    @Api
     @NotNull
     PageButton previousButton();
 }

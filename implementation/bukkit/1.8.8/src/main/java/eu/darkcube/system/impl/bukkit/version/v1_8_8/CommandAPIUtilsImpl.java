@@ -17,6 +17,7 @@ import java.util.Map;
 import co.aikar.timings.TimingsManager;
 import eu.darkcube.system.bukkit.DarkCubePlugin;
 import eu.darkcube.system.bukkit.commandapi.Command;
+import eu.darkcube.system.bukkit.commandapi.Commands;
 import eu.darkcube.system.impl.bukkit.commandapi.InternalCommandTabExecutor;
 import eu.darkcube.system.impl.bukkit.version.BukkitCommandAPIUtils;
 import org.bukkit.Bukkit;
@@ -37,11 +38,13 @@ public class CommandAPIUtilsImpl extends BukkitCommandAPIUtils {
     public CommandAPIUtilsImpl() {
     }
 
-    @Override public String unknownCommandMessage() {
+    @Override
+    public String unknownCommandMessage() {
         return SpigotConfig.unknownCommandMessage;
     }
 
-    @Override public PluginCommand registerLegacy(Plugin plugin, eu.darkcube.system.bukkit.commandapi.deprecated.Command command) {
+    @Override
+    public PluginCommand registerLegacy(Plugin plugin, eu.darkcube.system.bukkit.commandapi.deprecated.Command command) {
         try {
             var constructor = PluginCommand.class.getDeclaredConstructor(String.class, Plugin.class);
             constructor.setAccessible(true);
@@ -62,7 +65,8 @@ public class CommandAPIUtilsImpl extends BukkitCommandAPIUtils {
         }
     }
 
-    @Override public void unregister(String name) {
+    @Override
+    public void unregister(String name) {
         try {
             var commandMap = ((CraftServer) Bukkit.getServer()).getCommandMap();
             final var f = commandMap.getClass().getDeclaredField("knownCommands");
@@ -74,15 +78,17 @@ public class CommandAPIUtilsImpl extends BukkitCommandAPIUtils {
         }
     }
 
-    @Override public void unregister(Command command) {
+    @Override
+    public void unregister(Commands.CommandEntry entry) {
         try {
+            var command = entry.executor();
             var commandMap = Bukkit.getServer().getCommandMap();
             var f = commandMap.getClass().getDeclaredField("knownCommands");
             f.setAccessible(true);
             final var knownCommands = (Map<String, org.bukkit.command.Command>) f.get(commandMap);
 
-            var prefix = command.getPrefix().toLowerCase(Locale.ROOT);
-            for (var name : command.getNames()) {
+            var prefix = command.prefix().toLowerCase(Locale.ROOT);
+            for (var name : command.names()) {
                 unregister(knownCommands, name.toLowerCase(Locale.ROOT));
                 unregister(knownCommands, prefix + ":" + name.toLowerCase(Locale.ROOT));
             }
@@ -100,27 +106,30 @@ public class CommandAPIUtilsImpl extends BukkitCommandAPIUtils {
         }
     }
 
-    @Override public double[] getEntityBB(Entity entity) {
+    @Override
+    public double[] getEntityBB(Entity entity) {
         var bb = ((CraftEntity) entity).getHandle().getBoundingBox();
         return new double[]{bb.a, bb.b, bb.c, bb.d, bb.e, bb.f};
     }
 
-    @Override public void register(Command command) {
+    @Override
+    public void register(Commands.CommandEntry entry) {
         try {
+            var command = entry.executor();
             final var constructor = PluginCommand.class.getDeclaredConstructor(String.class, Plugin.class);
             constructor.setAccessible(true);
-            final var name = command.getName().toLowerCase(Locale.ROOT);
+            final var name = command.name().toLowerCase(Locale.ROOT);
             if (name.contains(" ")) {
                 throw new IllegalArgumentException("Can't register command with whitespace in name!");
             }
-            final var aliases = command.getAliases();
+            final var aliases = command.aliases();
             for (var i = 0; i < aliases.length; i++) {
                 aliases[i] = aliases[i].toLowerCase();
             }
             final var plugincommand = constructor.newInstance(name, DarkCubePlugin.systemPlugin());
             plugincommand.setAliases(Arrays.asList(aliases));
             plugincommand.setUsage("/" + name);
-            plugincommand.setPermission(command.getPermission());
+            plugincommand.setPermission(command.permission());
             plugincommand.setExecutor(this.executor);
             plugincommand.setTabCompleter(this.executor);
             var timings = plugincommand.getClass().getField("timings");
@@ -130,20 +139,20 @@ public class CommandAPIUtilsImpl extends BukkitCommandAPIUtils {
             final var f = commandMap.getClass().getDeclaredField("knownCommands");
             f.setAccessible(true);
             final var knownCommands = (Map<String, org.bukkit.command.Command>) f.get(commandMap);
-            final var prefix = command.getPrefix().toLowerCase(Locale.ROOT);
+            final var prefix = command.prefix().toLowerCase(Locale.ROOT);
             if (prefix.contains(" ")) {
                 throw new IllegalArgumentException("Can't register command with whitespace in prefix!");
             }
-            for (var n : command.getNames()) {
+            for (var n : command.names()) {
                 final var registerName = prefix + ":" + n;
                 this.checkAmbiguities(registerName, knownCommands, plugincommand);
             }
-            for (var n : command.getNames()) {
+            for (var n : command.names()) {
                 this.checkAmbiguities(n, knownCommands, plugincommand);
             }
-            if (command.getPermission() != null) {
-                if (Bukkit.getPluginManager().getPermission(command.getPermission()) == null) {
-                    Bukkit.getPluginManager().addPermission(new Permission(command.getPermission()));
+            if (command.permission() != null) {
+                if (Bukkit.getPluginManager().getPermission(command.permission()) == null) {
+                    Bukkit.getPluginManager().addPermission(new Permission(command.permission()));
                 }
             }
         } catch (final Exception ex) {

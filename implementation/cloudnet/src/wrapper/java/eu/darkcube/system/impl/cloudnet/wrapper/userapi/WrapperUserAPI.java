@@ -13,10 +13,10 @@ import eu.darkcube.system.impl.cloudnet.userapi.CloudNetUserAPI;
 import eu.darkcube.system.impl.common.userapi.CommonUser;
 
 public class WrapperUserAPI extends CloudNetUserAPI {
-    private final CommonRemoteUserPacketHandler packetHandler;
+    private final WrapperRemoteUserPacketHandler packetHandler;
 
     public WrapperUserAPI() {
-        this.packetHandler = new CommonRemoteUserPacketHandler(this);
+        this.packetHandler = new WrapperRemoteUserPacketHandler(this);
         this.packetHandler.registerHandlers();
     }
 

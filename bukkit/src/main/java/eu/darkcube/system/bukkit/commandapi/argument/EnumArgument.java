@@ -25,8 +25,9 @@ import eu.darkcube.system.libs.com.mojang.brigadier.exceptions.CommandSyntaxExce
 import eu.darkcube.system.libs.com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import eu.darkcube.system.libs.com.mojang.brigadier.suggestion.Suggestions;
 import eu.darkcube.system.libs.com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import eu.darkcube.system.libs.net.kyori.adventure.key.Keyed;
 
-public class EnumArgument<T extends Enum<?>> implements ArgumentType<T> {
+public class EnumArgument<T> implements ArgumentType<T> {
 
     private static final DynamicCommandExceptionType INVALID_ENUM = Messages.INVALID_ENUM.newDynamicCommandExceptionType();
 
@@ -75,7 +76,11 @@ public class EnumArgument<T extends Enum<?>> implements ArgumentType<T> {
     private Function<T, String[]> defaultToStringFunction() {
         final Map<T, String[]> map = new HashMap<>();
         for (var t : values) {
-            map.put(t, new String[]{t.name()});
+            if (t instanceof Enum<?> e) {
+                map.put(t, new String[]{e.name()});
+            } else if (t instanceof Keyed keyed) {
+                map.put(t, new String[]{keyed.key().asString()});
+            }
         }
         return map::get;
     }

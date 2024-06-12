@@ -12,6 +12,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import eu.darkcube.system.BaseMessage;
+import eu.darkcube.system.annotations.Api;
 import eu.darkcube.system.libs.net.kyori.adventure.key.Keyed;
 import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
@@ -40,6 +41,7 @@ import eu.darkcube.system.userapi.User;
  * <p>
  * Something to note is that the underlying inventory is the same for every user.
  */
+@Api
 public interface InventoryTemplate extends Keyed {
     /**
      * Gets the {@link InventoryType} of this inventory.
@@ -48,6 +50,7 @@ public interface InventoryTemplate extends Keyed {
      *
      * @return this inventory's type
      */
+    @Api
     @NotNull
     InventoryType type();
 
@@ -78,6 +81,7 @@ public interface InventoryTemplate extends Keyed {
      *
      * @return the animation settings
      */
+    @Api
     @NotNull
     AnimatedTemplateSettings animation();
 
@@ -88,6 +92,7 @@ public interface InventoryTemplate extends Keyed {
      *
      * @return the pagination settings
      */
+    @Api
     @NotNull
     PagedTemplateSettings pagination();
 
@@ -104,6 +109,7 @@ public interface InventoryTemplate extends Keyed {
      *
      * @param title the title
      */
+    @Api
     void title(@Nullable Object title);
 
     /**
@@ -111,6 +117,7 @@ public interface InventoryTemplate extends Keyed {
      *
      * @return Collection containing the listeners
      */
+    @Api
     @Unmodifiable
     @NotNull
     Collection<InventoryListener> listeners();
@@ -120,6 +127,7 @@ public interface InventoryTemplate extends Keyed {
      *
      * @param listener the listener to add
      */
+    @Api
     void addListener(@NotNull InventoryListener listener);
 
     /**
@@ -127,6 +135,7 @@ public interface InventoryTemplate extends Keyed {
      *
      * @param listener the listener to remove
      */
+    @Api
     void removeListener(@NotNull InventoryListener listener);
 
     /**
@@ -145,6 +154,7 @@ public interface InventoryTemplate extends Keyed {
      * @param item     the item to display
      * @return an {@link ItemReference} allowing modification of the item
      */
+    @Api
     @NotNull
     ItemReference setItem(int priority, int slot, @NotNull Object item);
 
@@ -153,6 +163,7 @@ public interface InventoryTemplate extends Keyed {
      *
      * @see #setItem(int, int, Object)
      */
+    @Api
     @NotNull
     default ItemReference setItem(int priority, int slot, @NotNull Supplier<@NotNull ?> supplier) {
         return setItem(priority, slot, (Object) supplier);
@@ -163,6 +174,7 @@ public interface InventoryTemplate extends Keyed {
      *
      * @see #setItem(int, int, Object)
      */
+    @Api
     default ItemReference setItem(int priority, int slot, @NotNull Function<User, ?> itemFunction) {
         return setItem(priority, slot, (Object) itemFunction);
     }
@@ -173,6 +185,7 @@ public interface InventoryTemplate extends Keyed {
      * @param priority the priority for the entire template
      * @param template the template with all the items
      */
+    @Api
     void setItems(int priority, @NotNull ItemTemplate template);
 
     /**
@@ -187,6 +200,7 @@ public interface InventoryTemplate extends Keyed {
      * @param player the player
      * @return the inventory that was opened, even if player is not online
      */
+    @Api
     @NotNull
     Inventory open(@NotNull Object player);
 }

@@ -12,14 +12,20 @@ import eu.darkcube.system.libs.com.google.gson.JsonElement;
 import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 
 public class PacketWrapperNodeGetOrDefault extends Packet {
+    private final String table;
     private final Key storageKey;
     private final Key entryKey;
     private final JsonElement defaultValue;
 
-    public PacketWrapperNodeGetOrDefault(Key storageKey, Key entryKey, JsonElement defaultValue) {
+    public PacketWrapperNodeGetOrDefault(String table, Key storageKey, Key entryKey, JsonElement defaultValue) {
+        this.table = table;
         this.storageKey = storageKey;
         this.entryKey = entryKey;
         this.defaultValue = defaultValue;
+    }
+
+    public String table() {
+        return table;
     }
 
     public Key storageKey() {

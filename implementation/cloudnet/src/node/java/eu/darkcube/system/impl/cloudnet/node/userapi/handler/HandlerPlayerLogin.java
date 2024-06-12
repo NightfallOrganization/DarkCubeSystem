@@ -20,7 +20,7 @@ public class HandlerPlayerLogin implements PacketHandler<PacketWNPlayerLogin> {
     }
 
     @Override
-    public Packet handle(PacketWNPlayerLogin packet) throws Throwable {
+    public Packet handle(PacketWNPlayerLogin packet) {
         userAPI.updateName(packet.playerId(), packet.playerName());
         return new PacketWNPlayerLogin.Response();
     }

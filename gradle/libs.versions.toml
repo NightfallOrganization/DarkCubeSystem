@@ -2,10 +2,11 @@ metadata.format.version = "1.1"
 
 [versions]
 cloudnet = "4.0.0-RC9"
+cloudnet-asm = "9.7"
 annotations = "24.1.0"
 brigadier = "1.0.18"
 gson = "2.10.1"
-adventure = "4.16.0"
+adventure = "4.17.0"
 adventure-platform = "4.3.2"
 luckperms = "5.4"
 viaversion = "4.10.3-20240523.060439-1"
@@ -44,6 +45,8 @@ cloudnet-driver = { group = "eu.cloudnetservice.cloudnet", name = "driver", vers
 cloudnet-bridge = { group = "eu.cloudnetservice.cloudnet", name = "bridge", version.ref = "cloudnet" }
 cloudnet-node = { group = "eu.cloudnetservice.cloudnet", name = "node", version.ref = "cloudnet" }
 cloudnet-wrapper = { group = "eu.cloudnetservice.cloudnet", name = "wrapper-jvm", version.ref = "cloudnet" }
+cloudnet-asm = { group = "org.ow2.asm", name = "asm", version.ref = "cloudnet-asm" }
+cloudnet-asm-tree = { group = "org.ow2.asm", name = "asm-tree", version.ref = "cloudnet-asm" }
 
 velocity = { group = "com.velocitypowered", name = "velocity-api", version.ref = "velocity" }
 

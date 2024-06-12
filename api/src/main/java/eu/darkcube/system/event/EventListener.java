@@ -71,7 +71,7 @@ public interface EventListener<T> {
         }
 
         /**
-         * Specifies if the handler should still be called if {@link CancellableEvent#isCancelled()} returns {@code true}.
+         * Specifies if the handler should still be called if {@link Cancellable#cancelled()} returns {@code true}.
          * <p>
          * Default is set to {@code true}.
          *

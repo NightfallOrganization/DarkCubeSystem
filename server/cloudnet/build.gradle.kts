@@ -11,8 +11,8 @@ plugins {
 }
 
 dependencies {
-    compileOnly("org.ow2.asm:asm:9.5") // in cloudnet but not exposed
-    compileOnly("org.ow2.asm:asm-tree:9.5") // in cloudnet but not exposed
+    compileOnly(libs.cloudnet.asm) // in cloudnet but not exposed
+    compileOnly(libs.cloudnet.asm.tree) // in cloudnet but not exposed
     api(projects.darkcubesystemServer)
     api(libs.cloudnet.wrapper)
 }

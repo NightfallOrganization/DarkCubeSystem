@@ -12,10 +12,24 @@ import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 import eu.darkcube.system.server.inventory.paged.PageButton;
 
-public class PageButtonImpl implements PageButton {
+public class PageButtonImpl implements PageButton, Cloneable {
     private Visibility visibility = Visibility.WHEN_USABLE;
     private int[] slots = new int[0];
     private @Nullable ItemReferenceImpl item = null;
+
+    public PageButtonImpl() {
+    }
+
+    private PageButtonImpl(Visibility visibility, int[] slots, @Nullable ItemReferenceImpl item) {
+        this.visibility = visibility;
+        this.slots = slots;
+        this.item = item;
+    }
+
+    @Override
+    public PageButtonImpl clone() {
+        return new PageButtonImpl(this.visibility, this.slots.clone(), this.item == null ? null : this.item.clone());
+    }
 
     @Override
     public int @NotNull [] slots() {

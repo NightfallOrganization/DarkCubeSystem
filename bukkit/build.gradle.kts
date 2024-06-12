@@ -12,7 +12,6 @@ plugins {
 
 dependencies {
     compileOnly("org.spigotmc:spigot-api:1.8.8-R0.1-SNAPSHOT")
-    compileOnly(libs.luckperms)
     compileOnly(libs.viaversion)
     api(projects.darkcubesystemServer)
     api(projects.darkcubesystemImplementationProvider)

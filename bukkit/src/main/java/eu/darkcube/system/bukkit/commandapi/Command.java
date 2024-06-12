@@ -18,6 +18,7 @@ public class Command {
     private final String name;
     private final String prefix;
     private final String permission;
+    private final String description;
     private final String[] aliases;
     private final String[] names;
     private final Consumer<LiteralArgumentBuilder<CommandSource>> argumentBuilder;
@@ -26,10 +27,19 @@ public class Command {
         this(prefix, name, prefix + "." + name, aliases, argumentBuilder);
     }
 
+    public Command(String prefix, String name, String[] aliases, String description, Consumer<LiteralArgumentBuilder<CommandSource>> argumentBuilder) {
+        this(prefix, name, prefix + "." + name, description, aliases, argumentBuilder);
+    }
+
     public Command(String prefix, String name, String permission, String[] aliases, Consumer<LiteralArgumentBuilder<CommandSource>> argumentBuilder) {
+        this(prefix, name, permission, "CommandAPI-Generated command", aliases, argumentBuilder);
+    }
+
+    public Command(String prefix, String name, String permission, String description, String[] aliases, Consumer<LiteralArgumentBuilder<CommandSource>> argumentBuilder) {
         this.prefix = prefix;
         this.name = name.toLowerCase(Locale.ROOT);
         this.permission = permission;
+        this.description = description;
         this.aliases = aliases.clone();
         this.argumentBuilder = argumentBuilder;
         this.names = new String[this.aliases.length + 1];
@@ -50,22 +60,51 @@ public class Command {
         return b;
     }
 
+    public String description() {
+        return description;
+    }
+
+    public String[] aliases() {
+        return aliases.clone();
+    }
+
+    public String name() {
+        return name;
+    }
+
+    public String prefix() {
+        return prefix;
+    }
+
+    public String permission() {
+        return permission;
+    }
+
+    public String[] names() {
+        return names.clone();
+    }
+
+    @Deprecated(forRemoval = true)
     public String[] getAliases() {
         return aliases.clone();
     }
 
+    @Deprecated(forRemoval = true)
     public String getName() {
         return name;
     }
 
+    @Deprecated(forRemoval = true)
     public String getPrefix() {
         return prefix;
     }
 
+    @Deprecated(forRemoval = true)
     public String getPermission() {
         return permission;
     }
 
+    @Deprecated(forRemoval = true)
     public String[] getNames() {
         return names.clone();
     }

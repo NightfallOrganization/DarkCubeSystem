@@ -14,41 +14,63 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
+import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.tree.LiteralCommandNode;
 import eu.darkcube.system.bukkit.DarkCubePlugin;
 import eu.darkcube.system.bukkit.commandapi.Command;
+import eu.darkcube.system.bukkit.commandapi.CommandAPI;
+import eu.darkcube.system.bukkit.commandapi.Commands;
 import eu.darkcube.system.impl.bukkit.DarkCubeSystemBukkit;
 import eu.darkcube.system.impl.bukkit.version.BukkitCommandAPIUtils;
 import eu.darkcube.system.impl.bukkit.version.latest.commandapi.CommandConverter;
+import eu.darkcube.system.impl.bukkit.version.latest.commandapi.CommandEntry;
+import io.papermc.paper.command.brigadier.CommandRegistrationFlag;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+import io.papermc.paper.command.brigadier.PaperCommands;
+import io.papermc.paper.command.brigadier.PluginCommandNode;
+import io.papermc.paper.plugin.configuration.PluginMeta;
+import io.papermc.paper.plugin.entrypoint.classloader.PaperPluginClassLoader;
 import net.minecraft.server.MinecraftServer;
 import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
-import org.bukkit.craftbukkit.v1_20_R2.CraftServer;
-import org.bukkit.craftbukkit.v1_20_R2.command.CraftCommandMap;
-import org.bukkit.craftbukkit.v1_20_R2.command.VanillaCommandWrapper;
+import org.bukkit.craftbukkit.CraftServer;
+import org.bukkit.craftbukkit.command.CraftCommandMap;
+import org.bukkit.craftbukkit.command.VanillaCommandWrapper;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.Listener;
-import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.PluginClassLoader;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.slf4j.LoggerFactory;
 import org.spigotmc.SpigotConfig;
 
+@SuppressWarnings("UnstableApiUsage")
 public class CommandAPIUtilsImpl extends BukkitCommandAPIUtils implements Listener {
-    private final Map<VanillaCommandWrapper, VanillaCommandWrapper> custom = new HashMap<>();
+    private final Map<org.bukkit.command.Command, VanillaCommandWrapper> custom = new HashMap<>();
+    private final org.slf4j.Logger logger = LoggerFactory.getLogger(CommandAPIUtilsImpl.class);
     private volatile boolean requireSync = false;
+    private final PaperCommands commands = PaperCommands.INSTANCE;
     private int requireSyncTick = 0;
 
-    private static VanillaCommandWrapper[] wrappers(Command command) {
-        final var prefix = command.getPrefix().toLowerCase(Locale.ROOT);
-        if (prefix.contains(" ")) throw new IllegalArgumentException("Can't register command with whitespace in prefix!");
+    public CommandAPIUtilsImpl() {
+    }
 
-        for (var name : command.getNames()) {
-            if (name.contains(" ")) throw new IllegalArgumentException("Can't register command with whitespace in name!");
+    private CommandEntry register(PluginMeta pluginMeta, CommandDispatcher<CommandSourceStack> dispatcher, LiteralCommandNode<CommandSourceStack> paperNode, Command command, eu.darkcube.system.bukkit.commandapi.Commands.CommandEntry.OriginalCommandTree node) {
+        var description = command.description();
+        var pluginLiteral = new PluginCommandNode(node.source.getName(), pluginMeta, paperNode, description);
+
+        var root = dispatcher.getRoot();
+        var oldChild = root.getChild(node.source.getName());
+
+        if (oldChild != null) {
+            logger.warn("Overriding previous command: {}, class: {}", oldChild.getName(), oldChild.getClass().getName());
+            root.removeCommand(oldChild.getName());
         }
-
-        var converter = new CommandConverter(command);
-        return converter.convert();
+        root.addChild(pluginLiteral);
+        return new CommandEntry();
     }
 
     private void requireSync() {
@@ -85,7 +107,7 @@ public class CommandAPIUtilsImpl extends BukkitCommandAPIUtils implements Listen
             plugincommand.setPermission(command.getPermission());
             var server = (CraftServer) Bukkit.getServer();
             var commandMap = (CraftCommandMap) server.getCommandMap();
-            register(commandMap.getKnownCommands(), plugin, plugincommand);
+            registerLegacy(commandMap.getKnownCommands(), plugin, plugincommand);
             return plugincommand;
         } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException | InstantiationException e) {
             throw new RuntimeException(e);
@@ -99,10 +121,11 @@ public class CommandAPIUtilsImpl extends BukkitCommandAPIUtils implements Listen
     }
 
     @Override
-    public void unregister(Command command) {
+    public void unregister(Commands.CommandEntry entry) {
+        var command = entry.executor();
         var knownCommands = Bukkit.getCommandMap().getKnownCommands();
-        var prefix = command.getPrefix().toLowerCase(Locale.ROOT);
-        for (var name : command.getNames()) {
+        var prefix = command.prefix().toLowerCase(Locale.ROOT);
+        for (var name : command.names()) {
             unregister(knownCommands, name.toLowerCase(Locale.ROOT));
             unregister(knownCommands, prefix + ":" + name.toLowerCase(Locale.ROOT));
         }
@@ -116,13 +139,13 @@ public class CommandAPIUtilsImpl extends BukkitCommandAPIUtils implements Listen
         var wrapper = custom.remove(w);
         if (wrapper == w) wrapper = null;
         knownCommands.remove(name);
-        for (var node : new ArrayList<>(MinecraftServer.getServer().vanillaCommandDispatcher.getDispatcher().getRoot().getChildren())) {
+        for (var node : new ArrayList<>(MinecraftServer.getServer().getCommands().getDispatcher().getRoot().getChildren())) {
             if (node.getName().equals(name)) {
-                MinecraftServer.getServer().vanillaCommandDispatcher.getDispatcher().getRoot().getChildren().remove(node);
+                MinecraftServer.getServer().getCommands().getDispatcher().getRoot().getChildren().remove(node);
                 if (wrapper != null) {
-                    Logger.getLogger("CommandAPI").warning("Reinstalling command: " + wrapper.getName());
+                    logger.warn("Reinstalling command: {}", wrapper.getName());
                     knownCommands.put(node.getName(), wrapper);
-                    MinecraftServer.getServer().vanillaCommandDispatcher.getDispatcher().getRoot().addChild(wrapper.vanillaCommand);
+                    MinecraftServer.getServer().getCommands().getDispatcher().getRoot().addChild(wrapper.vanillaCommand);
                 }
                 break;
             }
@@ -135,61 +158,66 @@ public class CommandAPIUtilsImpl extends BukkitCommandAPIUtils implements Listen
     }
 
     @Override
-    public void register(Command command) {
-        try {
-            unregister(command);
-            var wrappers = wrappers(command);
+    public void register(eu.darkcube.system.bukkit.commandapi.Commands.CommandEntry entry) {
+        var command = entry.executor();
 
-            var mcd = MinecraftServer.getServer().vanillaCommandDispatcher.getDispatcher();
+        final var prefix = command.prefix().toLowerCase(Locale.ROOT);
+        if (prefix.contains(" ")) throw new IllegalArgumentException("Can't register command with whitespace in prefix!");
 
-            for (var wrapper : wrappers) {
-                var it = mcd.getRoot().getChildren().iterator();
-                while (it.hasNext()) {
-                    var node = it.next();
-                    if (node.getName().equals(wrapper.getName())) {
-                        var cmd = Bukkit.getCommandMap().getKnownCommands().get(node.getName());
-                        if (cmd == null) {
-                            Bukkit.getCommandMap().getKnownCommands().put(node.getName(), new VanillaCommandWrapper(MinecraftServer.getServer().vanillaCommandDispatcher, node));
-                        }
-                        it.remove();
-                    }
-                }
-                var cmd = Bukkit.getCommandMap().getKnownCommands().put(wrapper.getName(), wrapper);
-
-                if (cmd != null) {
-                    Logger.getLogger("CommandAPI").warning("Overridden command: " + cmd.getName() + " (" + cmd.getClass().getSimpleName() + ")");
-                    if (cmd instanceof VanillaCommandWrapper w) {
-                        custom.put(wrapper, w);
-                    } else {
-                        custom.put(wrapper, wrapper);
-                    }
-                } else {
-                    custom.put(wrapper, wrapper);
-                }
-                mcd.getRoot().addChild(wrapper.vanillaCommand);
-            }
-            if (command.getPermission() != null) {
-                if (Bukkit.getPluginManager().getPermission(command.getPermission()) == null) {
-                    Bukkit.getPluginManager().addPermission(new Permission(command.getPermission()));
-                }
-            }
-            requireSync();
-        } catch (final Exception ex) {
-            throw new RuntimeException(ex);
+        for (var node : entry.nodes()) {
+            var name = node.source.getName();
+            if (name.contains(" ")) throw new IllegalArgumentException("Can't register command with whitespace in name!");
         }
+
+        unregister(entry);
+
+        var paperNode = CommandConverter.convertNode(command, command.name());
+        var pluginMeta = getPluginMeta(command);
+
+        var valid = true;
+        try {
+            commands.getDispatcher();
+        } catch (Throwable t) {
+            valid = false;
+        }
+        if (!valid) commands.setValid();
+
+        var dispatcher = commands.getDispatcher();
+
+        var entries = new CommandEntry[entry.nodes().size()];
+        var i = 0;
+        for (var node : entry.nodes()) {
+            entries[i++] = register(pluginMeta, dispatcher, paperNode, command, node);
+        }
+        if (!valid) commands.invalidate();
     }
 
-    private void register(Map<String, org.bukkit.command.Command> known, Plugin plugin, PluginCommand command) {
+    private PluginMeta getPluginMeta(Command command) {
+        PluginMeta pluginMeta = null;
+        var classLoader = command.getClass().getClassLoader();
+        if (classLoader instanceof PluginClassLoader pluginClassLoader) {
+            var plugin = pluginClassLoader.getPlugin();
+            if (plugin != null) {
+                pluginMeta = plugin.getPluginMeta();
+            }
+        } else if (classLoader instanceof PaperPluginClassLoader paperPluginClassLoader) {
+            pluginMeta = paperPluginClassLoader.getConfiguration();
+        }
+        if (pluginMeta == null) throw new IllegalStateException("Unable to get PluginMeta of Command");
+        return pluginMeta;
+    }
+
+    private void registerLegacy(Map<String, org.bukkit.command.Command> known, Plugin plugin, PluginCommand command) {
         var name = command.getName().toLowerCase(Locale.ENGLISH);
         var prefix = plugin.getName().toLowerCase(Locale.ENGLISH);
         List<String> successfulNames = new ArrayList<>();
-        register(known, name, prefix, false, command, successfulNames);
+        registerLegacy(known, name, prefix, false, command, successfulNames);
         for (var alias : command.getAliases()) {
-            register(known, alias, prefix, true, command, successfulNames);
+            registerLegacy(known, alias, prefix, true, command, successfulNames);
         }
     }
 
-    private void register(Map<String, org.bukkit.command.Command> known, String name, String prefix, boolean alias, org.bukkit.command.Command command, List<String> successfulNames) {
+    private void registerLegacy(Map<String, org.bukkit.command.Command> known, String name, String prefix, boolean alias, org.bukkit.command.Command command, List<String> successfulNames) {
         var key = prefix + ":" + name;
         var work = false;
         if (known.containsKey(key)) {

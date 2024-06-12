@@ -8,6 +8,7 @@
 package eu.darkcube.system.cloudnet.util.data.packets;
 
 import eu.darkcube.system.cloudnet.packetapi.Packet;
+import eu.darkcube.system.libs.com.google.gson.JsonObject;
 import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 
 public class PacketWrapperNodeQuery extends Packet {
@@ -26,5 +27,17 @@ public class PacketWrapperNodeQuery extends Packet {
 
     public Key storageKey() {
         return storageKey;
+    }
+
+    public static class Response extends Packet {
+        private final JsonObject data;
+
+        public Response(JsonObject data) {
+            this.data = data;
+        }
+
+        public JsonObject data() {
+            return data;
+        }
     }
 }

@@ -6,6 +6,13 @@
  */
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
+/*
+ * Copyright (c) 2024. [DarkCube]
+ * All rights reserved.
+ * You may not use or redistribute this software or any associated files without permission.
+ * The above copyright notice shall be included in all copies of this software.
+ */
+
 plugins {
     `java-library`
     `maven-publish`
@@ -89,8 +96,9 @@ dependencies {
 
     standaloneSourceSet.implementationConfigurationName(pluginSourceSet.output)
 
-    cloudnetInjectContent(sourceSets.main.map { it.output })
-    cloudnetInjectContent(projects.darkcubesystemImplementationServer)
     cloudnetInjectContent(projects.darkcubesystemMinestom)
     cloudnetInjectContent(projects.darkcubesystemServer)
+    cloudnetInjectContent(projects.darkcubesystemServerCloudnet)
+    cloudnetInjectContent(projects.darkcubesystemImplementationServer)
+    cloudnetInjectContent(sourceSets.main.map { it.output })
 }

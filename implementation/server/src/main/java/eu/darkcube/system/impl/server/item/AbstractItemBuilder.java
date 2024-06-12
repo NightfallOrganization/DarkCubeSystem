@@ -26,6 +26,7 @@ import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 import eu.darkcube.system.server.item.EquipmentSlot;
 import eu.darkcube.system.server.item.ItemBuilder;
+import eu.darkcube.system.server.item.ItemRarity;
 import eu.darkcube.system.server.item.attribute.Attribute;
 import eu.darkcube.system.server.item.attribute.AttributeModifier;
 import eu.darkcube.system.server.item.enchant.Enchantment;
@@ -47,6 +48,7 @@ public abstract class AbstractItemBuilder implements ItemBuilder {
     protected boolean unbreakable = false;
     protected boolean glow = false;
     protected int repairCost = 0;
+    protected ItemRarity rarity = null;
     protected @NotNull Map<Attribute, Collection<AttributeModifier>> attributeModifiers = new HashMap<>();
 
     protected BasicItemPersistentDataStorage storage = new BasicItemPersistentDataStorage(this);
@@ -377,6 +379,18 @@ public abstract class AbstractItemBuilder implements ItemBuilder {
     @Override
     public @NotNull AbstractItemBuilder repairCost(int repairCost) {
         this.repairCost = repairCost;
+        return this;
+    }
+
+    @Override
+    public ItemRarity rarity() {
+        return rarity;
+    }
+
+    @NotNull
+    @Override
+    public ItemBuilder rarity(@NotNull ItemRarity rarity) {
+        this.rarity = rarity;
         return this;
     }
 
