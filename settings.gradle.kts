@@ -9,7 +9,6 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
     repositories {
-        gradlePluginPortal()
         maven("https://nexus.darkcube.eu/repository/darkcube-group/") {
             name = "DarkCube"
             credentials(PasswordCredentials::class)

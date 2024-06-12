@@ -18,7 +18,7 @@ configurations.consumable("version") {
 }
 
 dependencies {
-    paperweightDevelopmentBundle("io.papermc.paper:dev-bundle:1.20.6-R0.1-SNAPSHOT")
+    paperweightDevelopmentBundle("io.papermc.paper:dev-bundle:1.20.6-R0.1-20240610.063449-113")
     implementation(projects.darkcubesystemImplementationBukkit)
     compileOnly(libs.cloudnet.driver)
     api(libs.viaversion.common)
