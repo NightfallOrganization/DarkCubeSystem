@@ -14,10 +14,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
-import java.util.logging.Logger;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import eu.darkcube.system.bukkit.DarkCubePlugin;
 import eu.darkcube.system.bukkit.commandapi.Command;
@@ -26,11 +25,11 @@ import eu.darkcube.system.bukkit.commandapi.Commands;
 import eu.darkcube.system.impl.bukkit.DarkCubeSystemBukkit;
 import eu.darkcube.system.impl.bukkit.version.BukkitCommandAPIUtils;
 import eu.darkcube.system.impl.bukkit.version.latest.commandapi.CommandConverter;
-import eu.darkcube.system.impl.bukkit.version.latest.commandapi.CommandEntry;
-import io.papermc.paper.command.brigadier.CommandRegistrationFlag;
+import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.PaperCommands;
 import io.papermc.paper.command.brigadier.PluginCommandNode;
+import io.papermc.paper.command.brigadier.PluginVanillaCommandWrapper;
 import io.papermc.paper.plugin.configuration.PluginMeta;
 import io.papermc.paper.plugin.entrypoint.classloader.PaperPluginClassLoader;
 import net.minecraft.server.MinecraftServer;
@@ -39,8 +38,12 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.craftbukkit.command.CraftCommandMap;
 import org.bukkit.craftbukkit.command.VanillaCommandWrapper;
+import org.bukkit.craftbukkit.help.SimpleHelpMap;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.PluginClassLoader;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -49,7 +52,7 @@ import org.spigotmc.SpigotConfig;
 
 @SuppressWarnings("UnstableApiUsage")
 public class CommandAPIUtilsImpl extends BukkitCommandAPIUtils implements Listener {
-    private final Map<org.bukkit.command.Command, VanillaCommandWrapper> custom = new HashMap<>();
+    private final Map<Command, Map<PluginCommandNode, CommandNode<CommandSourceStack>>> custom = new HashMap<>();
     private final org.slf4j.Logger logger = LoggerFactory.getLogger(CommandAPIUtilsImpl.class);
     private volatile boolean requireSync = false;
     private final PaperCommands commands = PaperCommands.INSTANCE;
@@ -58,19 +61,18 @@ public class CommandAPIUtilsImpl extends BukkitCommandAPIUtils implements Listen
     public CommandAPIUtilsImpl() {
     }
 
-    private CommandEntry register(PluginMeta pluginMeta, CommandDispatcher<CommandSourceStack> dispatcher, LiteralCommandNode<CommandSourceStack> paperNode, Command command, eu.darkcube.system.bukkit.commandapi.Commands.CommandEntry.OriginalCommandTree node) {
+    private void register(PluginMeta pluginMeta, CommandDispatcher<CommandSourceStack> dispatcher, LiteralCommandNode<CommandSourceStack> paperNode, Command command, eu.darkcube.system.bukkit.commandapi.Commands.CommandEntry.OriginalCommandTree node) {
         var description = command.description();
         var pluginLiteral = new PluginCommandNode(node.source.getName(), pluginMeta, paperNode, description);
 
         var root = dispatcher.getRoot();
         var oldChild = root.getChild(node.source.getName());
-
         if (oldChild != null) {
             logger.warn("Overriding previous command: {}, class: {}", oldChild.getName(), oldChild.getClass().getName());
             root.removeCommand(oldChild.getName());
+            this.custom.computeIfAbsent(command, cmd -> new HashMap<>()).put(pluginLiteral, oldChild);
         }
         root.addChild(pluginLiteral);
-        return new CommandEntry();
     }
 
     private void requireSync() {
@@ -89,7 +91,44 @@ public class CommandAPIUtilsImpl extends BukkitCommandAPIUtils implements Listen
                 }
             }
         }.runTaskTimer(system, 1, 1);
+        Bukkit.getPluginManager().registerEvents(new PluginListener(), system);
     }
+
+    private class PluginListener implements Listener {
+        @EventHandler
+        public void handle(PluginDisableEvent event) {
+            var plugin = event.getPlugin().getPluginMeta();
+
+            var entries = CommandAPI.instance().getCommands().commandEntries().stream().filter(e -> {
+                var meta = getPluginMeta(e.executor());
+                return meta == plugin;
+            }).toList();
+
+            if (!entries.isEmpty()) {
+                for (var entry : entries) {
+                    var newEntry = CommandAPI.instance().getCommands().unregister(entry.executor());
+                    if (newEntry == entry) {
+                        unregister(entry);
+                    } else {
+                        logger.warn("Wrong entry: {}!={}", newEntry, entry);
+                    }
+                }
+
+                updateHelpMap();
+                requireSync();
+            }
+        }
+    }
+    //
+    // private PluginMeta queryMeta(PluginCommandNode node) {
+    //     try {
+    //         var pluginField = PluginCommandNode.class.getDeclaredField("plugin");
+    //         pluginField.setAccessible(true);
+    //         return (PluginMeta) pluginField.get(node);
+    //     } catch (IllegalAccessException | NoSuchFieldException e) {
+    //         throw new RuntimeException(e);
+    //     }
+    // }
 
     @Override
     public String unknownCommandMessage() {
@@ -122,38 +161,56 @@ public class CommandAPIUtilsImpl extends BukkitCommandAPIUtils implements Listen
 
     @Override
     public void unregister(Commands.CommandEntry entry) {
-        var command = entry.executor();
         var knownCommands = Bukkit.getCommandMap().getKnownCommands();
-        var prefix = command.prefix().toLowerCase(Locale.ROOT);
-        for (var name : command.names()) {
-            unregister(knownCommands, name.toLowerCase(Locale.ROOT));
-            unregister(knownCommands, prefix + ":" + name.toLowerCase(Locale.ROOT));
+        var overwrites = custom.remove(entry.executor());
+        for (var node : entry.nodes()) {
+            var name = node.source.getName();
+            unregister(knownCommands, overwrites, name);
         }
-        requireSync();
     }
 
-    private void unregister(Map<String, org.bukkit.command.Command> knownCommands, String name) {
+    private void updateHelpMap() {
+        var helpMap = (SimpleHelpMap) Bukkit.getHelpMap();
+        helpMap.clear();
+        helpMap.initializeGeneralTopics();
+        helpMap.initializeCommands();
+    }
+
+    private void unregister(Map<String, org.bukkit.command.Command> knownCommands, @Nullable Map<PluginCommandNode, CommandNode<CommandSourceStack>> overwrites, String name) {
         var cmd = knownCommands.get(name);
-        if (!(cmd instanceof VanillaCommandWrapper w)) return;
-        if (!custom.containsKey(w)) return;
-        var wrapper = custom.remove(w);
-        if (wrapper == w) wrapper = null;
-        knownCommands.remove(name);
-        for (var node : new ArrayList<>(MinecraftServer.getServer().getCommands().getDispatcher().getRoot().getChildren())) {
-            if (node.getName().equals(name)) {
-                MinecraftServer.getServer().getCommands().getDispatcher().getRoot().getChildren().remove(node);
-                if (wrapper != null) {
-                    logger.warn("Reinstalling command: {}", wrapper.getName());
-                    knownCommands.put(node.getName(), wrapper);
-                    MinecraftServer.getServer().getCommands().getDispatcher().getRoot().addChild(wrapper.vanillaCommand);
+        // might actually be null in case a third party like plugman unregistered a command.
+        // in that case we still want to restore the previous command.
+        if (cmd != null) {
+            if (cmd instanceof PluginVanillaCommandWrapper w) {
+                if ((Object) w.vanillaCommand instanceof PluginCommandNode pluginNode) {
+                    knownCommands.remove(name);
+                    if (overwrites != null) {
+                        var oldCommand = overwrites.remove(pluginNode);
+                        if (oldCommand != null) {
+                            logger.warn("Reinstalling command: {}", oldCommand.getName());
+                            commands.getDispatcherInternal().getRoot().addChild(oldCommand);
+                        }
+                    }
+                    return;
                 }
-                break;
+            }
+        }
+        if (overwrites != null) {
+            for (var entry : overwrites.entrySet()) {
+                if (entry.getKey().getLiteral().equals(name)) {
+                    var oldCommand = entry.getValue();
+                    logger.warn("Reinstalling command: {}", oldCommand.getName());
+                    commands.getDispatcherInternal().getRoot().addChild(oldCommand);
+                    overwrites.remove(entry.getKey());
+                    break;
+                }
             }
         }
     }
 
     @Override
     public double[] getEntityBB(Entity entity) {
+        Bukkit.getWorlds().getFirst().spawnEntity(null, EntityType.BLOCK_DISPLAY);
         return new double[]{entity.getBoundingBox().getMinX(), entity.getBoundingBox().getMinY(), entity.getBoundingBox().getMinZ(), entity.getBoundingBox().getMaxX(), entity.getBoundingBox().getMaxY(), entity.getBoundingBox().getMaxZ()};
     }
 
@@ -174,22 +231,11 @@ public class CommandAPIUtilsImpl extends BukkitCommandAPIUtils implements Listen
         var paperNode = CommandConverter.convertNode(command, command.name());
         var pluginMeta = getPluginMeta(command);
 
-        var valid = true;
-        try {
-            commands.getDispatcher();
-        } catch (Throwable t) {
-            valid = false;
-        }
-        if (!valid) commands.setValid();
+        var dispatcher = commands.getDispatcherInternal();
 
-        var dispatcher = commands.getDispatcher();
-
-        var entries = new CommandEntry[entry.nodes().size()];
-        var i = 0;
         for (var node : entry.nodes()) {
-            entries[i++] = register(pluginMeta, dispatcher, paperNode, command, node);
+            register(pluginMeta, dispatcher, paperNode, command, node);
         }
-        if (!valid) commands.invalidate();
     }
 
     private PluginMeta getPluginMeta(Command command) {

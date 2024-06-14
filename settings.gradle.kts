@@ -25,7 +25,7 @@ rootProject.name = "darkcubesystem"
 includeSubProjects("", "bukkit", "proxy", "minestom", "libs")
 includeSubProjects("api", "cloudnet")
 includeSubProjects("server", "cloudnet")
-includeSubProjects("implementation", "common", "server", "velocity", "minestom", "cloudnet", "standalone")
+includeSubProjects("implementation", "common", "server", "velocity", "minestom", "cloudnet", "standalone", "kyori-wrapper")
 includeSubProjects("implementation:provider", "cloudnet", "standalone")
 includeSubProjects("implementation:bukkit", "1.8.8", "latest")
 

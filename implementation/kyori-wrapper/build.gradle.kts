@@ -4,10 +4,13 @@
  * You may not use or redistribute this software or any associated files without permission.
  * The above copyright notice shall be included in all copies of this software.
  */
+plugins {
+    `java-library`
+    `maven-publish`
+    id("eu.darkcube.darkcube")
+}
 
-package eu.darkcube.system.impl.bukkit.version.latest.commandapi;
-
-import org.bukkit.command.Command;
-
-public record CommandEntry() {
+dependencies {
+    api(projects.darkcubesystemLibs)
+    compileOnly(libs.adventure.api)
 }

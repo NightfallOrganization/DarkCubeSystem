@@ -9,6 +9,7 @@ package eu.darkcube.system.bukkit.commandapi;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -110,7 +111,7 @@ public class Commands {
 
     public CommandEntry unregister(Command command) {
         for (var entry : new ArrayList<>(commandEntries)) {
-            if (entry.executor.equals(command)) {
+            if (entry.executor().equals(command)) {
                 for (var original : entry.nodes) {
                     unregister(dispatcher.getRoot(), original);
                 }
@@ -132,7 +133,7 @@ public class Commands {
             ncommand = null;
         }
         if (ncommand == null && node.getChildren().isEmpty()) {
-            parent.getChildren().remove(node);
+            unregisterCommandNodeChild(parent, CommandNode.class, node.getName());
             return true;
         }
         return false;
@@ -163,7 +164,6 @@ public class Commands {
             return dispatcher.execute(parse);
         } catch (CommandSyntaxException ex) {
             var failedCursor = ex.getCursor();
-            System.out.println("Failed cursor: " + failedCursor);
             if (failedCursor == 0) {
                 return -1; // Happens when someone tries to execute a main command (PluginCommand) that requires a condition which is not met
             }
@@ -204,6 +204,25 @@ public class Commands {
 
     public CommandDispatcher<CommandSource> getDispatcher() {
         return dispatcher;
+    }
+
+    public static void unregisterCommandNodeChild(Object rootNode, Class<?> commandNodeClass, String name) {
+        try {
+            var childrenField = commandNodeClass.getDeclaredField("children");
+            var literalsField = commandNodeClass.getDeclaredField("literals");
+            var argumentsField = commandNodeClass.getDeclaredField("arguments");
+            unregisterCommandNodeChild(childrenField, rootNode, name);
+            unregisterCommandNodeChild(literalsField, rootNode, name);
+            unregisterCommandNodeChild(argumentsField, rootNode, name);
+        } catch (IllegalAccessException | NoSuchFieldException e) {
+            throw new Error(e);
+        }
+    }
+
+    private static void unregisterCommandNodeChild(Field field, Object instance, String name) throws IllegalAccessException {
+        field.setAccessible(true);
+        var map = (Map<String, ?>) field.get(instance);
+        map.remove(name);
     }
 
     @FunctionalInterface
