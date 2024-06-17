@@ -38,7 +38,6 @@ import eu.darkcube.system.libs.net.kyori.adventure.text.event.ClickEvent;
 import eu.darkcube.system.libs.net.kyori.adventure.text.event.HoverEvent;
 import eu.darkcube.system.libs.net.kyori.adventure.text.format.NamedTextColor;
 import eu.darkcube.system.libs.net.kyori.adventure.text.format.TextColor;
-import eu.darkcube.system.libs.net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import eu.darkcube.system.libs.net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import org.bukkit.Bukkit;
@@ -291,7 +290,6 @@ public class CommandSource implements ISuggestionProvider, ForwardingAudience.Si
             var component = components.get(possibility);
             if (component != null) {
                 sendMessage(component);
-                System.out.println(GsonComponentSerializer.gson().serialize(component));
             }
         }
     }
