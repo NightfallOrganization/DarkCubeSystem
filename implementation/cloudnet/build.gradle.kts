@@ -51,6 +51,7 @@ tasks {
     }
     processResources.configure {
         expand(mapOf("version" to version))
+        inputs.property("version", version)
     }
 }
 

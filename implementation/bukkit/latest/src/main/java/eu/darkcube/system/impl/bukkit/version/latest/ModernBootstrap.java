@@ -16,10 +16,6 @@ import org.jetbrains.annotations.NotNull;
 public class ModernBootstrap implements PluginBootstrap {
     @Override
     public void bootstrap(@NotNull BootstrapContext context) {
-        context.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
-            BukkitVersionLoader.INSTANCE.load();
-            System.out.println("Set commands");
-        });
-        System.out.println("bootstrap");
+        context.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> BukkitVersionLoader.INSTANCE.load());
     }
 }

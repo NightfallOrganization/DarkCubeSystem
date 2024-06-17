@@ -25,9 +25,11 @@ configurations.named(standaloneSource.implementationConfigurationName).configure
 }
 tasks.named<ProcessResources>(cloudnetSource.processResourcesTaskName) {
     expand(mapOf("version" to version))
+    inputs.property("version", version)
 }
 tasks.named<ProcessResources>(standaloneSource.processResourcesTaskName) {
     expand(mapOf("version" to version))
+    inputs.property("version", version)
 }
 tasks.jar.configure {
     destinationDirectory = temporaryDir
@@ -37,6 +39,10 @@ val cloudnetJar = tasks.register<Jar>("cloudnetJar") {
     include(merge.get(), this, "versions")
     from(cloudnetSource.output)
     from(sourceSets.main.map { it.output })
+    destinationDirectory = temporaryDir
+}
+val cloudnetJarRaw = tasks.register<Jar>("cloudnetJarRaw") {
+    from(cloudnetSource.output)
     destinationDirectory = temporaryDir
 }
 val cloudnetInjectJar = tasks.register<Jar>("cloudnetInjectJar") {
@@ -59,6 +65,9 @@ configurations.consumable("cloudnetInject") {
     outgoing.artifact(cloudnetInjectJar) {
         name = "bukkit"
     }
+}
+configurations.consumable("cloudnetPluginRaw") {
+    outgoing.artifact(cloudnetJarRaw)
 }
 
 dependencies {

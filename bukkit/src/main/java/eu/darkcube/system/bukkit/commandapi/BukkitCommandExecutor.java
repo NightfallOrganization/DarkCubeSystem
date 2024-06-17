@@ -13,8 +13,6 @@ import eu.darkcube.system.bukkit.util.BukkitAdventureSupport;
 import eu.darkcube.system.commandapi.CommandExecutor;
 import eu.darkcube.system.libs.net.kyori.adventure.audience.Audience;
 import eu.darkcube.system.libs.net.kyori.adventure.audience.ForwardingAudience;
-import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
-import eu.darkcube.system.libs.net.kyori.adventure.text.event.HoverEvent;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.userapi.UserAPI;
 import eu.darkcube.system.util.Language;
@@ -34,9 +32,6 @@ public class BukkitCommandExecutor implements CommandExecutor, ForwardingAudienc
         var s = sender;
         while (s instanceof ProxiedCommandSender) s = ((ProxiedCommandSender) s).getCaller();
         this.audience = BukkitAdventureSupport.adventureSupport().audienceProvider().sender(s);
-        System.out.println("Created " + s);
-
-        audience.sendMessage(Component.text("CommandExecutor created").hoverEvent(HoverEvent.showText(Component.text("hover"))));
 
         Bukkit.getPluginManager().callEvent(new BukkitCommandExecutorConfigureEvent(this));
     }

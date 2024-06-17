@@ -14,6 +14,5 @@ import org.jetbrains.annotations.NotNull;
 public class ModernLoader implements PluginLoader {
     @Override
     public void classloader(@NotNull PluginClasspathBuilder classpathBuilder) {
-        System.out.println("LOader");
     }
 }

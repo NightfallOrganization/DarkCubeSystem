@@ -10,7 +10,6 @@ package eu.darkcube.system.util;
 import eu.darkcube.system.libs.net.kyori.adventure.platform.AudienceProvider;
 
 public interface AdventureSupport {
-
     static AdventureSupport adventureSupport() {
         return AdventureSupportHolder.instance();
     }

@@ -42,9 +42,6 @@ public class DarkCubeSystemCommand extends Command {
         public Command parse(StringReader reader) throws CommandSyntaxException {
             var name = reader.readUnquotedString();
             var entryOptional = CommandAPI.instance().getCommands().commandEntries().stream().filter(entry -> entry.executor().name().equals(name)).findFirst();
-            for (var child : CommandAPI.instance().getCommands().getDispatcher().getRoot().getChildren()) {
-                System.out.println(child.getName());
-            }
             if (entryOptional.isEmpty()) throw NOT_FOUND.createWithContext(reader, name);
             var entry = entryOptional.get();
             return entry.executor();

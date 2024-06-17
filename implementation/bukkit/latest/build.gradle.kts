@@ -11,10 +11,10 @@ plugins {
     id("eu.darkcube.darkcube")
 }
 
-configurations.consumable("version") {
-    outgoing.artifact(tasks.jar) {
-        name = "v1_20_6"
-    }
+val cloudnetSource by sourceSets.register("cloudnet")
+
+configurations.named(cloudnetSource.compileClasspathConfigurationName).configure {
+    extendsFrom(configurations.compileClasspath.get())
 }
 
 dependencies {
@@ -22,13 +22,24 @@ dependencies {
     implementation(projects.darkcubesystemImplementationBukkit)
     compileOnly(libs.cloudnet.driver)
     api(libs.viaversion.common)
+
+    cloudnetSource.implementationConfigurationName(projects.darkcubesystemApiCloudnet)
+    cloudnetSource.implementationConfigurationName(projects.darkcubesystemImplementationProvider)
+    cloudnetSource.implementationConfigurationName(projects.darkcubesystemImplementationBukkit) { targetConfiguration = "cloudnetPluginRaw" }
+    cloudnetSource.implementationConfigurationName(sourceSets.main.map { it.output })
+    cloudnetSource.implementationConfigurationName(libs.cloudnet.wrapper)
+    cloudnetSource.implementationConfigurationName(libs.cloudnet.asm)
+    cloudnetSource.implementationConfigurationName(libs.cloudnet.asm.tree)
 }
 
 tasks {
-    assemble {
-        dependsOn(reobfJar)
-    }
     jar {
-        destinationDirectory = temporaryDir
+        from(cloudnetSource.output)
+    }
+}
+
+configurations.consumable("version") {
+    outgoing.artifact(tasks.jar) {
+        name = "v1_20_6"
     }
 }

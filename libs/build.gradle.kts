@@ -10,22 +10,27 @@ plugins {
     id("eu.darkcube.darkcube")
 }
 
-val embed = configurations.create("embed")
+val embedStep1 = configurations.create("embedStep1")
+val embedStep2 = configurations.create("embedStep2")
 
 dependencies {
-    embed(libs.bundles.adventure)
-    embed(libs.brigadier)
-    embed(libs.gson)
-    embed(libs.annotations)
-    embed(libs.caffeine)
+    embedStep1(libs.brigadier)
+    embedStep1(libs.gson)
+    embedStep1(libs.annotations)
+    embedStep1(libs.caffeine)
+
+    embedStep2(libs.bundles.adventure) {
+        exclude(group = "com.google.code.gson")
+    }
 }
 
-val configuration = sourceRemapper.remap(embed, "eu.darkcube.system.libs", configurations.named("api"))
+sourceRemapper.remap(embedStep2, "eu.darkcube.system.libs", configurations.named("api"))
+sourceRemapper.remap(embedStep1, "eu.darkcube.system.libs", configurations.named("api"))
 
 publishing {
     publications {
         register<MavenPublication>("libs") {
-            from(configuration.component.configureJava(sourceSets.main, tasks.jar).component)
+            from(components["java"])
         }
     }
 }

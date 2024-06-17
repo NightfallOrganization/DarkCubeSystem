@@ -14,7 +14,6 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ServiceLoader;
 
-import eu.darkcube.system.bukkit.version.BukkitVersion;
 import io.papermc.paper.ServerBuildInfo;
 import org.bukkit.Bukkit;
 
@@ -38,7 +37,8 @@ public class BukkitVersionLoader {
             // noinspection ConstantValue
             if (Bukkit.getServer() == null) {
                 // modern minecraft
-                path = "versions/v1_20_6.jar";
+                var version = ServerBuildInfo.buildInfo().minecraftVersionId().replace('.', '_');
+                path = "versions/v" + version + ".jar";
             } else {
                 path = "versions/v1_8_R3.jar";
             }

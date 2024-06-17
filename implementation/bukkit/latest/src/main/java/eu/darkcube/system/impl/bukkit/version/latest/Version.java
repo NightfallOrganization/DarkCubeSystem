@@ -7,6 +7,7 @@
 
 package eu.darkcube.system.impl.bukkit.version.latest;
 
+import java.util.ServiceLoader;
 import java.util.logging.Level;
 
 import eu.darkcube.system.bukkit.provider.via.ViaSupport;
@@ -28,6 +29,7 @@ public class Version extends BukkitVersionImpl {
 
     @Override
     public void loaded(DarkCubeSystemBukkit system) {
+        ServiceLoader.load(LatestCloudNetImplementation.class, getClass().getClassLoader()).findFirst().ifPresent(LatestCloudNetImplementation::init);
         super.loaded(system);
         try {
             provider.register(ViaSupport.class, new ViaSupportImpl());

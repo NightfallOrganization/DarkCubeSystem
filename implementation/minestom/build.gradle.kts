@@ -42,6 +42,7 @@ val standaloneJar = tasks.register<Jar>("standaloneJar") {
 }
 tasks.named<ProcessResources>(cloudnetSourceSet.processResourcesTaskName).configure {
     expand(mapOf("version" to version))
+    inputs.property("version", version)
 }
 
 tasks.jar.configure {
