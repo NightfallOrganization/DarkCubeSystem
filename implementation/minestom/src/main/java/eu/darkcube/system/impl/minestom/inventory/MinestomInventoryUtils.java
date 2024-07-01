@@ -24,7 +24,7 @@ class MinestomInventoryUtils {
         return PLAYER_COMPUTER.compute(player, null);
     }
 
-    static @NotNull ItemStack computeItem(@Nullable User user, @NotNull Object item) {
+    static @NotNull ItemStack computeItem(@Nullable User user, @Nullable Object item) {
         return ITEM_COMPUTER.compute(item, user);
     }
 }

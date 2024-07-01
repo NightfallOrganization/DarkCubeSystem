@@ -23,12 +23,17 @@ public class StaticPagedInventoryContentProvider implements PagedInventoryConten
 
     @Override
     public @NotNull BigInteger size() {
-        return SIZE_UNKNOWN;
+        return BigInteger.valueOf(items.size());
     }
 
     @Override
     public @NotNull ItemReference @NotNull [] provideItem(@NotNull BigInteger index, int length, @NotNull ItemReferenceProvider itemReferenceProvider) {
-        return new ItemReference[0];
+        var start = index.intValueExact();
+        var list = new ArrayList<ItemReference>();
+        for (var i = 0; i < length && start + i < items.size(); i++) {
+            list.add(items.get(start + i));
+        }
+        return list.toArray(ItemReference[]::new);
     }
 
     public ItemReferenceImpl addItem(Object item) {

@@ -27,6 +27,7 @@ public class PagedTemplateSettingsImpl implements PagedTemplateSettings {
     public final PagedInventoryContentImpl content;
     public int[] pageSlots = new int[0];
     public @NotNull PageSlotSorter sorter;
+    public boolean configured;
 
     public PagedTemplateSettingsImpl(InventoryTemplateImpl<?> template) {
         this.template = template;
@@ -35,9 +36,10 @@ public class PagedTemplateSettingsImpl implements PagedTemplateSettings {
         this.content = new PagedInventoryContentImpl();
         this.previousButton = new PageButtonImpl();
         this.nextButton = new PageButtonImpl();
+        this.configured = false;
     }
 
-    private PagedTemplateSettingsImpl(InventoryTemplateImpl<?> template, Map<Integer, int[]> specialPageSlots, PageButtonImpl previousButton, PageButtonImpl nextButton, PagedInventoryContentImpl content, int[] pageSlots, @NotNull PageSlotSorter sorter) {
+    private PagedTemplateSettingsImpl(InventoryTemplateImpl<?> template, Map<Integer, int[]> specialPageSlots, PageButtonImpl previousButton, PageButtonImpl nextButton, PagedInventoryContentImpl content, int[] pageSlots, @NotNull PageSlotSorter sorter, boolean configured) {
         this.template = template;
         this.specialPageSlots = specialPageSlots;
         this.previousButton = previousButton;
@@ -45,6 +47,12 @@ public class PagedTemplateSettingsImpl implements PagedTemplateSettings {
         this.content = content;
         this.pageSlots = pageSlots;
         this.sorter = sorter;
+        this.configured = configured;
+    }
+
+    @Override
+    public boolean isConfigured() {
+        return configured;
     }
 
     @Override
@@ -56,7 +64,8 @@ public class PagedTemplateSettingsImpl implements PagedTemplateSettings {
         var pageSlots = this.pageSlots();
         var content = this.content.clone();
         var sorter = this.sorter;
-        return new PagedTemplateSettingsImpl(template, specialPageSlots, previousButton, nextButton, content, pageSlots, sorter);
+        var configured = this.configured;
+        return new PagedTemplateSettingsImpl(template, specialPageSlots, previousButton, nextButton, content, pageSlots, sorter, configured);
     }
 
     @Override
@@ -71,6 +80,7 @@ public class PagedTemplateSettingsImpl implements PagedTemplateSettings {
 
     @Override
     public void pageSlots(int @NotNull [] pageSlots) {
+        this.configured = true;
         this.pageSlots = pageSlots.clone();
     }
 
@@ -81,11 +91,13 @@ public class PagedTemplateSettingsImpl implements PagedTemplateSettings {
 
     @Override
     public void sorter(@NotNull PageSlotSorter sorter) {
+        this.configured = true;
         this.sorter = sorter;
     }
 
     @Override
     public void specialPageSlots(int @NotNull [] pageSlots) {
+        this.configured = true;
         this.specialPageSlots.put(pageSlots.length, pageSlots.clone());
     }
 

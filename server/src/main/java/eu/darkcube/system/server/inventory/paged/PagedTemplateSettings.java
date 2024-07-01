@@ -17,6 +17,9 @@ import eu.darkcube.system.server.inventory.InventoryTemplateSettings;
 @Api
 public interface PagedTemplateSettings extends InventoryTemplateSettings, Cloneable {
     @Api
+    boolean isConfigured();
+
+    @Api
     @NotNull
     PagedTemplateSettings clone();
 

@@ -18,7 +18,6 @@ import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 import eu.darkcube.system.libs.org.jetbrains.annotations.UnknownNullability;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Unmodifiable;
 import eu.darkcube.system.server.inventory.item.ItemFactory;
-import eu.darkcube.system.server.inventory.item.ItemReference;
 import eu.darkcube.system.server.item.ItemBuilder;
 import eu.darkcube.system.userapi.User;
 
@@ -87,6 +86,7 @@ public class ComputationUtil {
                 return ((Supplier<?>) object).get();
             }
         });
+        computer.allowNull();
         return computer;
     }
 

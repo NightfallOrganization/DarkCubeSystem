@@ -7,6 +7,9 @@
 
 package eu.darkcube.system.impl.server.inventory.paged;
 
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.server.inventory.item.ItemReference;
 import eu.darkcube.system.server.inventory.paged.PagedInventoryContent;
@@ -15,22 +18,39 @@ import eu.darkcube.system.server.inventory.paged.PagedInventoryContentProvider;
 public class PagedInventoryContentImpl implements PagedInventoryContent {
     private boolean staticUsable = true;
     private boolean staticUsed = false;
+    private boolean async = false;
+    private final List<Updater> updaters = new CopyOnWriteArrayList<>();
     private PagedInventoryContentProvider provider = new StaticPagedInventoryContentProvider();
-    private Updater updater = null;
 
     public PagedInventoryContentImpl() {
     }
 
-    private PagedInventoryContentImpl(boolean staticUsable, boolean staticUsed, PagedInventoryContentProvider provider, Updater updater) {
+    private PagedInventoryContentImpl(boolean staticUsable, boolean staticUsed, boolean async, PagedInventoryContentProvider provider, List<Updater> updaters) {
         this.staticUsable = staticUsable;
         this.staticUsed = staticUsed;
+        this.async = async;
         this.provider = provider;
-        this.updater = updater;
+        this.updaters.addAll(updaters);
     }
 
     @Override
     public PagedInventoryContentImpl clone() {
-        return new PagedInventoryContentImpl(staticUsable, staticUsed, provider, updater);
+        return new PagedInventoryContentImpl(staticUsable, staticUsed, async, provider, updaters);
+    }
+
+    @Override
+    public boolean isAsync() {
+        return async;
+    }
+
+    @Override
+    public void makeAsync() {
+        async = true;
+    }
+
+    @Override
+    public void makeSync() {
+        async = false;
     }
 
     @Override
@@ -52,38 +72,54 @@ public class PagedInventoryContentImpl implements PagedInventoryContent {
         this.provider = provider;
     }
 
-    public void updater(Updater updater) {
-        this.updater = updater;
+    public void addUpdater(Updater updater) {
+        this.updaters.add(updater);
+    }
+
+    public void removeUpdater(Updater updater) {
+        this.updaters.remove(updater);
     }
 
     @Override
     public void publishUpdate(int index) {
-        if (updater != null) updater.update(index);
+        for (var i = 0; i < updaters.size(); i++) {
+            updaters.get(i).update(index);
+        }
     }
 
     @Override
     public void publishUpdatePage() {
-        if (updater != null) updater.updatePage();
+        for (var i = 0; i < updaters.size(); i++) {
+            updaters.get(i).updatePage();
+        }
     }
 
     @Override
     public void publishUpdateAll() {
-        if (updater != null) updater.updateAll();
+        for (var i = 0; i < updaters.size(); i++) {
+            updaters.get(i).updateAll();
+        }
     }
 
     @Override
     public void publishUpdateRemoveAt(int index) {
-        if (updater != null) updater.updateRemoveAt(index);
+        for (var i = 0; i < updaters.size(); i++) {
+            updaters.get(i).updateRemoveAt(index);
+        }
     }
 
     @Override
     public void publishUpdateInsertBefore(int index) {
-        if (updater != null) updater.updateInsertBefore(index);
+        for (var i = 0; i < updaters.size(); i++) {
+            updaters.get(i).updateInsertBefore(index);
+        }
     }
 
     @Override
     public void publishUpdateInsertAfter(int index) {
-        if (updater != null) updater.updateInsertAfter(index);
+        for (var i = 0; i < updaters.size(); i++) {
+            updaters.get(i).updateInsertAfter(index);
+        }
     }
 
     public interface Updater {

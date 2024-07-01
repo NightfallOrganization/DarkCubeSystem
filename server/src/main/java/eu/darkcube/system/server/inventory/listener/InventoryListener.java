@@ -34,6 +34,7 @@ public interface InventoryListener {
     /**
      * Called once all items in an inventory are visible.
      * This does not imply that items won't change as a result of async computation or other operations.
+     * This is called every time all animations have finished. Can be called multiple times for the same inventory.
      *
      * @param inventory the inventory
      */

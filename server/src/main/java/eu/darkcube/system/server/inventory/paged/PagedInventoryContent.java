@@ -7,7 +7,6 @@
 
 package eu.darkcube.system.server.inventory.paged;
 
-import java.lang.reflect.Array;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -17,7 +16,33 @@ import eu.darkcube.system.server.inventory.InventoryTemplate;
 import eu.darkcube.system.server.inventory.item.ItemReference;
 import eu.darkcube.system.userapi.User;
 
+/**
+ * This represents the content in a paged inventory.
+ * Content items always have priority {@value #PRIORITY}.
+ */
 public interface PagedInventoryContent {
+    /**
+     * Default priority for content items.
+     */
+    int PRIORITY = 1000;
+
+    /**
+     * @return whether the inventory content should be calculated async. Useful when it is backed by a remote service like a database.
+     */
+    boolean isAsync();
+
+    /**
+     * @see #isAsync()
+     * @see #makeSync()
+     */
+    void makeAsync();
+
+    /**
+     * @see #isAsync()
+     * @see #makeAsync()
+     */
+    void makeSync();
+
     /**
      * Adds static items to the inventory. This can only be used if no custom provider is in use.
      * Otherwise this throws an {@link IllegalStateException}.
@@ -26,7 +51,7 @@ public interface PagedInventoryContent {
      * If the contents do change, use a custom provider ({@link #provider(PagedInventoryContentProvider)})
      * <p>
      * The {@code publishUpdate...} methods will work with this, and can be used to recompute items.
-     * This is not recommended, because inserted items would have to be tracked by the user (you!).
+     * This is not recommended for the normal user, because inserted items would have to be tracked by the user (you!).
      * The only way to use dynamic items with this method safely is to use {@link #publishUpdateAll()},
      * which is not very efficient.
      * <p>

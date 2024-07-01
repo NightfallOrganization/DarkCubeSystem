@@ -36,7 +36,7 @@ public interface PagedInventoryContentProvider {
      *
      * @param index  the index of the first item
      * @param length the length of the requested sequence
-     * @return an array containing all items
+     * @return an array containing all items. The array size may differ from the input {@code length}
      */
     @NotNull
     ItemReference @NotNull [] provideItem(@NotNull BigInteger index, int length, @NotNull ItemReferenceProvider itemReferenceProvider);

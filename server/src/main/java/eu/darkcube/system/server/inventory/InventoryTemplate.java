@@ -23,6 +23,7 @@ import eu.darkcube.system.server.inventory.item.ItemFactory;
 import eu.darkcube.system.server.inventory.item.ItemReference;
 import eu.darkcube.system.server.inventory.item.ItemTemplate;
 import eu.darkcube.system.server.inventory.listener.InventoryListener;
+import eu.darkcube.system.server.inventory.paged.PagedInventoryContent;
 import eu.darkcube.system.server.inventory.paged.PagedTemplateSettings;
 import eu.darkcube.system.server.item.ItemBuilder;
 import eu.darkcube.system.userapi.User;
@@ -149,7 +150,7 @@ public interface InventoryTemplate extends Keyed {
      *     <li>{@link Function Function&lt;User, ?&gt;} with any of the accepted types as return value</li>
      * </ul>
      *
-     * @param priority the item priority. Higher priorities are displayed over lower priorities
+     * @param priority the item priority. Higher priorities are displayed over lower priorities. Avoid value {@value PagedInventoryContent#PRIORITY}.
      * @param slot     the slot to put the item in
      * @param item     the item to display
      * @return an {@link ItemReference} allowing modification of the item
@@ -182,7 +183,7 @@ public interface InventoryTemplate extends Keyed {
     /**
      * Adds the template at the given priority
      *
-     * @param priority the priority for the entire template
+     * @param priority the priority for the entire template. Avoid value {@value PagedInventoryContent#PRIORITY}.
      * @param template the template with all the items
      */
     @Api

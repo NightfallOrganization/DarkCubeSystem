@@ -14,17 +14,17 @@ import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.protocol.AbstractProtocol;
 import com.viaversion.viaversion.api.protocol.packet.mapping.PacketMappings;
 import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
-import com.viaversion.viaversion.api.type.Type;
+import com.viaversion.viaversion.api.type.Types;
 import com.viaversion.viaversion.libs.gson.JsonElement;
-import com.viaversion.viaversion.protocols.protocol1_12_1to1_12.ClientboundPackets1_12_1;
-import com.viaversion.viaversion.protocols.protocol1_13to1_12_2.ClientboundPackets1_13;
-import com.viaversion.viaversion.protocols.protocol1_13to1_12_2.Protocol1_13To1_12_2;
-import com.viaversion.viaversion.protocols.protocol1_13to1_12_2.storage.TabCompleteTracker;
+import com.viaversion.viaversion.protocols.v1_12_2to1_13.Protocol1_12_2To1_13;
+import com.viaversion.viaversion.protocols.v1_12_2to1_13.packet.ClientboundPackets1_13;
+import com.viaversion.viaversion.protocols.v1_12_2to1_13.storage.TabCompleteTracker;
+import com.viaversion.viaversion.protocols.v1_12to1_12_1.packet.ClientboundPackets1_12_1;
 import com.viaversion.viaversion.util.GsonUtil;
 import eu.darkcube.system.bukkit.commandapi.CommandSource;
-import eu.darkcube.system.impl.bukkit.provider.via.AbstractViaSupport;
 import eu.darkcube.system.bukkit.util.ReflectionUtils;
 import eu.darkcube.system.impl.bukkit.DarkCubeSystemBukkit;
+import eu.darkcube.system.impl.bukkit.provider.via.AbstractViaSupport;
 import eu.darkcube.system.libs.com.mojang.brigadier.ParseResults;
 import eu.darkcube.system.libs.com.mojang.brigadier.suggestion.Suggestions;
 import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
@@ -38,20 +38,20 @@ public class ViaSupportImpl extends AbstractViaSupport {
 
     public void enable() {
         DarkCubeSystemBukkit.systemPlugin().sendConsole("[ViaSupport] Enabling ViaVersion support");
-        var protocol = Via.getManager().getProtocolManager().getProtocol(Protocol1_13To1_12_2.class);
+        var protocol = Via.getManager().getProtocolManager().getProtocol(Protocol1_12_2To1_13.class);
         if (protocol == null) return;
         var clientboundMappings = ReflectionUtils.getValue(protocol, AbstractProtocol.class, true, "clientboundMappings", PacketMappings.class);
-        var unmapped = ClientboundPackets1_12_1.TAB_COMPLETE;
-        var mapped = ClientboundPackets1_13.TAB_COMPLETE;
+        var unmapped = ClientboundPackets1_12_1.COMMAND_SUGGESTIONS;
+        var mapped = ClientboundPackets1_13.COMMAND_SUGGESTIONS;
         var mapping = clientboundMappings.mappedPacket(unmapped.state(), unmapped.getId());
         if (mapping == null) return;
         var oldHandler = mapping.handler();
         protocol.registerClientbound(unmapped, mapped, wrapper -> {
             var tabCompleteTracker = wrapper.user().get(TabCompleteTracker.class);
-            int count = wrapper.read(Type.VAR_INT);
+            int count = wrapper.read(Types.VAR_INT);
             c:
             if (count == 1) {
-                var completion = wrapper.read(Type.STRING);
+                var completion = wrapper.read(Types.STRING);
                 if (completion.startsWith(TAB_COMPLETE_CANCEL)) {
                     int id;
                     try {
@@ -60,36 +60,36 @@ public class ViaSupportImpl extends AbstractViaSupport {
                         id = -1;
                     }
                     if (id == -1 || id > 15) {
-                        wrapper.write(Type.VAR_INT, 0);
+                        wrapper.write(Types.VAR_INT, 0);
                         break c;
                     }
                     var data = ViaTabExecutor.take(id);
                     if (data == null) {
-                        wrapper.write(Type.VAR_INT, 0);
+                        wrapper.write(Types.VAR_INT, 0);
                         break c;
                     }
-                    wrapper.write(Type.VAR_INT, tabCompleteTracker.getTransactionId());
-                    wrapper.write(Type.VAR_INT, data.start());
-                    wrapper.write(Type.VAR_INT, data.length());
-                    wrapper.write(Type.VAR_INT, data.suggestions().length);
+                    wrapper.write(Types.VAR_INT, tabCompleteTracker.getTransactionId());
+                    wrapper.write(Types.VAR_INT, data.start());
+                    wrapper.write(Types.VAR_INT, data.length());
+                    wrapper.write(Types.VAR_INT, data.suggestions().length);
                     for (var i = 0; i < data.suggestions().length; i++) {
                         var suggestion = data.suggestions()[i];
                         var tooltip = data.tooltips()[i];
-                        wrapper.write(Type.STRING, suggestion);
+                        wrapper.write(Types.STRING, suggestion);
 
                         @Nullable var transformedTooltip = tooltip != Component.empty() ? GsonComponentSerializer.gson().serialize(tooltip) : null;
                         var json = transformedTooltip == null ? null : GsonUtil.getGson().fromJson(transformedTooltip, JsonElement.class);
-                        wrapper.write(Type.OPTIONAL_COMPONENT, json);
+                        wrapper.write(Types.OPTIONAL_COMPONENT, json);
                     }
                     return;
                 } else {
-                    wrapper.write(Type.VAR_INT, count);
-                    wrapper.write(Type.STRING, completion);
+                    wrapper.write(Types.VAR_INT, count);
+                    wrapper.write(Types.STRING, completion);
                 }
             } else {
-                wrapper.write(Type.VAR_INT, count);
+                wrapper.write(Types.VAR_INT, count);
                 for (var i = 0; i < count; i++) {
-                    wrapper.passthrough(Type.STRING);
+                    wrapper.passthrough(Types.STRING);
                 }
             }
 

@@ -7,19 +7,19 @@
 
 package eu.darkcube.system.impl.server.inventory.item;
 
-import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
+import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 import eu.darkcube.system.server.inventory.item.ItemReference;
 
 public class ItemReferenceImpl implements ItemReference {
 
-    private final @NotNull Object item;
+    private final @Nullable Object item;
     private boolean async = false;
 
-    public ItemReferenceImpl(@NotNull Object item) {
+    public ItemReferenceImpl(@Nullable Object item) {
         this.item = item;
     }
 
-    public ItemReferenceImpl(@NotNull Object item, boolean async) {
+    public ItemReferenceImpl(@Nullable Object item, boolean async) {
         this.item = item;
         this.async = async;
     }
@@ -39,7 +39,7 @@ public class ItemReferenceImpl implements ItemReference {
         async = false;
     }
 
-    public Object item() {
+    public @Nullable Object item() {
         return item;
     }
 

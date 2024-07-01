@@ -95,7 +95,7 @@ public abstract class InventoryTemplateImpl<PlatformPlayer> implements Inventory
     }
 
     @Override
-    public @NotNull ItemReferenceImpl setItem(int priority, int slot, @NotNull Object item) {
+    public @NotNull ItemReferenceImpl setItem(int priority, int slot, @Nullable Object item) {
         var reference = new ItemReferenceImpl(item);
         if (contents[slot] == null) contents[slot] = new TreeMap<>();
         contents[slot].put(priority, reference);
@@ -106,7 +106,8 @@ public abstract class InventoryTemplateImpl<PlatformPlayer> implements Inventory
     public void setItems(int priority, @NotNull ItemTemplate template) {
         for (var entry : template.contents().entrySet()) {
             var reference = (ItemReferenceImpl) entry.getValue();
-            var ref = setItem(priority, entry.getKey(), reference.item());
+            var item = reference.item();
+            var ref = setItem(priority, entry.getKey(), item);
             if (reference.isAsync()) {
                 ref.makeAsync();
             } else {

@@ -42,8 +42,8 @@ public class MinestomPaginationCalculator {
         this.pageSize = this.pagination.pageSlots.length;
         if (pageSize == 0) throw new IllegalArgumentException("Paged inventory MUST have pageSlots configured with at least 1 slot. Even if specialPageSlots are configured, pageSlots must be usable as fallback");
         var updater = new Updater();
-        template.pagination().content.updater(updater);
-        pagination.content.updater(updater);
+        template.pagination().content.addUpdater(updater);
+        pagination.content.addUpdater(updater);
     }
 
     private class Updater implements PagedInventoryContentImpl.Updater {
