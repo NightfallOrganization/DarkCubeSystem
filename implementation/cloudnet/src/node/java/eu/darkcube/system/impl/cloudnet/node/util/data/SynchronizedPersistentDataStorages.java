@@ -26,6 +26,7 @@ import eu.darkcube.system.cloudnet.util.data.packets.PacketWrapperNodeDataSet;
 import eu.darkcube.system.cloudnet.util.data.packets.PacketWrapperNodeGetOrDefault;
 import eu.darkcube.system.cloudnet.util.data.packets.PacketWrapperNodeQuery;
 import eu.darkcube.system.impl.cloudnet.node.userapi.UserNodePersistentDataStorage;
+import eu.darkcube.system.impl.common.data.LegacyDataTransformer;
 import eu.darkcube.system.libs.com.google.gson.Gson;
 import eu.darkcube.system.libs.com.google.gson.JsonObject;
 import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
@@ -71,19 +72,6 @@ public class SynchronizedPersistentDataStorages {
             var storage = ref == null ? null : ref.get();
             if (storage == null) {
                 var tuple = load(table, key);
-                // var doc = database.get(key.value());
-                // if (doc != null) {
-                //     database.delete(key.value());
-                //     database.insert(toString, doc);
-                //     var object = gson.fromJson(doc.serializeToString(), JsonObject.class);
-                //     storage.loadFromJsonObject(object);
-                // } else {
-                //     doc = database.get(toString);
-                //     if (doc != null) {
-                //         var object = gson.fromJson(doc.serializeToString(), JsonObject.class);
-                //         storage.loadFromJsonObject(object);
-                //     }
-                // }
 
                 storage = tuple._1();
                 var wrapped = tuple._2();
@@ -108,6 +96,7 @@ public class SynchronizedPersistentDataStorages {
         var persistentData = tuple._2();
         if (persistentData != null) {
             var object = gson.fromJson(persistentData.serializeToString(), JsonObject.class);
+            LegacyDataTransformer.transformLegacyPersistentData(object);
             storage.loadFromJsonObject(object);
         }
         var wrapper = tuple._1();

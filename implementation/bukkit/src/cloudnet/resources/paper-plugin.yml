@@ -3,6 +3,7 @@ version: $version
 api-version: "1.20.5"
 main: eu.darkcube.system.impl.bukkit.cloudnet.BukkitCloudNet
 loader: eu.darkcube.system.impl.bukkit.cloudnet.ModernPaperLoader
+has-open-classloader: true
 bootstrapper: eu.darkcube.system.impl.bukkit.cloudnet.ModernPaperBootstrap
 provides:
   - System

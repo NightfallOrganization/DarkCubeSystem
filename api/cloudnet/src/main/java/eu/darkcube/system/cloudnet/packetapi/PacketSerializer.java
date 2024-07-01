@@ -19,13 +19,19 @@ public class PacketSerializer {
     }
 
     public static Packet readPacket(DataBuf buf, ClassLoader classLoader) {
-        var cls = getClass(buf, classLoader);
+        var name = buf.readString();
+        var cls = getClass(name, classLoader);
+        if (cls == null) throw new NoClassDefFoundError("Missing query response class: " + name);
         return buf.readObject(cls);
     }
 
-    public static Class<? extends Packet> getClass(DataBuf doc, ClassLoader classLoader) {
+    public static Class<? extends Packet> getClass(DataBuf buf, ClassLoader classLoader) {
+        return getClass(buf.readString(), classLoader);
+    }
+
+    public static Class<? extends Packet> getClass(String name, ClassLoader classLoader) {
         try {
-            return (Class<? extends Packet>) Class.forName(doc.readString(), true, classLoader);
+            return (Class<? extends Packet>) Class.forName(name, true, classLoader);
         } catch (ClassNotFoundException ignored) {
         }
         return null;

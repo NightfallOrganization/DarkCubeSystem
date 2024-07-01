@@ -219,8 +219,13 @@ public class PacketAPI {
                 if (queryResponse) {
                     var entry = queries.getIfPresent(queryId);
                     if (entry == null) return;
-                    var packet = PacketSerializer.readPacket(content, classLoader);
-                    entry.complete(packet);
+                    try {
+                        var packet = PacketSerializer.readPacket(content, classLoader);
+                        entry.complete(packet);
+                    } catch (NoClassDefFoundError error) {
+                        Logger.getLogger("PacketAPI").log(Level.SEVERE, "Unknown Packet response. Expected: " + entry.resultType.getName(), error);
+                        entry.task.completeExceptionally(error);
+                    }
                     return;
                 }
 

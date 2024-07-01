@@ -77,8 +77,15 @@ public class BukkitCloudNet extends DarkCubeSystemBukkit {
 
     public void declareVersion() {
         var via = BukkitVersion.version().provider().service(ViaSupport.class);
-        var supported = via.supported() ? via.supportedVersions() : new ProtocolVersion[0];
-        if (supported.length == 0) supported = new ProtocolVersion[]{ProtocolVersion.getProtocol(ServerVersion.version().protocolVersion())};
-        new PacketDeclareProtocolVersion(InjectionLayer.boot().instance(ComponentInfo.class).componentName(), Arrays.stream(supported).mapToInt(ProtocolVersion::getVersion).toArray()).sendAsync();
+        var supportedVersions = new int[0];
+        if (via.supported()) {
+            var supported = via.supported() ? via.supportedVersions() : new ProtocolVersion[0];
+            supportedVersions = Arrays.stream(supported).mapToInt(ProtocolVersion::getVersion).toArray();
+        }
+        if (supportedVersions.length == 0) {
+            supportedVersions = new int[]{ServerVersion.version().protocolVersion()};
+        }
+
+        new PacketDeclareProtocolVersion(InjectionLayer.boot().instance(ComponentInfo.class).componentName(), supportedVersions).sendAsync();
     }
 }

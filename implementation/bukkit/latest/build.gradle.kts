@@ -18,7 +18,7 @@ configurations.named(cloudnetSource.compileClasspathConfigurationName).configure
 }
 
 dependencies {
-    paperweightDevelopmentBundle("io.papermc.paper:dev-bundle:1.20.6-R0.1-20240610.063449-113")
+    paperweightDevelopmentBundle("io.papermc.paper:dev-bundle:1.21-R0.1-20240701.082534-43")
     implementation(projects.darkcubesystemImplementationBukkit)
     compileOnly(libs.cloudnet.driver)
     api(libs.viaversion.common)
@@ -40,6 +40,6 @@ tasks {
 
 configurations.consumable("version") {
     outgoing.artifact(tasks.jar) {
-        name = "v1_20_6"
+        name = "v1_21"
     }
 }

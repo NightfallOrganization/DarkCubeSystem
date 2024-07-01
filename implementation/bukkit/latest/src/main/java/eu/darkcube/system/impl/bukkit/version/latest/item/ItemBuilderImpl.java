@@ -9,7 +9,6 @@ package eu.darkcube.system.impl.bukkit.version.latest.item;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -25,6 +24,7 @@ import eu.darkcube.system.impl.bukkit.item.material.BukkitMaterialImpl;
 import eu.darkcube.system.impl.bukkit.version.latest.AdventureUtils;
 import eu.darkcube.system.impl.bukkit.version.latest.item.attribute.BukkitAttribute;
 import eu.darkcube.system.impl.bukkit.version.latest.item.attribute.BukkitAttributeModifierImpl;
+import eu.darkcube.system.impl.common.data.LegacyDataTransformer;
 import eu.darkcube.system.impl.server.item.AbstractItemBuilder;
 import eu.darkcube.system.libs.com.google.gson.Gson;
 import eu.darkcube.system.libs.com.google.gson.GsonBuilder;
@@ -35,8 +35,6 @@ import eu.darkcube.system.libs.com.google.gson.stream.JsonReader;
 import eu.darkcube.system.libs.com.google.gson.stream.JsonToken;
 import eu.darkcube.system.libs.com.google.gson.stream.JsonWriter;
 import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
-import eu.darkcube.system.libs.net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
-import eu.darkcube.system.libs.net.kyori.option.OptionState;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.server.item.ItemBuilder;
 import eu.darkcube.system.server.item.ItemRarity;
@@ -45,8 +43,6 @@ import eu.darkcube.system.server.item.meta.FireworkBuilderMeta;
 import eu.darkcube.system.server.item.meta.LeatherArmorBuilderMeta;
 import eu.darkcube.system.server.item.meta.SkullBuilderMeta;
 import eu.darkcube.system.util.Color;
-import eu.darkcube.system.util.data.PersistentDataStorage;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.server.MinecraftServer;
@@ -174,39 +170,16 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
                 skullMeta.setOwningPlayer(null);
             }
             if (meta instanceof LeatherArmorMeta leatherArmorMeta) {
-                meta(LeatherArmorBuilderMeta.class).color(new Color(leatherArmorMeta.getColor().asRGB()));
-                leatherArmorMeta.setColor(null);
+                if (leatherArmorMeta.isDyed()) {
+                    meta(LeatherArmorBuilderMeta.class).color(new Color(leatherArmorMeta.getColor().asRGB()));
+                    leatherArmorMeta.setColor(null);
+                }
             }
             if (meta.getPersistentDataContainer().has(PERSISTENT_DATA_KEY_LEGACY)) {
                 var data = meta.getPersistentDataContainer().get(PERSISTENT_DATA_KEY_LEGACY, PersistentDataType.STRING);
                 if (data != null) {
                     var json = new Gson().fromJson(data, JsonObject.class);
-                    for (var name : List.copyOf(json.keySet())) {
-                        var split = name.split(":");
-                        var namespace = split[0];
-                        var key = split[1];
-                        var builder = new StringBuilder();
-                        for (var c : namespace.toCharArray()) {
-                            if (Character.isUpperCase(c)) {
-                                builder.append(Character.toLowerCase(c));
-                            } else {
-                                builder.append(c);
-                            }
-                        }
-                        builder.append(":");
-                        for (var c : key.toCharArray()) {
-                            if (Character.isUpperCase(c)) {
-                                builder.append("_").append(Character.toLowerCase(c));
-                            } else {
-                                builder.append(c);
-                            }
-                        }
-                        var constructed = builder.toString();
-                        if (!name.equals(constructed)) {
-                            var element = json.remove(name);
-                            json.add(constructed, element);
-                        }
-                    }
+                    LegacyDataTransformer.transformLegacyPersistentData(json);
                     storage.loadFromJsonObject(json);
                 }
                 ignoreCloneFailure = true;

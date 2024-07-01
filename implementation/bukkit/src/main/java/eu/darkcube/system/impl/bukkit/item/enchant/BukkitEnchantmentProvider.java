@@ -15,15 +15,17 @@ import eu.darkcube.system.server.item.enchant.Enchantment;
 import eu.darkcube.system.server.item.enchant.EnchantmentProvider;
 
 public class BukkitEnchantmentProvider implements EnchantmentProvider {
-    private final Map<Integer, Enchantment> enchantments;
+    private Map<Integer, Enchantment> enchantments;
 
-    public BukkitEnchantmentProvider() {
+    private Map<Integer, Enchantment> enchantments() {
+        if (this.enchantments != null) return this.enchantments;
         this.enchantments = new HashMap<>();
         for (var bukkitEnchantment : org.bukkit.enchantments.Enchantment.values()) {
             var enchantment = new BukkitEnchantmentImpl(bukkitEnchantment);
             var id = bukkitEnchantment.hashCode();
             enchantments.put(id, enchantment);
         }
+        return this.enchantments;
     }
 
     @NotNull
@@ -31,7 +33,7 @@ public class BukkitEnchantmentProvider implements EnchantmentProvider {
     public Enchantment of(@NotNull Object platformObject) {
         if (platformObject instanceof Enchantment enchantment) return enchantment;
         if (platformObject instanceof org.bukkit.enchantments.Enchantment enchantment) {
-            var e = this.enchantments.get(enchantment.hashCode());
+            var e = this.enchantments().get(enchantment.hashCode());
             if (e == null) throw new IllegalArgumentException();
             return e;
         }
