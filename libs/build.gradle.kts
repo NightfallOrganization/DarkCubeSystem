@@ -24,13 +24,28 @@ dependencies {
     }
 }
 
-sourceRemapper.remap(embedStep2, "eu.darkcube.system.libs", configurations.named("api"))
-sourceRemapper.remap(embedStep1, "eu.darkcube.system.libs", configurations.named("api"))
+val step2 = sourceRemapper.remap(embedStep2, "eu.darkcube.system.libs", configurations.named("api"))
+val step1 = sourceRemapper.remap(embedStep1, "eu.darkcube.system.libs", configurations.named("api"))
+
+val component = sourceRemapper.createComponent(configurations.api, step1, step2)
+configurations["remapApiElements"].attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, java.toolchain.languageVersion.get().asInt())
+configurations["remapRuntimeElements"].attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, java.toolchain.languageVersion.get().asInt())
+artifacts.add("remapApiElements", tasks.jar)
+artifacts.add("remapRuntimeElements", tasks.jar)
+
+component.addVariantsFromConfiguration(configurations.sourcesElements.get()) {
+    this.mapToMavenScope("runtime")
+    this.mapToOptional()
+}
+component.addVariantsFromConfiguration(configurations.javadocElements.get()) {
+    this.mapToMavenScope("runtime")
+    this.mapToOptional()
+}
 
 publishing {
     publications {
         register<MavenPublication>("libs") {
-            from(components["java"])
+            from(component)
         }
     }
 }
