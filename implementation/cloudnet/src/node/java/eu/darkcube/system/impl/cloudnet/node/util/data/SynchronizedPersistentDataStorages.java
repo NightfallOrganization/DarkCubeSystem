@@ -103,7 +103,7 @@ public class SynchronizedPersistentDataStorages {
         return Tuple.of(storage, wrapper);
     }
 
-    private static <T extends PersistentDataStorage> Tuple2<T, Document> setupStorage(SynchronizedPersistentDataStorage storage, String table, Document document) {
+    private static <T extends PersistentDataStorage> Tuple2<T, @Nullable Document> setupStorage(SynchronizedPersistentDataStorage storage, String table, @Nullable Document document) {
         var implementation = (StorageImplementation<T>) findImplementation(table, storage);
         var wrapped = implementation.wrapper(storage, document);
         storage.documentSaver = implementation.saver(wrapped._1());

@@ -13,6 +13,7 @@ import java.util.function.Function;
 import eu.cloudnetservice.driver.document.Document;
 import eu.darkcube.system.impl.cloudnet.node.util.data.StorageImplementation;
 import eu.darkcube.system.impl.cloudnet.node.util.data.SynchronizedPersistentDataStorage;
+import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 import eu.darkcube.system.util.data.WrapperPersistentDataStorage;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
@@ -52,11 +53,11 @@ public class UserNodePersistentDataStorage extends WrapperPersistentDataStorage 
         }
 
         @Override
-        public Tuple2<UserNodePersistentDataStorage, Document> wrapper(SynchronizedPersistentDataStorage storage, Document document) {
+        public Tuple2<UserNodePersistentDataStorage, @Nullable Document> wrapper(SynchronizedPersistentDataStorage storage, @Nullable Document document) {
             var uniqueId = UUID.fromString(storage.key().value());
-            var name = document.getString("name");
+            var name = document == null ? null : document.getString("name");
             if (name == null) name = uniqueId.toString().substring(0, 16);
-            var persistentData = document.readDocument("persistentData");
+            var persistentData = document == null ? null : document.readDocument("persistentData");
 
             var userStorage = new UserNodePersistentDataStorage(storage, uniqueId, name);
             return Tuple.of(userStorage, persistentData);
