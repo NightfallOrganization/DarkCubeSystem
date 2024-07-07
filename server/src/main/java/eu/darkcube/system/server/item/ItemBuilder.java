@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import eu.darkcube.system.annotations.Api;
 import eu.darkcube.system.libs.com.google.gson.JsonElement;
@@ -298,6 +299,10 @@ public interface ItemBuilder {
 
     @Api
     @NotNull
+    <T extends BuilderMeta> ItemBuilder meta(@NotNull Class<T> clazz, @NotNull Consumer<@NotNull T> meta);
+
+    @Api
+    @NotNull
     ItemBuilder meta(@NotNull BuilderMeta meta);
 
     @Api
@@ -326,6 +331,21 @@ public interface ItemBuilder {
     @Api
     @NotNull
     ItemBuilder rarity(@NotNull ItemRarity rarity);
+
+    @Api
+    @NotNull
+    ItemBuilder customModelData(int customModelData);
+
+    @Api
+    boolean hasCustomModelData();
+
+    /**
+     * Check first with {@link #hasCustomModelData()}. Returns 0 if no data is set.
+     *
+     * @return the custom model data
+     */
+    @Api
+    int customModelData();
 
     @Api
     @NotNull

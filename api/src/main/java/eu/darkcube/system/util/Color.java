@@ -7,7 +7,12 @@
 
 package eu.darkcube.system.util;
 
+import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
+import eu.darkcube.system.provider.InternalProvider;
+
 public record Color(int rgb) {
+    private static final ColorProvider PROVIDER = InternalProvider.instance().instance(ColorProvider.class);
+
     public Color(int rgb, boolean hasAlpha) {
         this(hasAlpha ? rgb : 0xFF000000 | rgb);
     }
@@ -18,6 +23,10 @@ public record Color(int rgb) {
 
     public Color(int r, int g, int b, int a) {
         this(((a & 0xFF) << 24) | ((r & 0xFF) << 16) | ((g & 0xFF) << 8) | ((b & 0xFF)));
+    }
+
+    public static @NotNull Color color(@NotNull Object color) {
+        return PROVIDER.color(color);
     }
 
     /**

@@ -18,6 +18,7 @@ import eu.darkcube.system.impl.minestom.item.enchant.MinestomEnchantmentProvider
 import eu.darkcube.system.impl.minestom.item.firework.MinestomFireworkEffectProvider;
 import eu.darkcube.system.impl.minestom.item.flag.MinestomItemFlagProvider;
 import eu.darkcube.system.impl.minestom.item.material.MinestomMaterialProvider;
+import eu.darkcube.system.impl.minestom.util.MinestomColorProvider;
 import eu.darkcube.system.impl.server.inventory.item.ItemReferenceProviderImpl;
 import eu.darkcube.system.impl.server.inventory.item.ItemTemplateProviderImpl;
 import eu.darkcube.system.provider.InternalProvider;
@@ -34,6 +35,7 @@ import eu.darkcube.system.server.item.firework.FireworkEffectProvider;
 import eu.darkcube.system.server.item.flag.ItemFlagProvider;
 import eu.darkcube.system.server.item.material.MaterialProvider;
 import eu.darkcube.system.util.AdventureSupport;
+import eu.darkcube.system.util.ColorProvider;
 import eu.darkcube.system.version.Version;
 import net.minestom.server.extensions.Extension;
 
@@ -55,6 +57,7 @@ public class DarkCubeSystemMinestomExtension extends Extension {
         install(InventoryProvider.class, new MinestomInventoryProvider());
         install(ItemTemplateProvider.class, new ItemTemplateProviderImpl());
         install(ItemReferenceProvider.class, new ItemReferenceProviderImpl());
+        install(ColorProvider.class, new MinestomColorProvider());
     }
 
     private <T> void install(Class<T> type, T instance) {

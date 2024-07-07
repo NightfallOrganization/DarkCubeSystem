@@ -113,6 +113,9 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
         var meta = this.item.getItemMeta();
 
         if (meta != null) {
+            if (meta.hasCustomModelData()) {
+                customModelData(meta.getCustomModelData());
+            }
             unbreakable(meta.isUnbreakable());
             meta.setUnbreakable(false);
             if (meta.hasRarity()) {
@@ -227,6 +230,9 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
         var meta = item.getItemMeta();
         if (meta != null) {
             meta.setUnbreakable(unbreakable);
+            if (hasCustomModelData()) {
+                meta.setCustomModelData(customModelData);
+            }
             if (rarity != null) {
                 meta.setRarity(org.bukkit.inventory.ItemRarity.values()[rarity.ordinal()]);
             }

@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
 import eu.darkcube.system.libs.net.kyori.adventure.text.format.TextDecoration;
@@ -47,6 +48,7 @@ public abstract class AbstractItemBuilder implements ItemBuilder {
     protected @NotNull List<ItemFlag> flags = new ArrayList<>();
     protected boolean unbreakable = false;
     protected boolean glow = false;
+    protected int customModelData = Integer.MAX_VALUE;
     protected int repairCost = 0;
     protected ItemRarity rarity = null;
     protected @NotNull Map<Attribute, Collection<AttributeModifier>> attributeModifiers = new HashMap<>();
@@ -353,6 +355,13 @@ public abstract class AbstractItemBuilder implements ItemBuilder {
     }
 
     @Override
+    public @NotNull <T extends BuilderMeta> AbstractItemBuilder meta(@NotNull Class<T> clazz, @NotNull Consumer<@NotNull T> meta) {
+        var m = meta(clazz);
+        meta.accept(m);
+        return this;
+    }
+
+    @Override
     public @NotNull AbstractItemBuilder meta(@NotNull BuilderMeta meta) {
         metas.removeIf(m -> m.getClass().equals(meta.getClass()));
         metas.add(meta);
@@ -380,6 +389,24 @@ public abstract class AbstractItemBuilder implements ItemBuilder {
     public @NotNull AbstractItemBuilder repairCost(int repairCost) {
         this.repairCost = repairCost;
         return this;
+    }
+
+    @NotNull
+    @Override
+    public AbstractItemBuilder customModelData(int customModelData) {
+        this.customModelData = customModelData;
+        return this;
+    }
+
+    @Override
+    public boolean hasCustomModelData() {
+        return customModelData == Integer.MAX_VALUE;
+    }
+
+    @Override
+    public int customModelData() {
+        if (!hasCustomModelData()) return Integer.MAX_VALUE;
+        return customModelData;
     }
 
     @Override
