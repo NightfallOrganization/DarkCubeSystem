@@ -10,6 +10,7 @@ package eu.darkcube.system.impl.cloudnet;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.jar.JarFile;
 
 import dev.derklaro.aerogel.Injector;
@@ -41,7 +42,7 @@ public class DarkCubeSystemModule extends DriverModule {
             LOGGER.debug("Injecting {}", name);
             var path = dataDirectory.resolve(name);
             Files.createDirectories(dataDirectory);
-            Files.copy(stream, path);
+            Files.copy(stream, path, StandardCopyOption.REPLACE_EXISTING);
             var file = path.toFile();
             AgentAccess.instrumentation().appendToSystemClassLoaderSearch(new JarFile(file));
         } else {

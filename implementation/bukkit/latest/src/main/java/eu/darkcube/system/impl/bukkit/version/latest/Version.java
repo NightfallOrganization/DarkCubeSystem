@@ -8,7 +8,6 @@
 package eu.darkcube.system.impl.bukkit.version.latest;
 
 import java.util.ServiceLoader;
-import java.util.logging.Level;
 
 import eu.darkcube.system.bukkit.provider.via.ViaSupport;
 import eu.darkcube.system.bukkit.util.WorkbenchUtil;
@@ -33,9 +32,9 @@ public class Version extends BukkitVersionImpl {
         super.loaded(system);
         try {
             provider.register(ViaSupport.class, new ViaSupportImpl());
-            system.getLogger().info("Enabled ViaSupport");
+            system.getSLF4JLogger().info("Enabled ViaSupport");
         } catch (Throwable e) {
-            system.getLogger().log(Level.WARNING, "Failed to enable ViaSupport", e);
+            system.getSLF4JLogger().info("Failed to enable ViaSupport: {}: {}", e.getClass().getName(), e.getLocalizedMessage());
             provider.register(ViaSupport.class, ViaSupport.wrapper(null));
         }
     }
