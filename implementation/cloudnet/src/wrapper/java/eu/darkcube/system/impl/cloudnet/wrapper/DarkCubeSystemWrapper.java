@@ -9,7 +9,7 @@ package eu.darkcube.system.impl.cloudnet.wrapper;
 
 import dev.derklaro.aerogel.Inject;
 import dev.derklaro.aerogel.Singleton;
-import eu.cloudnetservice.wrapper.transform.TransformerRegistry;
+import eu.cloudnetservice.wrapper.transform.ClassTransformerRegistry;
 import eu.darkcube.system.cloudnet.packetapi.PacketAPI;
 import eu.darkcube.system.impl.cloudnet.ModuleImplementation;
 import eu.darkcube.system.impl.cloudnet.wrapper.transformer.PaperMainClassLoadingTransformer;
@@ -24,20 +24,20 @@ public class DarkCubeSystemWrapper implements ModuleImplementation {
     private final WrapperUserAPI userAPI;
 
     @Inject
-    public DarkCubeSystemWrapper(WrapperUserAPI userAPI, TransformerRegistry transformerRegistry) {
+    public DarkCubeSystemWrapper(ClassTransformerRegistry transformerRegistry, WrapperUserAPI userAPI) {
         this.userAPI = userAPI;
-        InternalProvider.instance().register(UserAPI.class, userAPI);
-        InternalProvider.instance().register(CustomPersistentDataProvider.class, new WrapperPluginPersistentDataProvider());
         PaperMainClassLoadingTransformer.register(transformerRegistry);
     }
 
     @Override
     public void start() {
+        InternalProvider.instance().register(UserAPI.class, this.userAPI);
+        InternalProvider.instance().register(CustomPersistentDataProvider.class, new WrapperPluginPersistentDataProvider());
         PacketAPI.init();
     }
 
     @Override
     public void stop() {
-        userAPI.close();
+        this.userAPI.close();
     }
 }

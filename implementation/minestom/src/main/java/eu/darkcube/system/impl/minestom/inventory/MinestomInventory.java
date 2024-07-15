@@ -7,6 +7,9 @@
 
 package eu.darkcube.system.impl.minestom.inventory;
 
+import static eu.darkcube.system.impl.server.inventory.InventoryAPIUtils.LOGGER;
+import static net.minestom.server.event.EventListener.builder;
+
 import java.util.concurrent.atomic.AtomicInteger;
 
 import eu.darkcube.system.impl.minestom.adventure.AdventureUtils;
@@ -27,8 +30,13 @@ import net.minestom.server.event.inventory.InventoryCloseEvent;
 import net.minestom.server.inventory.ContainerInventory;
 import net.minestom.server.inventory.Inventory;
 import net.minestom.server.inventory.InventoryType;
+import net.minestom.server.inventory.click.Click.Info;
+import net.minestom.server.inventory.click.Click.Info.DropSlot;
+import net.minestom.server.inventory.click.Click.Info.HotbarSwap;
 import net.minestom.server.inventory.click.Click.Info.Left;
+import net.minestom.server.inventory.click.Click.Info.LeftShift;
 import net.minestom.server.inventory.click.Click.Info.Right;
+import net.minestom.server.inventory.click.Click.Info.RightShift;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.timer.ExecutionType;
 import net.minestom.server.timer.TaskSchedule;
@@ -45,7 +53,7 @@ public class MinestomInventory extends AbstractInventory<ItemStack> {
         super(title, type, type.minestomType().getSize());
         this.inventory = new ServerInventory(type.minestomType(), AdventureUtils.convert(title), this);
         this.node.addListener(InventoryCloseEvent.class, this::handleClose);
-        this.node.addListener(InventoryClickEvent.class, this::handleClick);
+        this.node.addListener(builder(InventoryClickEvent.class).ignoreCancelled(false).handler(this::handleClick).build());
     }
 
     @Override
@@ -76,6 +84,7 @@ public class MinestomInventory extends AbstractInventory<ItemStack> {
     }
 
     protected void register() {
+        System.out.println("Register");
         MinecraftServer.getGlobalEventHandler().addChild(node);
         updateScheduler = MinecraftServer.getSchedulerManager().scheduleTask(() -> {
             if (modified) {
@@ -88,6 +97,7 @@ public class MinestomInventory extends AbstractInventory<ItemStack> {
     }
 
     protected void unregister() {
+        System.out.println("Unregister");
         MinecraftServer.getGlobalEventHandler().removeChild(node);
         updateScheduler.cancel();
     }
@@ -122,20 +132,36 @@ public class MinestomInventory extends AbstractInventory<ItemStack> {
         if (!(minestomInventory instanceof ServerInventory serverInventory)) return;
         var inventory = serverInventory.inventory;
         if (inventory != this) return;
+        event.setCancelled(true);
         var user = UserAPI.instance().user(event.getPlayer().getUuid());
-        var slot = switch (event.getClickInfo()) {
+        var info = event.getClickInfo();
+        LOGGER.debug("Clicked inventory with info: {}", info);
+        var slot = switch (info) {
             case Left left -> left.slot();
             case Right right -> right.slot();
-            default -> -1;
+            case LeftShift(var s) -> s;
+            case RightShift(var s) -> s;
+            case Info.Double(var s) -> s;
+            case HotbarSwap(var ignored, var s) -> s;
+            case DropSlot(var s, var ignored) -> s;
+            default -> {
+                LOGGER.error("Click not supported by InventoryAPI: {}", event.getClickInfo());
+                yield -1;
+            }
         };
+        if (info instanceof Info.Double)
+            // Do not handle double clicks, they are also sent as a Left click, so they are duplicate.
+            return;
+
         var itemStack = itemStack(slot, event.getInventory(), event.getPlayerInventory());
         var item = itemStack.isAir() ? ItemBuilder.item() : ItemBuilder.item(itemStack);
+        handleClick(slot, itemStack, item);
         for (var i = 0; i < listeners.size(); i++) {
             listeners.get(i).onClick(this, user, slot, item);
         }
-        if (openCount.decrementAndGet() == 0) {
-            unregister();
-        }
+    }
+
+    protected void handleClick(int slot, @NotNull ItemStack itemStack, @NotNull ItemBuilder item) {
     }
 
     private void handleClose(InventoryCloseEvent event) {
@@ -147,9 +173,15 @@ public class MinestomInventory extends AbstractInventory<ItemStack> {
         for (var i = 0; i < listeners.size(); i++) {
             listeners.get(i).onClose(this, user);
         }
+        if (openCount.decrementAndGet() == 0) {
+            unregister();
+        }
     }
 
     private static ItemStack itemStack(int slot, Inventory clickedInventory, Inventory playerInventory) {
+        if (slot < 0) {
+            return ItemStack.AIR;
+        }
         if (slot >= clickedInventory.getSize()) {
             var converted = PlayerInventoryUtils.protocolToMinestom(slot, clickedInventory.getSize());
             return playerInventory.getItemStack(converted);

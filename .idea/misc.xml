@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="EntryPointsManager">
-    <list size="6">
+    <list size="7">
       <item index="0" class="java.lang.String" itemvalue="cloud.commandframework.annotations.CommandMethod" />
       <item index="1" class="java.lang.String" itemvalue="com.velocitypowered.api.event.Subscribe" />
-      <item index="2" class="java.lang.String" itemvalue="eu.cloudnetservice.driver.event.EventListener" />
-      <item index="3" class="java.lang.String" itemvalue="eu.cloudnetservice.driver.module.ModuleTask" />
-      <item index="4" class="java.lang.String" itemvalue="eu.darkcube.system.annotations.Api" />
-      <item index="5" class="java.lang.String" itemvalue="org.bukkit.event.EventHandler" />
+      <item index="2" class="java.lang.String" itemvalue="dev.derklaro.aerogel.Inject" />
+      <item index="3" class="java.lang.String" itemvalue="eu.cloudnetservice.driver.event.EventListener" />
+      <item index="4" class="java.lang.String" itemvalue="eu.cloudnetservice.driver.module.ModuleTask" />
+      <item index="5" class="java.lang.String" itemvalue="eu.darkcube.system.annotations.Api" />
+      <item index="6" class="java.lang.String" itemvalue="org.bukkit.event.EventHandler" />
     </list>
     <pattern value="eu.darkcube.system.impl.cloudnet.ModuleImplementation" hierarchically="true" />
     <writeAnnotations>
@@ -65,7 +66,7 @@
       </value>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_21" default="true" project-jdk-name="temurin-21" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_22" default="true" project-jdk-name="temurin-22" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
 </project>

@@ -19,6 +19,7 @@ import eu.darkcube.system.impl.server.inventory.item.ItemReferenceImpl;
 import eu.darkcube.system.impl.server.inventory.paged.PaginationCalculator;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
+import eu.darkcube.system.server.item.ItemBuilder;
 import eu.darkcube.system.userapi.User;
 import eu.darkcube.system.util.AsyncExecutor;
 
@@ -59,9 +60,13 @@ public class SimpleItemHandler<PlatformItem, PlatformPlayer> implements Inventor
                     task.cancel();
                 }
             }
-        }
-        for (var slot : slots) {
-            updateSlot(player, user, slot);
+
+            // this is inside synchronized block to increase performance.
+            // updateSlot(...) also synchronizes, so we can synchronize here to only synchronize once
+            // instead of for every slot
+            for (var slot : slots) {
+                updateSlot(player, user, slot);
+            }
         }
     }
 
@@ -90,6 +95,11 @@ public class SimpleItemHandler<PlatformItem, PlatformPlayer> implements Inventor
         for (var slot = 0; slot < size; slot++) {
             setItem(player, user, slot);
         }
+    }
+
+    @Override
+    public void handleClick(int slot, @NotNull PlatformItem itemStack, @NotNull ItemBuilder item) {
+        this.paginationCalculator.handleClick(slot, itemStack, item);
     }
 
     private void updateSlot(@NotNull PlatformPlayer player, @NotNull User user, int slot) {

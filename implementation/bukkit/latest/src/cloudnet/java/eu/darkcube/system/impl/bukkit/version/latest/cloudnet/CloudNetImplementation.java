@@ -8,13 +8,13 @@
 package eu.darkcube.system.impl.bukkit.version.latest.cloudnet;
 
 import eu.cloudnetservice.driver.inject.InjectionLayer;
-import eu.cloudnetservice.wrapper.transform.TransformerRegistry;
+import eu.cloudnetservice.wrapper.transform.ClassTransformerRegistry;
 import eu.darkcube.system.impl.bukkit.version.latest.LatestCloudNetImplementation;
 
 public class CloudNetImplementation implements LatestCloudNetImplementation {
     @Override
     public void init() {
-        var transformerRegistry = InjectionLayer.boot().instance(TransformerRegistry.class);
+        var transformerRegistry = InjectionLayer.boot().instance(ClassTransformerRegistry.class);
         BukkitCustomKyoriTransformer.register(transformerRegistry);
     }
 }

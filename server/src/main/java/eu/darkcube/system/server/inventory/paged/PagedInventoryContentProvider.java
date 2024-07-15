@@ -16,10 +16,10 @@ import eu.darkcube.system.server.inventory.item.ItemReferenceProvider;
 
 public interface PagedInventoryContentProvider {
     @NotNull
-    BigInteger SIZE_UNKNOWN = BigInteger.valueOf(-1);
+    BigInteger SIZE_UNKNOWN = BigInteger.valueOf(-1L);
 
     /**
-     * @return the total size of the content, -1 if unknown
+     * @return the total size of the content, {@link #SIZE_UNKNOWN} if unknown
      */
     @NotNull
     BigInteger size();

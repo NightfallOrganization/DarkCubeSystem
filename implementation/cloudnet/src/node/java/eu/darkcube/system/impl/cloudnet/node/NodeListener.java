@@ -25,30 +25,38 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.jar.JarOutputStream;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import dev.derklaro.aerogel.Inject;
+import dev.derklaro.aerogel.Name;
 import eu.cloudnetservice.common.io.FileUtil;
 import eu.cloudnetservice.driver.event.EventListener;
 import eu.cloudnetservice.driver.service.ServiceEnvironmentType;
+import eu.cloudnetservice.node.event.service.CloudServiceConfigurationPrePrepareEvent;
 import eu.cloudnetservice.node.event.service.CloudServicePreProcessStartEvent;
 import eu.cloudnetservice.node.service.CloudService;
-import eu.darkcube.system.impl.cloudnet.DarkCubeSystemModule;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+@SuppressWarnings("UnstableApiUsage")
 public class NodeListener {
+    private static final Logger LOGGER = LoggerFactory.getLogger("DarkCubeSystem");
     private final Path cacheDirectory = FileUtil.TEMP_DIR.resolve("caches").resolve("darkcubesystem");
     private final AtomicLong lastUpdate = new AtomicLong(System.nanoTime());
     private final Lock lock = new ReentrantLock();
+    private final String pluginName;
     private final Condition condition = lock.newCondition();
     private final AtomicBoolean newContent = new AtomicBoolean(false);
 
-    public NodeListener() {
+    @Inject
+    public NodeListener(@Name("pluginName") String pluginName) {
+        this.pluginName = pluginName;
         try {
             var path = Path.of(getClass().getProtectionDomain().getCodeSource().getLocation().toURI());
             var watchService = path.getFileSystem().newWatchService();
@@ -79,9 +87,9 @@ public class NodeListener {
                             newContent.set(false);
                             computeCaches(path);
                             if (newContent.get()) continue;
-                            Logger.getLogger("DarkCubeSystem").info("Updated caches from file");
+                            LOGGER.info("Updated caches from file");
                         } catch (Throwable t) {
-                            Logger.getLogger("DarkCubeSystem").info("Failed to recompute caches: " + t.getLocalizedMessage());
+                            LOGGER.error("Failed to recompute caches: {}", t.getLocalizedMessage());
                         }
                         break;
                     }
@@ -93,7 +101,7 @@ public class NodeListener {
                     try {
                         var k = watchService.take();
                         if (k != key) {
-                            Logger.getLogger("DarkCubeSystem").info("Wrong key");
+                            LOGGER.info("Wrong key");
                             continue;
                         }
                         var events = key.pollEvents();
@@ -126,7 +134,7 @@ public class NodeListener {
             var entry = jarIn.getNextEntry();
             if (entry == null) break;
             if (entry.isDirectory()) continue;
-            var cache = entry.getName().startsWith("inject/") || entry.getName().startsWith("plugins/") || entry.getName().equals("darkcubesystem-wrapper.jar");
+            var cache = entry.getName().startsWith("inject/") || entry.getName().startsWith("plugins/") || entry.getName().equals("darkcubesystem-wrapper.jar") || entry.getName().equals("darkcubesystem-agent.jar");
             if (cache) {
                 caches.put(entry.getName(), jarIn.readAllBytes());
             }
@@ -159,14 +167,21 @@ public class NodeListener {
         copyTo(event.service());
     }
 
+    @EventListener
+    public void handle(CloudServiceConfigurationPrePrepareEvent event) {
+        event.modifiableConfiguration().modifyJvmOptions(jvmOptions -> {
+            jvmOptions.add("-javaagent:" + cacheDirectory.resolve("darkcubesystem-agent.jar").toAbsolutePath());
+        });
+    }
+
     private void copyTo(CloudService service) {
         try {
             var pluginJar = pluginJarFileName(service);
             if (pluginJar != null) {
-                var path = getFile(service.pluginDirectory().resolve(DarkCubeSystemModule.PLUGIN_NAME));
+                var path = getFile(service.pluginDirectory().resolve(pluginName));
                 copyPlugin(pluginJar, path);
             }
-            var path = service.directory().resolve(".wrapper").resolve("modules").resolve(DarkCubeSystemModule.PLUGIN_NAME);
+            var path = service.directory().resolve(".wrapper").resolve("modules").resolve(pluginName);
             Files.createDirectories(path.getParent());
             var jarOut = new JarOutputStream(Files.newOutputStream(path));
             var names = new HashSet<String>();
@@ -178,12 +193,14 @@ public class NodeListener {
 
             var injectIn = stream("inject/" + pluginJar);
             if (injectIn != null) {
-                merge(names, new ZipInputStream(injectIn), jarOut);
+                jarOut.putNextEntry(new JarEntry("inject.jar"));
+                injectIn.transferTo(jarOut);
+                jarOut.closeEntry();
             }
 
             jarOut.close();
         } catch (Throwable throwable) {
-            Logger.getGlobal().log(Level.SEVERE, "error during copy for darkcubesystem", throwable);
+            LOGGER.error("error during copy for darkcubesystem", throwable);
         }
     }
 
@@ -209,7 +226,7 @@ public class NodeListener {
             if (entry == null) break;
             if (!names.add(entry.getName())) {
                 if (!entry.isDirectory()) {
-                    Logger.getGlobal().info("Duplicate entry: " + entry.getName());
+                    LOGGER.info("Duplicate entry: {}", entry.getName());
                 }
                 continue;
             }

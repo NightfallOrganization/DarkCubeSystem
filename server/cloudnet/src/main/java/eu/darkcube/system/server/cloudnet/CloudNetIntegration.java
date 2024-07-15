@@ -7,47 +7,58 @@
 
 package eu.darkcube.system.server.cloudnet;
 
-import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getObjectType;
+import static java.lang.classfile.ClassFile.ACC_PUBLIC;
+import static java.lang.classfile.ClassFile.ACC_STATIC;
+
+import java.lang.classfile.ClassBuilder;
+import java.lang.classfile.ClassElement;
+import java.lang.classfile.ClassTransform;
+import java.lang.constant.ClassDesc;
+import java.lang.constant.MethodTypeDesc;
 
 import eu.cloudnetservice.driver.inject.InjectionLayer;
-import eu.cloudnetservice.wrapper.transform.Transformer;
-import eu.cloudnetservice.wrapper.transform.TransformerRegistry;
+import eu.cloudnetservice.wrapper.transform.ClassTransformer;
+import eu.cloudnetservice.wrapper.transform.ClassTransformerRegistry;
+import eu.darkcube.system.annotations.Api;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
-import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.InsnNode;
-import org.objectweb.asm.tree.MethodInsnNode;
-import org.objectweb.asm.tree.MethodNode;
 
+@Api
 public class CloudNetIntegration {
-    private static final String HOLLOWCUBE_PACKAGE = "net/hollowcube/minestom";
-    private static final String HOLLOWCUBE_PACKAGE_EXTENSIONS = HOLLOWCUBE_PACKAGE + "/extensions";
-    private static final String MINESTOM_EXTENSION_BOOTSTRAP = HOLLOWCUBE_PACKAGE_EXTENSIONS + "/ExtensionBootstrap";
-    private static final String MINESTOM_PACKAGE = "net/minestom/server";
-    private static final String MINESTOM_PACKAGE_EXTENSIONS = MINESTOM_PACKAGE + "/extensions";
-    private static final String MINESTOM_EXTENSION_MANAGER = MINESTOM_PACKAGE_EXTENSIONS + "/ExtensionManager";
-    private static final String CLASS_MINECRAFT_SERVER = "MinecraftServer";
-    private static final String METHOD_GET_EXTENSION_MANAGER = "getExtensionManager";
-
+    @Api
     public static void init() {
-        var transformerRegistry = InjectionLayer.boot().instance(TransformerRegistry.class);
-        transformerRegistry.registerTransformer(MINESTOM_PACKAGE, CLASS_MINECRAFT_SERVER, new CloudNetTransformer());
+        var transformerRegistry = InjectionLayer.boot().instance(ClassTransformerRegistry.class);
+        transformerRegistry.registerTransformer(new CloudNetTransformer());
     }
 
-    private record CloudNetTransformer() implements Transformer {
+    private record CloudNetTransformer() implements ClassTransformer {
+        private static final String CNI_MINECRAFT_SERVER = "net/minestom/server/MinecraftServer";
+        private static final String MN_GET_EXTENSION_MANAGER = "getExtensionManager";
+        private static final ClassDesc CD_EXTENSION_MANAGER = ClassDesc.of("net.minestom.server.extensions.ExtensionManager");
+        private static final ClassDesc CD_EXTENSION_BOOTSTRAP = ClassDesc.of("net.hollowcube.minestom.extensions.ExtensionBootstrap");
+        private static final MethodTypeDesc MTD_GET_EXTENSION_MANAGER = MethodTypeDesc.of(CD_EXTENSION_MANAGER);
+
         @Override
-        public void transform(@NotNull String s, @NotNull ClassNode classNode) {
-            addGetExtensionManager(classNode);
+        public @NotNull ClassTransform provideClassTransform() {
+            return new ClassTransform() {
+                @Override
+                public void accept(ClassBuilder builder, ClassElement element) {
+                    builder.with(element);
+                }
+
+                @Override
+                public void atEnd(ClassBuilder builder) {
+                    builder.withMethodBody(MN_GET_EXTENSION_MANAGER, MTD_GET_EXTENSION_MANAGER, ACC_PUBLIC | ACC_STATIC, b -> {
+                        b.invokestatic(CD_EXTENSION_BOOTSTRAP, MN_GET_EXTENSION_MANAGER, MTD_GET_EXTENSION_MANAGER);
+                        b.areturn();
+                    });
+                }
+            };
         }
 
-        private void addGetExtensionManager(ClassNode node) {
-            for (var method : node.methods)
-                if (method.name.equals(METHOD_GET_EXTENSION_MANAGER)) return;
-            var method = new MethodNode(ACC_PUBLIC | ACC_STATIC, METHOD_GET_EXTENSION_MANAGER, getMethodDescriptor(getObjectType(MINESTOM_EXTENSION_MANAGER)), null, null);
-            method.instructions.add(new MethodInsnNode(INVOKESTATIC, MINESTOM_EXTENSION_BOOTSTRAP, METHOD_GET_EXTENSION_MANAGER, method.desc, false));
-            method.instructions.add(new InsnNode(ARETURN));
-            node.methods.add(method);
+        @Override
+        public @NotNull TransformWillingness classTransformWillingness(@NotNull String internalClassName) {
+            var isMinecraftServer = internalClassName.equals(CNI_MINECRAFT_SERVER);
+            return isMinecraftServer ? TransformWillingness.ACCEPT_ONCE : TransformWillingness.REJECT;
         }
     }
 }

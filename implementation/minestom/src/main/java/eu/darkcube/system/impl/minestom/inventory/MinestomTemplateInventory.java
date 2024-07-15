@@ -17,6 +17,7 @@ import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 import eu.darkcube.system.minestom.inventory.MinestomInventoryType;
+import eu.darkcube.system.server.item.ItemBuilder;
 import eu.darkcube.system.userapi.User;
 import eu.darkcube.system.userapi.UserAPI;
 import net.minestom.server.MinecraftServer;
@@ -59,6 +60,11 @@ public class MinestomTemplateInventory extends MinestomInventory implements Temp
                 listeners.get(i).onOpen(this, user);
             }
         });
+    }
+
+    @Override
+    protected void handleClick(int slot, @NotNull ItemStack itemStack, @NotNull ItemBuilder item) {
+        this.itemHandler.handleClick(slot, itemStack, item);
     }
 
     @Override

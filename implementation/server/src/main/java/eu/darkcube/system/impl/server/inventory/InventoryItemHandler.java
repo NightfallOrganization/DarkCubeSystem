@@ -8,6 +8,7 @@
 package eu.darkcube.system.impl.server.inventory;
 
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
+import eu.darkcube.system.server.item.ItemBuilder;
 import eu.darkcube.system.userapi.User;
 
 public interface InventoryItemHandler<PlatformItem, PlatformPlayer> {
@@ -22,4 +23,6 @@ public interface InventoryItemHandler<PlatformItem, PlatformPlayer> {
      * Calculates all the items in the inventory.
      */
     void doOpen(@NotNull PlatformPlayer player, @NotNull User user);
+
+    void handleClick(int slot, @NotNull PlatformItem itemStack, @NotNull ItemBuilder item);
 }

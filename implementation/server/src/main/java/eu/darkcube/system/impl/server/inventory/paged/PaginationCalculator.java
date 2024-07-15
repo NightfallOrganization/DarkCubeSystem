@@ -7,26 +7,34 @@
 
 package eu.darkcube.system.impl.server.inventory.paged;
 
+import static eu.darkcube.system.impl.server.inventory.InventoryAPIUtils.LOGGER;
+
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.TreeMap;
 import java.util.function.Function;
-import java.util.logging.Logger;
 
 import eu.darkcube.system.impl.server.inventory.SimpleItemHandler;
 import eu.darkcube.system.impl.server.inventory.item.ItemReferenceImpl;
 import eu.darkcube.system.libs.com.github.benmanes.caffeine.cache.Cache;
 import eu.darkcube.system.libs.com.github.benmanes.caffeine.cache.Caffeine;
+import eu.darkcube.system.libs.org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
+import eu.darkcube.system.server.inventory.item.ItemReference;
 import eu.darkcube.system.server.inventory.paged.PageButton;
 import eu.darkcube.system.server.inventory.paged.PagedInventoryContent;
 import eu.darkcube.system.server.inventory.paged.PagedInventoryContentProvider;
+import eu.darkcube.system.server.item.ItemBuilder;
 import eu.darkcube.system.userapi.User;
 
 public class PaginationCalculator<PlatformItem, PlatformPlayer> {
-    private static final Logger LOGGER = Logger.getLogger("InventoryAPI");
+    private static final int PREVIEW_RANGE = 1;
+    private static final int UNLOAD_RANGE = PREVIEW_RANGE; // Unload everything as soon as it leaves preview.
     private final @NotNull SimpleItemHandler<PlatformItem, PlatformPlayer> itemHandler;
     private final boolean enabled;
     private final PagedTemplateSettingsImpl pagination;
@@ -34,12 +42,19 @@ public class PaginationCalculator<PlatformItem, PlatformPlayer> {
     private final int pageSize;
     private final BigInteger pageSizeBigInt;
     private final boolean async;
-    private final @NotNull Cache<BigInteger, PlatformItem> itemCache;
     private final ButtonImpl prevButton;
     private final ButtonImpl nextButton;
+    private final Cache<BigInteger, PageCache<PlatformItem>> pageCache;
     private final Object inventoryLock;
+    private final PagedInventoryContentProvider provider;
+    private final @Nullable BigInteger @NotNull [] loadedPages = new BigInteger[1 + UNLOAD_RANGE * 2];
+    private final int loadedPageIdx = UNLOAD_RANGE;
     private int[] viewSortedSlots;
-    private @NotNull BigInteger viewPageIndex = BigInteger.ZERO;
+    private BigInteger expectedSize;
+    private BigInteger pageFirstIndex;
+    private BigInteger pageLastIndex;
+    private boolean unknownSize;
+    private @MonotonicNonNull User user;
     private int viewPageSize = 0;
     private boolean loadingPage = false;
 
@@ -49,14 +64,15 @@ public class PaginationCalculator<PlatformItem, PlatformPlayer> {
         this.pagination = itemHandler.template().pagination().clone();
         this.pageSize = this.pagination.pageSlots.length;
         this.pageSizeBigInt = BigInteger.valueOf(this.pageSize);
+        this.pageCache = Caffeine.newBuilder().build();
         this.enabled = this.pageSize != 0;
         this.content = this.pagination.content;
         this.async = this.pagination.content.isAsync();
-        this.itemCache = Caffeine.newBuilder().build();
         this.prevButton = new ButtonImpl(this.pagination.previousButton());
         this.nextButton = new ButtonImpl(this.pagination.nextButton());
+        this.provider = this.content.provider();
 
-        if (pagination.isConfigured()) {
+        if (this.pagination.isConfigured()) {
             if (!enabled) {
                 throw new IllegalArgumentException("Paged inventory MUST have pageSlots configured with at least 1 slot. Even if specialPageSlots are configured, pageSlots must be usable as fallback");
             }
@@ -78,77 +94,179 @@ public class PaginationCalculator<PlatformItem, PlatformPlayer> {
                 final var finalSlot = slot;
                 var old = contentMap.put(PagedInventoryContent.PRIORITY, new ItemReferenceImpl((Function<User, Object>) user -> getItem(user, finalSlot), this.async));
                 if (old != null) {
-                    LOGGER.severe("Overrode old item at priority " + PagedInventoryContent.PRIORITY + ", slot " + slot + ". Do not use this priority when the inventory is paged, or undefined display behaviour follows.");
+                    LOGGER.error("Overrode old item at priority " + PagedInventoryContent.PRIORITY + ", slot {}. Do not use this priority when the inventory is paged, or undefined display behaviour follows.", slot);
                 }
             }
         }
     }
 
     public void onOpen(@NotNull User user) {
-        prevButton.load(user);
-        nextButton.load(user);
+        if (!this.pagination.isConfigured()) return;
+        this.prevButton.load(user);
+        this.nextButton.load(user);
         loadPage0(user, BigInteger.ZERO);
     }
 
     public void loadPage(@NotNull BigInteger page) {
-        throw new UnsupportedOperationException();
+        loadPage0(this.user, page);
+    }
+
+    public void loadPreviousPage() {
+        incrementPageBy(BigInteger.valueOf(-1L));
+    }
+
+    public void loadNextPage() {
+        incrementPageBy(BigInteger.ONE);
+    }
+
+    private void incrementPageBy(BigInteger count) {
+        synchronized (this.inventoryLock) {
+            var currentPage = this.loadedPages[this.loadedPageIdx];
+            var requestedPage = currentPage == null ? BigInteger.ZERO : currentPage.add(count);
+            loadPage0(this.user, requestedPage);
+        }
     }
 
     private void loadPage0(@NotNull User user, @NotNull BigInteger page) {
-        synchronized (inventoryLock) {
+        synchronized (this.inventoryLock) {
+            this.user = user;
             this.loadingPage = true;
-            var provider = content.provider();
-            var contentSize = provider.size();
-            var viewIndex = page.multiply(BigInteger.valueOf(pageSize));
-            var unknownSize = contentSize.equals(PagedInventoryContentProvider.SIZE_UNKNOWN);
-            var length = pageSize;
+            updateInformation(page);
+
+            var length = this.pageSize;
             if (unknownSize) {
                 length++; // Include first element on next page. This is used to check if there is a next page.
             }
 
-            var references = provider.provideItem(viewIndex, length, ItemReferenceImpl::new);
-
-            // this is the last item visible in the page. Used for checking if there are more pages
-            var pageLastIndex = viewIndex.add(BigInteger.valueOf(this.pageSize - 1));
-
-            var cmp = contentSize.compareTo(viewIndex);
+            var cmp = this.expectedSize.compareTo(this.pageFirstIndex);
             if (cmp < 0) {
                 // We are out of bounds. We do not clamp (yet) and instead the user has to manually go to previous pages
                 // should be fine...
             }
 
-            var hasNextPage = unknownSize ? references.length >= length : pageLastIndex.compareTo(contentSize) < 0;
-            var hasPrevPage = BigInteger.ZERO.compareTo(viewIndex) < 0;
+            var references = this.provider.provideItem(this.pageFirstIndex, length, ItemReferenceImpl::new);
 
-            this.viewPageIndex = page;
-            this.viewPageSize = references.length;
-            this.prevButton.hasPage = hasPrevPage;
-            this.nextButton.hasPage = hasNextPage;
-            this.viewSortedSlots = Arrays.copyOf(this.pagination.pageSlots, this.viewPageSize);
-            this.pagination.sorter.sort(this.viewSortedSlots);
+            // this is the last item visible in the page. Used for checking if there are more pages
+            var pageLastIndex = this.pageFirstIndex.add(BigInteger.valueOf(this.pageSize - 1));
 
-            for (var i = 0; i < references.length; i++) {
-                var reference = (ItemReferenceImpl) references[i];
-                var index = viewIndex.add(BigInteger.valueOf(i));
-                if (reference.isAsync()) {
-                    itemHandler.service().submit(() -> syncCompute(user, reference.item(), index));
-                } else {
-                    syncCompute(user, reference.item(), index);
-                }
-            }
+            computeItems(references, 0, references.length);
+
             this.loadingPage = false;
-            itemHandler.updateSlots(PagedInventoryContent.PRIORITY, pagination.pageSlots);
+            this.itemHandler.updateSlots(PagedInventoryContent.PRIORITY, this.pagination.pageSlots);
         }
     }
 
-    private void syncCompute(User user, Object object, BigInteger viewIndex) {
+    private void updateLoadedPages(@NotNull BigInteger page) {
+        var newPages = new ArrayList<BigInteger>(UNLOAD_RANGE * 2 + 1);
+        for (var i = -UNLOAD_RANGE; i <= UNLOAD_RANGE; i++) {
+            var p = page.add(BigInteger.valueOf(i));
+            newPages.add(p);
+        }
+
+        var unloadPages = new ArrayList<BigInteger>();
+        for (var i = 0; i < this.loadedPages.length; i++) {
+            var loadedPage = this.loadedPages[i];
+            if (loadedPage == null) continue;
+            if (newPages.contains(loadedPage)) continue;
+            // all pages that reach this stage must be unloaded
+            unloadPages.add(loadedPage);
+            this.loadedPages[i] = null;
+        }
+
+        unloadPages(unloadPages.toArray(BigInteger[]::new));
+
+        var loadPages = new ArrayList<BigInteger>();
+        for (var i = 0; i < newPages.size(); i++) {
+            var newPage = newPages.get(i);
+            var foundExistingPage = moveTo(newPage, i);
+
+            if (!foundExistingPage) {
+                loadPages.add(newPage);
+            }
+        }
+
+        loadPages(loadPages.toArray(BigInteger[]::new));
+    }
+
+    private boolean moveTo(@NotNull BigInteger page, int index) {
+        for (var i = 0; i < this.loadedPages.length; i++) {
+            var loadedPage = this.loadedPages[i];
+            if (loadedPage != null) {
+                if (page.equals(loadedPage)) {
+                    var old = this.loadedPages[index];
+                    this.loadedPages[index] = loadedPage;
+                    this.loadedPages[i] = old;
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private void loadPages(@NotNull BigInteger @NotNull ... pages) {
+        // TODO
+    }
+
+    private void unloadPages(@NotNull BigInteger @NotNull ... pages) {
+        for (var page : pages) {
+            this.pageCache.invalidate(page);
+        }
+    }
+
+    private void updateInformation(@NotNull BigInteger page) {
+        this.expectedSize = this.provider.size();
+        this.pageFirstIndex = page.multiply(this.pageSizeBigInt);
+        this.unknownSize = this.expectedSize.equals(PagedInventoryContentProvider.SIZE_UNKNOWN);
+        updateLoadedPages(page);
+
+        var references = provideItems();
+
+        // var hasNextPage = this.unknownSize ? references.length >= length : this.pageLastIndex.compareTo(this.expectedSize) < 0;
+        var hasNextPage = true;
+        var hasPrevPage = BigInteger.ZERO.compareTo(this.pageFirstIndex) < 0;
+
+        this.viewPageSize = references.length;
+        this.prevButton.hasPage(hasPrevPage);
+        this.nextButton.hasPage(hasNextPage);
+        this.viewSortedSlots = Arrays.copyOf(this.pagination.pageSlots, this.viewPageSize);
+        this.pagination.sorter.sort(this.viewSortedSlots);
+    }
+
+    private ItemReference[] provideItems() {
+        return new ItemReference[0];
+    }
+
+    private void computeItems(ItemReference[] itemReferences, int fromIndex, int toIndex) {
+        // var viewIndex = this.viewPageIndex.multiply(this.pageSizeBigInt);
+        // for (var i = fromIndex; i < toIndex; i++) {
+        //     var reference = (ItemReferenceImpl) itemReferences[i];
+        //     var index = viewIndex.add(BigInteger.valueOf(i));
+        //     var pageIndex = index.mod(this.pageSizeBigInt).intValueExact();
+        //     var pageNumber = index.divide(this.pageSizeBigInt);
+        //     var pageCache = this.pageCache.getIfPresent(pageNumber);
+        //     if (pageCache == null) {
+        //         pageCache = new PageCache<>(this.pageSize);
+        //         this.pageCache.put(pageNumber, pageCache);
+        //     }
+        //     if (reference.isAsync()) {
+        //         var finalPageCache = pageCache;
+        //         itemHandler.service().submit(() -> syncCompute(finalPageCache, user, reference.item(), pageIndex));
+        //     } else {
+        //         syncCompute(pageCache, user, reference.item(), pageIndex);
+        //     }
+        // }
+    }
+
+    private void syncCompute(PageCache<PlatformItem> pageCache, User user, Object object, int pageIndex) {
         var item = this.itemHandler.inventory().computeItem(user, object);
-        synchronized (inventoryLock) {
-            itemCache.put(viewIndex, item);
-            if (!loadingPage) {
-                // TODO we might want to only update the slot for the specified item.
-                //  Hard to figure out that slot though, maybe something for the future.
-                itemHandler.updateSlots(PagedInventoryContent.PRIORITY, pagination.pageSlots);
+        var itemUpdated = pageCache.cache(pageIndex, item);
+        if (itemUpdated) {
+            synchronized (this.inventoryLock) {
+                if (!this.loadingPage) {
+                    // TODO we might want to only update the slot for the specified item.
+                    //  Hard to figure out that slot though, maybe something for the future.
+                    this.itemHandler.updateSlots(PagedInventoryContent.PRIORITY, pagination.pageSlots);
+                }
             }
         }
     }
@@ -157,24 +275,53 @@ public class PaginationCalculator<PlatformItem, PlatformPlayer> {
      * Get the item at the specified slot. Can return a content item or an arrow item.
      */
     private @Nullable Object getItem(@NotNull User user, int slot) {
-        synchronized (inventoryLock) {
+        synchronized (this.inventoryLock) {
             var res = this.prevButton.getItem(user, slot);
             if (res != null) return res;
             res = this.nextButton.getItem(user, slot);
             if (res != null) return res;
             var viewPageSize = this.viewPageSize;
-            var slots = pagination.specialPageSlots.get(viewPageSize);
+            var slots = this.pagination.specialPageSlots.get(viewPageSize);
             if (slots == null) {
-                slots = viewSortedSlots;
+                slots = this.viewSortedSlots;
             }
-            for (var i = 0; i < slots.length; i++) {
-                var s = slots[i];
-                if (s == slot) {
-                    var index = viewPageIndex.add(BigInteger.valueOf(i));
-                    return itemCache.getIfPresent(index);
+            var loadedPage = this.loadedPages[this.loadedPageIdx];
+            if (loadedPage != null) {
+                for (var i = 0; i < slots.length; i++) {
+                    var s = slots[i];
+                    if (s == slot) {
+                        var page = this.pageCache.getIfPresent(loadedPage);
+                        return page.cache(i);
+                    }
                 }
             }
             return null;
+        }
+    }
+
+    public void handleClick(int slot, @NotNull PlatformItem itemStack, @NotNull ItemBuilder item) {
+        if (!this.pagination.isConfigured()) return;
+        LOGGER.debug("Page click event - slot: {}", slot);
+        this.prevButton.handleClick(slot, itemStack, item);
+        this.nextButton.handleClick(slot, itemStack, item);
+    }
+
+    private static class PageCache<PlatformItem> {
+        private static final VarHandle ELEMENT = MethodHandles.arrayElementVarHandle(Object[].class);
+        private final int pageSize;
+        private final Object[] items;
+
+        public PageCache(int pageSize) {
+            this.pageSize = pageSize;
+            this.items = new Object[pageSize];
+        }
+
+        private PlatformItem cache(int pageIndex) {
+            return (PlatformItem) items[pageIndex];
+        }
+
+        private boolean cache(int pageIndex, PlatformItem item) {
+            return ELEMENT.compareAndSet(this.items, pageIndex, null, item);
         }
     }
 
@@ -184,16 +331,47 @@ public class PaginationCalculator<PlatformItem, PlatformPlayer> {
         private PlatformItem item;
         private int[] slots;
         private PageButton.Visibility visibility;
+        /**
+         * If there is a page this button can change to
+         */
         private boolean hasPage = false;
 
         public ButtonImpl(PageButtonImpl button) {
             this.button = button;
         }
 
+        private void handleClick(int slot, @NotNull PlatformItem itemStack, @NotNull ItemBuilder item) {
+            if (!this.hasPage) return;
+            if (!this.containsSlot(slot)) return;
+            if (this == prevButton) {
+                loadPreviousPage();
+            } else if (this == nextButton) {
+                loadNextPage();
+            } else {
+                throw new IllegalStateException();
+            }
+        }
+
+        private void hasPage(boolean hasPage) {
+            if (this.hasPage == hasPage) return;
+            System.out.println((this == prevButton ? "PREV" : "NEXT") + ": " + hasPage);
+            this.hasPage = hasPage;
+            itemHandler.updateSlots(PagedInventoryContent.PRIORITY, this.slots);
+        }
+
+        private boolean containsSlot(int slot) {
+            for (var s : this.slots) {
+                if (slot == s) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         private void load(User user) {
             if (!enabled) return;
-            if (!buttonConfigured) return;
-            var reference = button.item();
+            if (!this.buttonConfigured) return;
+            var reference = this.button.item();
             if (reference == null) throw new IllegalStateException("Button not configured");
             this.item = itemHandler.inventory().computeItem(user, reference.item());
             if (this.item == null) throw new IllegalStateException("Button item not configured");

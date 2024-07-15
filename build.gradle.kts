@@ -17,6 +17,7 @@ val cloudnetJarPlugins = configurations.register("plugins") { isTransitive = fal
 val cloudnetJarInject = configurations.register("inject") { isTransitive = false }
 val cloudnetJar = configurations.register("cloudnetJar") { isTransitive = false }
 val cloudnetJarWrapper = configurations.register("cloudnetJarPlugins") { isTransitive = false }
+val cloudnetJarInclude = configurations.register("cloudnetJarInclude") { isTransitive = false }
 
 tasks {
     val cloudnetWrapperJar = register<Jar>("cloudnetWrapperJar") {
@@ -33,6 +34,9 @@ tasks {
         dependsOn(cloudnetJarPlugins)
         from(cloudnetWrapperJar) {
             rename { "darkcubesystem-wrapper.jar" }
+        }
+        from(cloudnetJarInclude) {
+            rename { "darkcubesystem-agent.jar" }
         }
         cloudnetJar.get().incoming.files.singleFile.also {
             from(zipTree(it))
@@ -66,6 +70,8 @@ fun include(configuration: Configuration, task: AbstractCopyTask, directory: Str
 dependencies {
     cloudnetJar(projects.darkcubesystemImplementationCloudnet) { targetConfiguration = "node" }
     cloudnetJarWrapper(projects.darkcubesystemImplementationCloudnet) { targetConfiguration = "wrapper" }
+    cloudnetJarInclude(projects.darkcubesystemImplementationCloudnet) { targetConfiguration = "agent" }
+
     cloudnetJarPlugins(projects.darkcubesystemImplementationMinestom) { targetConfiguration = "cloudnetPlugin" }
     cloudnetJarInject(projects.darkcubesystemImplementationMinestom) { targetConfiguration = "cloudnetInject" }
     cloudnetJarPlugins(projects.darkcubesystemImplementationBukkit) { targetConfiguration = "cloudnetPlugin" }

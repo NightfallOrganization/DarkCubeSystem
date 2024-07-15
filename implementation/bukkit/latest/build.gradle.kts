@@ -28,8 +28,6 @@ dependencies {
     cloudnetSource.implementationConfigurationName(projects.darkcubesystemImplementationBukkit) { targetConfiguration = "cloudnetPluginRaw" }
     cloudnetSource.implementationConfigurationName(sourceSets.main.map { it.output })
     cloudnetSource.implementationConfigurationName(libs.cloudnet.wrapper)
-    cloudnetSource.implementationConfigurationName(libs.cloudnet.asm)
-    cloudnetSource.implementationConfigurationName(libs.cloudnet.asm.tree)
 }
 
 tasks {

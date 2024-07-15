@@ -7,25 +7,56 @@
 
 package eu.darkcube.system.impl.bukkit.version.latest.cloudnet;
 
-import eu.cloudnetservice.wrapper.transform.Transformer;
-import eu.cloudnetservice.wrapper.transform.TransformerRegistry;
+import java.lang.classfile.ClassBuilder;
+import java.lang.classfile.ClassElement;
+import java.lang.classfile.ClassFile;
+import java.lang.classfile.ClassReader;
+import java.lang.classfile.ClassTransform;
+
+import eu.cloudnetservice.wrapper.transform.ClassTransformer;
+import eu.cloudnetservice.wrapper.transform.ClassTransformerRegistry;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import io.papermc.paper.plugin.entrypoint.classloader.ClassloaderBytecodeModifier;
-import org.objectweb.asm.tree.ClassNode;
 
-public class BukkitCustomKyoriTransformer implements Transformer {
+public class BukkitCustomKyoriTransformer implements ClassTransformer {
+    private static final String CNI_MINECRAFT_REFLECTION = "eu/darkcube/system/libs/net/kyori/adventure/platform/bukkit/MinecraftReflection";
 
-    @Override
-    public void transform(@NotNull String className, @NotNull ClassNode classNode) {
+    // @Override
+    // public void transform(@NotNull String className, @NotNull ClassNode classNode) {
+    // }
+    //
+    // @Override
+    // public byte[] toByteArray(ClassNode classNode) {
+    //     var bytes = Transformer.super.toByteArray(classNode);
+    //     return ClassloaderBytecodeModifier.bytecodeModifier().modify(null, bytes);
+    // }
+    //
+    public static void register(ClassTransformerRegistry transformerRegistry) {
+        transformerRegistry.registerTransformer(new BukkitCustomKyoriTransformer());
     }
 
     @Override
-    public byte[] toByteArray(ClassNode classNode) {
-        var bytes = Transformer.super.toByteArray(classNode);
-        return ClassloaderBytecodeModifier.bytecodeModifier().modify(null, bytes);
+    public @NotNull ClassTransform provideClassTransform() {
+        return new ClassTransform() {
+            @Override
+            public void atStart(ClassBuilder builder) {
+                var classModel = builder.original().orElseThrow();
+                var classReader = (ClassReader) classModel.constantPool();
+                var originalClassBytes = classReader.readBytes(0, classReader.classfileLength());
+                var bytes = ClassloaderBytecodeModifier.bytecodeModifier().modify(null, originalClassBytes);
+                var newModel = ClassFile.of().parse(bytes);
+                newModel.forEach(builder::with);
+            }
+
+            @Override
+            public void accept(ClassBuilder builder, ClassElement element) {
+            }
+        };
     }
 
-    public static void register(TransformerRegistry transformerRegistry) {
-        transformerRegistry.registerTransformer("eu/darkcube/system/libs/net/kyori/adventure/platform/bukkit", "MinecraftReflection", new BukkitCustomKyoriTransformer());
+    @Override
+    public @NotNull TransformWillingness classTransformWillingness(@NotNull String internalName) {
+        var isMinecraftReflection = internalName.equals(CNI_MINECRAFT_REFLECTION);
+        return isMinecraftReflection ? TransformWillingness.ACCEPT_ONCE : TransformWillingness.REJECT;
     }
 }

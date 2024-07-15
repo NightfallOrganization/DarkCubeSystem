@@ -2,7 +2,6 @@ metadata.format.version = "1.1"
 
 [versions]
 cloudnet = "4.0.0-RC11-SNAPSHOT"
-cloudnet-asm = "9.7"
 annotations = "24.1.0"
 brigadier = "1.0.18"
 gson = "2.11.0"
@@ -11,6 +10,7 @@ adventure-platform = "4.3.3"
 luckperms = "5.4"
 viaversion = "5.0.2-20240626.120045-1"
 caffeine = "3.1.8"
+slf4j-api = "2.0.13"
 
 minestom = "7f15222468"
 minestom-extensions = "1.2.0"
@@ -22,6 +22,7 @@ idea-ext = "1.1.8"
 velocity = "3.1.1"
 
 [libraries]
+slf4j-api = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j-api" }
 viaversion = { group = "eu.darkcube.com.viaversion", name = "viaversion-api", version.ref = "viaversion" }
 viaversion-common = { group = "eu.darkcube.com.viaversion", name = "viaversion-common", version.ref = "viaversion" }
 viaversion-velocity = { group = "eu.darkcube.com.viaversion", name = "viaversion-velocity", version.ref = "viaversion" }
@@ -45,8 +46,6 @@ cloudnet-driver = { group = "eu.darkcube.cloudnetservice.cloudnet", name = "driv
 cloudnet-bridge = { group = "eu.darkcube.cloudnetservice.cloudnet", name = "bridge", version.ref = "cloudnet" }
 cloudnet-node = { group = "eu.darkcube.cloudnetservice.cloudnet", name = "node", version.ref = "cloudnet" }
 cloudnet-wrapper = { group = "eu.darkcube.cloudnetservice.cloudnet", name = "wrapper-jvm", version.ref = "cloudnet" }
-cloudnet-asm = { group = "org.ow2.asm", name = "asm", version.ref = "cloudnet-asm" }
-cloudnet-asm-tree = { group = "org.ow2.asm", name = "asm-tree", version.ref = "cloudnet-asm" }
 
 velocity = { group = "com.velocitypowered", name = "velocity-api", version.ref = "velocity" }
 
