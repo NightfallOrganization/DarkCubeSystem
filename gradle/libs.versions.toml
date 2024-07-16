@@ -8,7 +8,7 @@ gson = "2.11.0"
 adventure = "4.17.0"
 adventure-platform = "4.3.3"
 luckperms = "5.4"
-viaversion = "5.0.2-20240626.120045-1"
+viaversion = "5.0.1"
 caffeine = "3.1.8"
 slf4j-api = "2.0.13"
 
@@ -23,10 +23,9 @@ velocity = "3.1.1"
 
 [libraries]
 slf4j-api = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j-api" }
-viaversion = { group = "eu.darkcube.com.viaversion", name = "viaversion-api", version.ref = "viaversion" }
-viaversion-common = { group = "eu.darkcube.com.viaversion", name = "viaversion-common", version.ref = "viaversion" }
-viaversion-velocity = { group = "eu.darkcube.com.viaversion", name = "viaversion-velocity", version.ref = "viaversion" }
-viaversion-bukkit = { group = "eu.darkcube.com.viaversion", name = "viaversion-bukkit", version.ref = "viaversion" }
+viaversion = { group = "com.viaversion", name = "viaversion-api", version.ref = "viaversion" }
+viaversion-common = { group = "com.viaversion", name = "viaversion-common", version.ref = "viaversion" }
+viaversion-velocity = { group = "com.viaversion", name = "viaversion-velocity", version.ref = "viaversion" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 adventure-api = { group = "net.kyori", name = "adventure-api", version.ref = "adventure" }
 adventure-text-serializer-plain = { group = "net.kyori", name = "adventure-text-serializer-plain", version.ref = "adventure" }
