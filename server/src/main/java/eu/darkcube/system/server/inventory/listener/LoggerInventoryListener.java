@@ -7,15 +7,15 @@
 
 package eu.darkcube.system.server.inventory.listener;
 
-import java.util.logging.Logger;
-
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.server.inventory.Inventory;
 import eu.darkcube.system.server.item.ItemBuilder;
 import eu.darkcube.system.userapi.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class LoggerInventoryListener implements InventoryListener {
-    private final Logger logger = Logger.getLogger("InventoryAPI");
+    private final Logger logger = LoggerFactory.getLogger("InventoryAPI");
 
     @Override
     public void onPreOpen(@NotNull Inventory inventory, @NotNull User user) {
@@ -39,7 +39,7 @@ public class LoggerInventoryListener implements InventoryListener {
 
     @Override
     public void onSlotUpdate(@NotNull Inventory inventory, int slot) {
-        logger.info("SlotUpdate " + slot);
+        logger.info("SlotUpdate {}", slot);
     }
 
     @Override
@@ -49,6 +49,6 @@ public class LoggerInventoryListener implements InventoryListener {
 
     @Override
     public void onClick(@NotNull Inventory inventory, @NotNull User user, int slot, @NotNull ItemBuilder item) {
-        logger.info("Click " + slot + " " + item);
+        logger.info("Click {} {}", slot, item);
     }
 }

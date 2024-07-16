@@ -10,13 +10,14 @@ package eu.darkcube.system.link;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import eu.darkcube.system.annotations.Api;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Api
 public class LinkManager {
+    private static final Logger LOGGER = LoggerFactory.getLogger("LinkManager");
     private final Collection<Link> links = new ArrayList<>();
 
     @Api
@@ -26,7 +27,7 @@ public class LinkManager {
             this.links.add(supplier.get());
             success = true;
         } catch (Throwable t) {
-            Logger.getLogger("LinkManager").log(Level.WARNING, "Failed to create link", t);
+            LOGGER.warn("Failed to create link", t);
         }
         return success;
     }
@@ -37,7 +38,7 @@ public class LinkManager {
             try {
                 link.link();
             } catch (Throwable e) {
-                Logger.getLogger("LinkManager").warning(e.getLocalizedMessage());
+                LOGGER.warn(e.getLocalizedMessage());
             }
         });
         links.forEach(Link::enable);

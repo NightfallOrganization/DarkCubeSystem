@@ -14,8 +14,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import eu.cloudnetservice.driver.channel.ChannelMessage;
 import eu.cloudnetservice.driver.event.EventListener;
@@ -38,9 +36,12 @@ import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.libs.org.jetbrains.annotations.ApiStatus;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PacketAPI {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger("PacketAPI");
     private static final Gson GSON = new Gson();
     private static final String CHANNEL = "darkcube:packetapi";
     private static final String MESSAGE_PACKET = "packet";
@@ -223,7 +224,7 @@ public class PacketAPI {
                         var packet = PacketSerializer.readPacket(content, classLoader);
                         entry.complete(packet);
                     } catch (NoClassDefFoundError error) {
-                        Logger.getLogger("PacketAPI").log(Level.SEVERE, "Unknown Packet response. Expected: " + entry.resultType.getName(), error);
+                        LOGGER.error("Unknown Packet response. Expected: " + entry.resultType.getName(), error);
                         entry.task.completeExceptionally(error);
                     }
                     return;
@@ -239,10 +240,10 @@ public class PacketAPI {
                         if (query) {
                             preparePacket(response, queryId, TYPE_QUERY_RESPONSE).target(e.sender().toTarget()).build().send();
                         } else if (response != null) {
-                            Logger.getLogger("PacketAPI").warning("Gave a response packet to a Packet that isn't a query packet! Handler: " + handler.getClass().getName());
+                            LOGGER.warn("Gave a response packet to a Packet that isn't a query packet! Handler: {}", handler.getClass().getName());
                         }
                     } catch (Throwable ex) {
-                        Logger.getLogger("PacketAPI").log(Level.SEVERE, "Packet Handling Failed", ex);
+                        LOGGER.error("Packet Handling Failed", ex);
                     }
                 }
             } finally {

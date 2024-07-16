@@ -24,9 +24,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerKickEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApiStatus.Internal
 public class DarkCubeSystemBukkit extends DarkCubePlugin implements Listener {
+    private static final Logger LOGGER = LoggerFactory.getLogger("DarkCubeSystem");
     protected final LinkManager linkManager = new LinkManager();
     private final BukkitVersionHandler versionHandler;
 
@@ -64,5 +67,9 @@ public class DarkCubeSystemBukkit extends DarkCubePlugin implements Listener {
         if (Objects.equals(event.getReason(), "disconnect.spam")) {
             event.setCancelled(true);
         }
+    }
+
+    public Logger getSystemLogger() {
+        return LOGGER;
     }
 }

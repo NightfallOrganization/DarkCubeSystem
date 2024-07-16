@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.logging.Logger;
 
 import com.destroystokyo.paper.profile.ProfileProperty;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -62,7 +61,6 @@ import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.persistence.PersistentDataType;
 
 public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBuilder {
-    private static final Logger LOGGER = Logger.getLogger("ItemBuilder");
     private static final NamespacedKey PERSISTENT_DATA_KEY = new NamespacedKey(DarkCubePlugin.systemPlugin(), "persistentdatastorage");
     private static final NamespacedKey PERSISTENT_DATA_KEY_LEGACY = new NamespacedKey("system", "persistentdatastorage");
     private static final Gson gson = new GsonBuilder().registerTypeAdapter(ItemStack.class, new TypeAdapter<ItemStack>() {
@@ -200,10 +198,10 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
         if (!ignoreCloneFailure) {
             var b = build();
             if (!item.equals(b) && !(item.getType() == b.getType() && item.getType() == Material.AIR)) {
-                LOGGER.severe("Failed to clone item correctly: ");
-                LOGGER.severe(" - " + CraftItemStack.asNMSCopy(item).save(MinecraftServer.getServer().registryAccess()));
-                LOGGER.severe(" - " + net.minecraft.world.item.ItemStack.parse(MinecraftServer.getServer().registryAccess(), CraftItemStack.asNMSCopy(item).save(MinecraftServer.getServer().registryAccess())).orElseThrow().save(MinecraftServer.getServer().registryAccess()));
-                LOGGER.severe(" - " + CraftItemStack.asNMSCopy(b).save(MinecraftServer.getServer().registryAccess()));
+                LOGGER.error("Failed to clone item correctly: ");
+                LOGGER.error(" - {}", CraftItemStack.asNMSCopy(item).save(MinecraftServer.getServer().registryAccess()));
+                LOGGER.error(" - {}", net.minecraft.world.item.ItemStack.parse(MinecraftServer.getServer().registryAccess(), CraftItemStack.asNMSCopy(item).save(MinecraftServer.getServer().registryAccess())).orElseThrow().save(MinecraftServer.getServer().registryAccess()));
+                LOGGER.error(" - {}", CraftItemStack.asNMSCopy(b).save(MinecraftServer.getServer().registryAccess()));
             }
         }
     }

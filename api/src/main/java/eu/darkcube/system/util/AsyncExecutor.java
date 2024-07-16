@@ -12,14 +12,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import eu.darkcube.system.libs.org.jetbrains.annotations.ApiStatus;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AsyncExecutor {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger("AsyncExecutor");
     private static ScheduledExecutorService scheduledService;
     private static ExecutorService cachedService;
     private static ExecutorService virtualService;
@@ -60,8 +61,7 @@ public class AsyncExecutor {
      * The default thread factory.
      */
     private static class DefaultThreadFactory implements ThreadFactory {
-        private static final Logger LOGGER = Logger.getLogger("AsyncExecutor");
-        private static final Thread.UncaughtExceptionHandler UEC = (t, e) -> LOGGER.log(Level.SEVERE, "Uncaught Exception in Thread " + t.getName(), e);
+        private static final Thread.UncaughtExceptionHandler UEC = (t, e) -> LOGGER.error("Uncaught Exception in Thread {}", t.getName(), e);
         private final ThreadGroup group;
         private final AtomicInteger threadNumber = new AtomicInteger(1);
         private final String namePrefix;

@@ -7,7 +7,6 @@
 
 package eu.darkcube.system.bukkit.commandapi;
 
-import java.util.logging.Logger;
 
 import eu.darkcube.system.bukkit.util.BukkitAdventureSupport;
 import eu.darkcube.system.commandapi.CommandExecutor;
@@ -20,10 +19,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ProxiedCommandSender;
 import org.bukkit.entity.Player;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BukkitCommandExecutor implements CommandExecutor, ForwardingAudience.Single {
 
-    private static final Logger logger = Logger.getLogger("System");
+    private static final Logger logger = LoggerFactory.getLogger("System");
     private final CommandSender sender;
     private final Audience audience;
 
@@ -60,7 +61,7 @@ public class BukkitCommandExecutor implements CommandExecutor, ForwardingAudienc
             UserAPI.instance().user(((Player) sender).getUniqueId()).language(language);
             return;
         }
-        logger.warning("Can't set language of the console!");
+        logger.warn("Can't set language of the console!");
     }
 
     @Override

@@ -24,16 +24,16 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import eu.darkcube.system.libs.com.github.benmanes.caffeine.cache.Caffeine;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Contract;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 non-sealed class EventNodeImpl<T> implements EventNode<T> {
-    private static final Logger logger = Logger.getLogger("Event");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Event");
     static final Object GLOBAL_CHILD_LOCK = new Object();
 
     private final Map<Class<?>, Handle<T>> handleMap = new ConcurrentHashMap<>();
@@ -331,7 +331,7 @@ non-sealed class EventNodeImpl<T> implements EventNode<T> {
             try {
                 listener.accept(event);
             } catch (Throwable e) {
-                logger.log(Level.SEVERE, "Exception during event execution", e);
+                LOGGER.error("Exception during event execution", e);
             }
         }
 
@@ -344,7 +344,8 @@ non-sealed class EventNodeImpl<T> implements EventNode<T> {
             this.updated = false;
         }
 
-        @Nullable Consumer<@NotNull E> updatedListener() {
+        @Nullable
+        Consumer<@NotNull E> updatedListener() {
             if (updated) return listener;
             synchronized (GLOBAL_CHILD_LOCK) {
                 if (updated) return listener;

@@ -14,7 +14,6 @@ import static net.minestom.server.item.Material.BOW;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Collections;
-import java.util.logging.Logger;
 
 import eu.darkcube.system.impl.minestom.adventure.AdventureUtils;
 import eu.darkcube.system.impl.minestom.item.attribute.MinestomAttributeModifierImpl;
@@ -56,7 +55,6 @@ import org.jglrxavpok.hephaistos.parser.SNBTParser;
 
 @SuppressWarnings("UnstableApiUsage")
 public class MinestomItemBuilderImpl extends AbstractItemBuilder implements MinestomItemBuilder {
-    private static final Logger LOGGER = Logger.getLogger("ItemBuilder");
     private static final Gson gson = new GsonBuilder().registerTypeHierarchyAdapter(ItemStack.class, new TypeAdapter<ItemStack>() {
         @Override
         public void write(JsonWriter writer, ItemStack value) throws IOException {
@@ -142,9 +140,9 @@ public class MinestomItemBuilderImpl extends AbstractItemBuilder implements Mine
         }
         var b = build();
         if (!b.isSimilar(item)) {
-            LOGGER.severe("Failed to clone item correctly: ");
-            LOGGER.severe(" - " + item.toItemNBT().toSNBT());
-            LOGGER.severe(" - " + b.toItemNBT().toSNBT());
+            LOGGER.error("Failed to clone item correctly: ");
+            LOGGER.error(" - {}", item.toItemNBT().toSNBT());
+            LOGGER.error(" - {}", b.toItemNBT().toSNBT());
         }
     }
 

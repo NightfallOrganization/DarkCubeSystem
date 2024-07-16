@@ -11,6 +11,7 @@ plugins {
 }
 
 dependencies {
+    api(libs.slf4j.api)
     api(projects.darkcubesystemLibs)
     implementation(projects.darkcubesystemImplementationProvider)
 }

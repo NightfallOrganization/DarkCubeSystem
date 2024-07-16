@@ -35,9 +35,11 @@ import eu.darkcube.system.server.item.flag.ItemFlag;
 import eu.darkcube.system.server.item.material.Material;
 import eu.darkcube.system.server.item.meta.BuilderMeta;
 import eu.darkcube.system.server.item.storage.BasicItemPersistentDataStorage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class AbstractItemBuilder implements ItemBuilder {
-
+    protected static final Logger LOGGER = LoggerFactory.getLogger("ItemBuilder");
     protected @NotNull Material material = Material.air();
     protected int amount = 1;
     protected int damage = 0;
