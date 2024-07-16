@@ -171,6 +171,7 @@ public class NodeListener {
     public void handle(CloudServiceConfigurationPrePrepareEvent event) {
         event.modifiableConfiguration().modifyJvmOptions(jvmOptions -> {
             jvmOptions.add("-javaagent:" + cacheDirectory.resolve("darkcubesystem-agent.jar").toAbsolutePath());
+            jvmOptions.add("-Dcloudnet.wrapper.minestom-stop-transform-disabled=true");
         });
     }
 

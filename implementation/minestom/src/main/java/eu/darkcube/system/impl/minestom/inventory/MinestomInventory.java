@@ -84,7 +84,6 @@ public class MinestomInventory extends AbstractInventory<ItemStack> {
     }
 
     protected void register() {
-        System.out.println("Register");
         MinecraftServer.getGlobalEventHandler().addChild(node);
         updateScheduler = MinecraftServer.getSchedulerManager().scheduleTask(() -> {
             if (modified) {
@@ -97,7 +96,6 @@ public class MinestomInventory extends AbstractInventory<ItemStack> {
     }
 
     protected void unregister() {
-        System.out.println("Unregister");
         MinecraftServer.getGlobalEventHandler().removeChild(node);
         updateScheduler.cancel();
     }

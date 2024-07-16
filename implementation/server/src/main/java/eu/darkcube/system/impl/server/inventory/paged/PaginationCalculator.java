@@ -15,6 +15,8 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Function;
 
@@ -34,7 +36,7 @@ import eu.darkcube.system.userapi.User;
 
 public class PaginationCalculator<PlatformItem, PlatformPlayer> {
     private static final int PREVIEW_RANGE = 1;
-    private static final int UNLOAD_RANGE = PREVIEW_RANGE; // Unload everything as soon as it leaves preview.
+    private static final int UNLOAD_RANGE = PREVIEW_RANGE + 1; // Unload everything as soon as it leaves preview.
     private final @NotNull SimpleItemHandler<PlatformItem, PlatformPlayer> itemHandler;
     private final boolean enabled;
     private final PagedTemplateSettingsImpl pagination;
@@ -132,42 +134,32 @@ public class PaginationCalculator<PlatformItem, PlatformPlayer> {
             this.user = user;
             this.loadingPage = true;
             updateInformation(page);
-
-            var length = this.pageSize;
-            if (unknownSize) {
-                length++; // Include first element on next page. This is used to check if there is a next page.
-            }
-
-            var cmp = this.expectedSize.compareTo(this.pageFirstIndex);
-            if (cmp < 0) {
-                // We are out of bounds. We do not clamp (yet) and instead the user has to manually go to previous pages
-                // should be fine...
-            }
-
-            var references = this.provider.provideItem(this.pageFirstIndex, length, ItemReferenceImpl::new);
-
-            // this is the last item visible in the page. Used for checking if there are more pages
-            var pageLastIndex = this.pageFirstIndex.add(BigInteger.valueOf(this.pageSize - 1));
-
-            computeItems(references, 0, references.length);
-
             this.loadingPage = false;
             this.itemHandler.updateSlots(PagedInventoryContent.PRIORITY, this.pagination.pageSlots);
         }
     }
 
-    private void updateLoadedPages(@NotNull BigInteger page) {
-        var newPages = new ArrayList<BigInteger>(UNLOAD_RANGE * 2 + 1);
-        for (var i = -UNLOAD_RANGE; i <= UNLOAD_RANGE; i++) {
+    /**
+     * Updates the loadedPages array. Calls {@link #unloadPages(BigInteger...)} and {@link #loadPages(BigInteger...)} for all changes.
+     */
+    private BigInteger[] updateLoadedPages(@NotNull BigInteger page) {
+        var offset = UNLOAD_RANGE - PREVIEW_RANGE;
+        var previewPages = new ArrayList<BigInteger>(PREVIEW_RANGE * 2 + 1);
+        for (var i = -PREVIEW_RANGE; i <= PREVIEW_RANGE; i++) {
             var p = page.add(BigInteger.valueOf(i));
-            newPages.add(p);
+            if (p.compareTo(BigInteger.ZERO) >= 0) {
+                previewPages.add(p);
+            } else {
+                offset++;
+            }
         }
 
         var unloadPages = new ArrayList<BigInteger>();
         for (var i = 0; i < this.loadedPages.length; i++) {
             var loadedPage = this.loadedPages[i];
             if (loadedPage == null) continue;
-            if (newPages.contains(loadedPage)) continue;
+            if (loadedPage.subtract(page).abs().compareTo(BigInteger.valueOf(UNLOAD_RANGE)) <= 0) continue;
+            // if (previewPages.contains(loadedPage)) continue;
             // all pages that reach this stage must be unloaded
             unloadPages.add(loadedPage);
             this.loadedPages[i] = null;
@@ -176,16 +168,33 @@ public class PaginationCalculator<PlatformItem, PlatformPlayer> {
         unloadPages(unloadPages.toArray(BigInteger[]::new));
 
         var loadPages = new ArrayList<BigInteger>();
-        for (var i = 0; i < newPages.size(); i++) {
-            var newPage = newPages.get(i);
-            var foundExistingPage = moveTo(newPage, i);
+        for (var i = 0; i < previewPages.size(); i++) {
+            var newPage = previewPages.get(i);
+            var foundExistingPage = moveTo(newPage, i + offset);
 
             if (!foundExistingPage) {
+                insertAt(newPage, i + offset);
                 loadPages.add(newPage);
             }
         }
 
-        loadPages(loadPages.toArray(BigInteger[]::new));
+        return loadPages(loadPages.toArray(BigInteger[]::new));
+    }
+
+    private void insertAt(BigInteger page, int index) {
+        if (this.loadedPages[index] == null) {
+            this.loadedPages[index] = page;
+            return;
+        }
+        var toMove = this.loadedPages[index];
+        for (var i = 0; i < this.loadedPages.length; i++) {
+            if (loadedPages[i] == null) {
+                this.loadedPages[i] = toMove;
+                this.loadedPages[index] = page;
+                return;
+            }
+        }
+        throw new IllegalStateException("Failed to insert " + page + " at " + index + " in " + Arrays.toString(this.loadedPages));
     }
 
     private boolean moveTo(@NotNull BigInteger page, int index) {
@@ -193,9 +202,7 @@ public class PaginationCalculator<PlatformItem, PlatformPlayer> {
             var loadedPage = this.loadedPages[i];
             if (loadedPage != null) {
                 if (page.equals(loadedPage)) {
-                    var old = this.loadedPages[index];
-                    this.loadedPages[index] = loadedPage;
-                    this.loadedPages[i] = old;
+                    swap(this.loadedPages, index, i);
                     return true;
                 }
             }
@@ -203,8 +210,18 @@ public class PaginationCalculator<PlatformItem, PlatformPlayer> {
         return false;
     }
 
-    private void loadPages(@NotNull BigInteger @NotNull ... pages) {
-        // TODO
+    private static <T> void swap(T[] array, int i, int j) {
+        var old = array[i];
+        array[i] = array[j];
+        array[j] = old;
+    }
+
+    private BigInteger[] loadPages(@NotNull BigInteger @NotNull ... pages) {
+        for (var pageIdx : pages) {
+            var page = new PageCache<PlatformItem>(this.pageSize);
+            this.pageCache.put(pageIdx, page);
+        }
+        return pages;
     }
 
     private void unloadPages(@NotNull BigInteger @NotNull ... pages) {
@@ -216,45 +233,119 @@ public class PaginationCalculator<PlatformItem, PlatformPlayer> {
     private void updateInformation(@NotNull BigInteger page) {
         this.expectedSize = this.provider.size();
         this.pageFirstIndex = page.multiply(this.pageSizeBigInt);
+        this.pageLastIndex = this.pageFirstIndex.add(BigInteger.valueOf(this.pageSize - 1));
         this.unknownSize = this.expectedSize.equals(PagedInventoryContentProvider.SIZE_UNKNOWN);
-        updateLoadedPages(page);
+        var pagesToLoadItems = updateLoadedPages(page);
 
-        var references = provideItems();
+        var computationResult = provideItems(page, pagesToLoadItems);
+        var entryMap = computationResult.entries();
+
+        for (var entryEntry : entryMap.entrySet()) {
+            var entryPage = entryEntry.getKey();
+            var entry = entryEntry.getValue();
+            computeItems(entryPage, entry.items(), entry.fromIndex(), entry.toIndex());
+        }
+        var pageCache = this.pageCache.getIfPresent(page);
+        if (pageCache == null) {
+            throw new IllegalStateException("PageCache can't be null here");
+        }
+        var nextPageCache = this.pageCache.getIfPresent(page.add(BigInteger.ONE));
 
         // var hasNextPage = this.unknownSize ? references.length >= length : this.pageLastIndex.compareTo(this.expectedSize) < 0;
-        var hasNextPage = true;
+        // var hasNextPage = pageCache.currentItemCount == this.pageSize;
+        var hasNextPage = this.unknownSize ? (nextPageCache != null && nextPageCache.currentItemCount > 0) : this.pageLastIndex.compareTo(this.expectedSize) < 0;
         var hasPrevPage = BigInteger.ZERO.compareTo(this.pageFirstIndex) < 0;
 
-        this.viewPageSize = references.length;
+        this.viewPageSize = pageCache.currentItemCount;
         this.prevButton.hasPage(hasPrevPage);
         this.nextButton.hasPage(hasNextPage);
         this.viewSortedSlots = Arrays.copyOf(this.pagination.pageSlots, this.viewPageSize);
         this.pagination.sorter.sort(this.viewSortedSlots);
     }
 
-    private ItemReference[] provideItems() {
-        return new ItemReference[0];
+    private ComputationResult provideItems(BigInteger currentPage, BigInteger[] pages) {
+        Arrays.sort(pages);
+        var calculations = new HashMap<BigInteger, Integer>();
+        BigInteger calculationToExtend = null;
+        BigInteger currentCalculationStart = null;
+        var currentCalculationLength = 1;
+        BigInteger lastPage = null;
+        for (var page : pages) {
+            if (currentCalculationStart == null) {
+                currentCalculationStart = page;
+            }
+
+            if (lastPage != null) {
+                if (lastPage.add(BigInteger.ONE).equals(page)) {
+                    currentCalculationLength++;
+                } else {
+                    if (lastPage.equals(currentPage)) {
+                        calculationToExtend = currentCalculationStart;
+                    }
+                    calculations.put(currentCalculationStart, currentCalculationLength);
+                    currentCalculationStart = page;
+                    currentCalculationLength = 1;
+                }
+            }
+            lastPage = page;
+        }
+        if (currentCalculationStart != null) {
+            if (lastPage.equals(currentPage)) {
+                calculationToExtend = currentCalculationStart;
+            }
+            calculations.put(currentCalculationStart, currentCalculationLength);
+        }
+
+        var computations = new HashMap<BigInteger, ComputationResult.Entry>();
+        for (var entry : calculations.entrySet()) {
+            var start = entry.getKey();
+            var pageLength = entry.getValue();
+            var length = this.pageSize * pageLength;
+            var extend = start.equals(calculationToExtend);
+            if (extend) {
+                length++;
+            }
+            var startIndex = start.multiply(this.pageSizeBigInt);
+            var items = this.provider.provideItem(startIndex, length, ItemReferenceImpl::new);
+
+            for (var i = 0; i < pageLength; i++) {
+                var p = start.add(BigInteger.valueOf(i));
+                var fromIndex = this.pageSize * i;
+                var toIndex = fromIndex + this.pageSize;
+                var extendEntry = extend && i + 1 == pageLength;
+                computations.put(p, new ComputationResult.Entry(items, fromIndex, toIndex, extendEntry));
+            }
+        }
+        return new ComputationResult(computations);
     }
 
-    private void computeItems(ItemReference[] itemReferences, int fromIndex, int toIndex) {
-        // var viewIndex = this.viewPageIndex.multiply(this.pageSizeBigInt);
-        // for (var i = fromIndex; i < toIndex; i++) {
-        //     var reference = (ItemReferenceImpl) itemReferences[i];
-        //     var index = viewIndex.add(BigInteger.valueOf(i));
-        //     var pageIndex = index.mod(this.pageSizeBigInt).intValueExact();
-        //     var pageNumber = index.divide(this.pageSizeBigInt);
-        //     var pageCache = this.pageCache.getIfPresent(pageNumber);
-        //     if (pageCache == null) {
-        //         pageCache = new PageCache<>(this.pageSize);
-        //         this.pageCache.put(pageNumber, pageCache);
-        //     }
-        //     if (reference.isAsync()) {
-        //         var finalPageCache = pageCache;
-        //         itemHandler.service().submit(() -> syncCompute(finalPageCache, user, reference.item(), pageIndex));
-        //     } else {
-        //         syncCompute(pageCache, user, reference.item(), pageIndex);
-        //     }
-        // }
+    private record ComputationResult(Map<BigInteger, Entry> entries) {
+        private record Entry(ItemReference[] items, int fromIndex, int toIndex, boolean extend) {
+        }
+    }
+
+    private void computeItems(BigInteger page, ItemReference[] itemReferences, int fromIndex, int toIndex) {
+        var viewIndex = page.multiply(this.pageSizeBigInt);
+        var pageCache = this.pageCache.getIfPresent(page);
+        if (pageCache == null) {
+            pageCache = new PageCache<>(this.pageSize);
+            this.pageCache.put(page, pageCache);
+        }
+        pageCache.currentItemCount = 0;
+        for (var i = fromIndex; i < toIndex; i++) {
+            if (itemReferences.length <= i) break;
+
+            var reference = (ItemReferenceImpl) itemReferences[i];
+            var index = viewIndex.add(BigInteger.valueOf(i));
+            var pageIndex = index.mod(this.pageSizeBigInt).intValueExact();
+            pageCache.currentItemCount++;
+            if (reference.isAsync()) {
+                var finalPageCache = pageCache;
+                itemHandler.service().submit(() -> syncCompute(finalPageCache, user, reference.item(), pageIndex));
+            } else {
+                syncCompute(pageCache, user, reference.item(), pageIndex);
+            }
+        }
     }
 
     private void syncCompute(PageCache<PlatformItem> pageCache, User user, Object object, int pageIndex) {
@@ -310,6 +401,7 @@ public class PaginationCalculator<PlatformItem, PlatformPlayer> {
         private static final VarHandle ELEMENT = MethodHandles.arrayElementVarHandle(Object[].class);
         private final int pageSize;
         private final Object[] items;
+        private int currentItemCount = 0;
 
         public PageCache(int pageSize) {
             this.pageSize = pageSize;
@@ -354,7 +446,6 @@ public class PaginationCalculator<PlatformItem, PlatformPlayer> {
 
         private void hasPage(boolean hasPage) {
             if (this.hasPage == hasPage) return;
-            System.out.println((this == prevButton ? "PREV" : "NEXT") + ": " + hasPage);
             this.hasPage = hasPage;
             itemHandler.updateSlots(PagedInventoryContent.PRIORITY, this.slots);
         }
