@@ -36,9 +36,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.ItemStack;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class AsyncPagedInventory extends AnimatedInventory {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger("AsyncPagedInventory");
     private static final Key META_KEY_ARROW_TYPE = Key.key("inventory_api", "paged_inventory_arrow_type");
     protected final AtomicInteger page = new AtomicInteger(1);
     protected final ConcurrentMap<Integer, ItemStack> items = new ConcurrentHashMap<>();
@@ -221,7 +224,7 @@ public abstract class AsyncPagedInventory extends AnimatedInventory {
 
     private ItemStack addArrowMeta(ItemStack arrowItem, PageArrow arrow) {
         if (arrowItem == null || !arrowItem.hasItemMeta()) {
-            System.out.println("Broken inventory: No arrow item " + this);
+            LOGGER.error("Broken inventory: No arrow item {}", this);
             return arrowItem;
         }
         return ItemBuilder.item(arrowItem).persistentDataStorage().iset(AsyncPagedInventory.META_KEY_ARROW_TYPE, PersistentDataTypes.STRING, arrow.name()).builder().build();

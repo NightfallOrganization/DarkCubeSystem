@@ -36,6 +36,8 @@ import eu.darkcube.system.libs.net.kyori.adventure.text.format.Style;
 import eu.darkcube.system.libs.net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import eu.darkcube.system.libs.org.jetbrains.annotations.ApiStatus;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Api
 public enum Language {
@@ -44,6 +46,7 @@ public enum Language {
     ENGLISH(Locale.ENGLISH);
 
     public static final Language DEFAULT = Language.GERMAN;
+    private static final Logger LOGGER = LoggerFactory.getLogger("Language");
     private final Locale locale;
     private final Bundle bundle;
 
@@ -151,7 +154,7 @@ public enum Language {
         for (var key : entrySet) {
             var mapped = keyModifier.apply(key);
             if (!this.bundle.containsKey(mapped)) {
-                System.out.println("Missing translation for language " + this + ": " + mapped);
+                LOGGER.warn("Missing translation for language {}: {}", this, mapped);
             }
         }
     }
@@ -195,7 +198,7 @@ public enum Language {
         public void append(Map<String, Object> lookup, Function<String, String> keyModifier) {
             for (var key : lookup.keySet()) {
                 if (this.lookup.containsKey(keyModifier.apply(key))) {
-                    System.out.println("[LanguageAPI] Overriding translation: " + keyModifier.apply(key));
+                    LOGGER.info("Overriding translation: {}", keyModifier.apply(key));
                 }
                 this.lookup.put(keyModifier.apply(key), lookup.get(key));
             }

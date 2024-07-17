@@ -26,9 +26,12 @@ import eu.darkcube.system.libs.com.mojang.brigadier.exceptions.DynamicCommandExc
 import eu.darkcube.system.libs.com.mojang.brigadier.suggestion.Suggestions;
 import eu.darkcube.system.libs.com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import eu.darkcube.system.libs.net.kyori.adventure.key.Keyed;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class EnumArgument<T> implements ArgumentType<T> {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger("EnumArgument");
     private static final DynamicCommandExceptionType INVALID_ENUM = Messages.INVALID_ENUM.newDynamicCommandExceptionType();
 
     private final Function<T, String[]> toStringFunction;
@@ -64,7 +67,7 @@ public class EnumArgument<T> implements ArgumentType<T> {
             var arr = toStringFunction.apply(t);
             for (var s : arr) {
                 if (map.containsKey(s)) {
-                    System.out.println("[EnumArgument] Ambiguous name: " + s);
+                    LOGGER.warn("[EnumArgument] Ambiguous name: {}", s);
                 } else {
                     map.put(s, t);
                 }

@@ -35,11 +35,14 @@ import eu.darkcube.system.libs.org.jetbrains.annotations.UnmodifiableView;
 import eu.darkcube.system.util.data.PersistentDataStorage;
 import eu.darkcube.system.util.data.PersistentDataType;
 import eu.darkcube.system.util.data.UnmodifiablePersistentDataStorage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A data storage that is synchronized over the entire cloud system
  */
 public class SynchronizedPersistentDataStorage implements PersistentDataStorage {
+    private static final Logger LOGGER = LoggerFactory.getLogger("SynchronizedPersistentDataStorage");
     private final Key key;
     private final Database database;
     private final ReadWriteLock lock = new ReentrantReadWriteLock(false);
@@ -340,7 +343,7 @@ public class SynchronizedPersistentDataStorage implements PersistentDataStorage 
                         save();
                     }
                 } else {
-                    System.out.println("Failed to save - trying again");
+                    LOGGER.error("Failed to save - trying again");
                     save();
                 }
             });
