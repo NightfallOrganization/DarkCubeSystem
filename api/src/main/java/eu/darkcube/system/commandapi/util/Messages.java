@@ -16,7 +16,8 @@ import eu.darkcube.system.BaseMessage;
 import eu.darkcube.system.annotations.Api;
 import eu.darkcube.system.libs.com.mojang.brigadier.Message;
 
-@Api public enum Messages implements BaseMessage {
+@Api
+public enum Messages implements BaseMessage {
 
     ERROR_INTS_ONLY("error_ints_only"),
     ERROR_EMPTY("error_empty"),
@@ -74,25 +75,31 @@ import eu.darkcube.system.libs.com.mojang.brigadier.Message;
         this.key = key;
     }
 
-    @Override public String key() {
+    @Override
+    public String key() {
         return key;
     }
 
-    @Override public String toString() {
+    @Override
+    public String toString() {
         return key();
     }
 
-    @Api public record MessageWrapper(BaseMessage message, Object... components) implements Message {
+    @Api
+    public record MessageWrapper(BaseMessage message, Object... components) implements Message {
 
-        @Override public String getString() {
+        @Override
+        public String getString() {
             return message.toString();
         }
 
-        @Override public int hashCode() {
+        @Override
+        public int hashCode() {
             return message.hashCode();
         }
 
-        @Override public boolean equals(Object obj) {
+        @Override
+        public boolean equals(Object obj) {
             return obj instanceof MessageWrapper && Objects.equals(((MessageWrapper) obj).message, message) && Arrays.equals(components, ((MessageWrapper) obj).components);
         }
     }

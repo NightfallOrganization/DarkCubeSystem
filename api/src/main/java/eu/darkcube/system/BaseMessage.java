@@ -9,6 +9,9 @@ package eu.darkcube.system;
 
 import eu.darkcube.system.commandapi.CommandExecutor;
 import eu.darkcube.system.commandapi.util.Messages.MessageWrapper;
+import eu.darkcube.system.libs.com.mojang.brigadier.exceptions.Dynamic2CommandExceptionType;
+import eu.darkcube.system.libs.com.mojang.brigadier.exceptions.Dynamic3CommandExceptionType;
+import eu.darkcube.system.libs.com.mojang.brigadier.exceptions.Dynamic4CommandExceptionType;
 import eu.darkcube.system.libs.com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import eu.darkcube.system.libs.com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
@@ -39,11 +42,19 @@ public interface BaseMessage {
         });
     }
 
-    String key();
+    default Dynamic2CommandExceptionType newDynamic2CommandExceptionType() {
+        return new Dynamic2CommandExceptionType(this::newWrapper);
+    }
 
-    //    default Component getMessage(CommandSender sender, Object... args) {
-    //        return getMessage(CommandExecutor.create(sender), args);
-    //    }
+    default Dynamic3CommandExceptionType newDynamic3CommandExceptionType() {
+        return new Dynamic3CommandExceptionType(this::newWrapper);
+    }
+
+    default Dynamic4CommandExceptionType newDynamic4CommandExceptionType() {
+        return new Dynamic4CommandExceptionType(this::newWrapper);
+    }
+
+    String key();
 
     default String getMessageString(CommandExecutor executor, Object... args) {
         return LegacyComponentSerializer.legacySection().serialize(getMessage(executor, new String[0], args));
