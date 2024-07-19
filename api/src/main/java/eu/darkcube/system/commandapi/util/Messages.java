@@ -7,10 +7,8 @@
 
 package eu.darkcube.system.commandapi.util;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 import eu.darkcube.system.BaseMessage;
 import eu.darkcube.system.annotations.Api;
@@ -87,20 +85,9 @@ public enum Messages implements BaseMessage {
 
     @Api
     public record MessageWrapper(BaseMessage message, Object... components) implements Message {
-
         @Override
         public String getString() {
             return message.toString();
-        }
-
-        @Override
-        public int hashCode() {
-            return message.hashCode();
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            return obj instanceof MessageWrapper && Objects.equals(((MessageWrapper) obj).message, message) && Arrays.equals(components, ((MessageWrapper) obj).components);
         }
     }
 }

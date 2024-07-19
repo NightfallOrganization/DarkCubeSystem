@@ -7,14 +7,15 @@
 
 package eu.darkcube.system.impl.bukkit.version.v1_8_8.provider.via;
 
-import eu.darkcube.system.libs.com.mojang.brigadier.context.StringRange;
-import eu.darkcube.system.libs.com.mojang.brigadier.suggestion.Suggestion;
+import eu.darkcube.system.commandapi.util.Messages;
 import eu.darkcube.system.libs.com.mojang.brigadier.suggestion.Suggestions;
 import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
 import eu.darkcube.system.libs.org.jetbrains.annotations.ApiStatus;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
+import eu.darkcube.system.util.Language;
 
-@ApiStatus.Internal public class ViaTabExecutor {
+@ApiStatus.Internal
+public class ViaTabExecutor {
 
     private static final Cache[] cached = Cache.create(16);
     private static int cid = 0;
@@ -23,21 +24,26 @@ import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
     }
 
     public static int work(String commandLine, Suggestions suggestions) {
-        int id = cid;
+        var id = cid;
         cid = cid + 1;
         cid = cid % 16;
-        Component[] tooltips = new Component[suggestions.getList().size()];
-        String[] ssuggestions = new String[suggestions.getList().size()];
-        StringRange range = suggestions.getRange();
+        var tooltips = new Component[suggestions.getList().size()];
+        var ssuggestions = new String[suggestions.getList().size()];
+        var range = suggestions.getRange();
 
-        for (int i = 0; i < tooltips.length; i++) {
-            Suggestion completion = suggestions.getList().get(i);
+        for (var i = 0; i < tooltips.length; i++) {
+            var completion = suggestions.getList().get(i);
 
             ssuggestions[i] = completion.apply(commandLine).substring(range.getStart());
 
             Component hover = Component.empty();
-            if (completion.getTooltip() != null && completion.getTooltip().getString() != null)
-                hover = hover.append(Component.text(completion.getTooltip().getString())).append(Component.newline());
+            if (completion.getTooltip() != null && completion.getTooltip().getString() != null) {
+                if (completion.getTooltip() instanceof Messages.MessageWrapper(var message, var c)) {
+                    hover = hover.append(message.getMessage(Language.ENGLISH, c)); // TODO correct executor here instead of Language.ENGLISH???
+                } else {
+                    hover = hover.append(Component.text(completion.getTooltip().getString())).append(Component.newline());
+                }
+            }
             tooltips[i] = hover;
         }
 
@@ -46,8 +52,8 @@ import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
     }
 
     public static @Nullable Data take(int id) {
-        Cache cache = cached[id];
-        Data a = cache.data;
+        var cache = cached[id];
+        var a = cache.data;
         if (a != null) cache.data = null;
         return a;
     }
@@ -59,8 +65,8 @@ import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
         }
 
         public static Cache[] create(int length) {
-            Cache[] a = new Cache[length];
-            for (int i = 0; i < a.length; i++) a[i] = new Cache();
+            var a = new Cache[length];
+            for (var i = 0; i < a.length; i++) a[i] = new Cache();
             return a;
         }
     }

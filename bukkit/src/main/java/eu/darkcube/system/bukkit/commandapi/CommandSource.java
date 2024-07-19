@@ -262,7 +262,13 @@ public class CommandSource implements ISuggestionProvider, ForwardingAudience.Si
 
             Component hover = Component.empty();
 
-            if (completion.getTooltip() != null && completion.getTooltip().getString() != null) hover = hover.append(Component.text(completion.getTooltip().getString())).append(Component.newline());
+            if (completion.getTooltip() != null && completion.getTooltip().getString() != null) {
+                if (completion.getTooltip() instanceof MessageWrapper(var message, var c)) {
+                    hover = hover.append(message.getMessage(this.source, c));
+                } else {
+                    hover = hover.append(Component.text(completion.getTooltip().getString())).append(Component.newline());
+                }
+            }
 
             hover = hover.append(Component.text("Click to insert command", NamedTextColor.GRAY).append(Component.newline()).append(Component.text(cmd, NamedTextColor.GRAY)));
 
