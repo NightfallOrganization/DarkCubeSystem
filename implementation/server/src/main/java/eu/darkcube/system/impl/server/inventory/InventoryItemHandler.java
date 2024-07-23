@@ -24,5 +24,8 @@ public interface InventoryItemHandler<PlatformItem, PlatformPlayer> {
      */
     void doOpen(@NotNull PlatformPlayer player, @NotNull User user);
 
+    void doClose(@NotNull PlatformPlayer player, @NotNull User user);
+
     void handleClick(int slot, @NotNull PlatformItem itemStack, @NotNull ItemBuilder item);
+
 }

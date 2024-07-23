@@ -51,6 +51,7 @@ public class PaginationCalculator<PlatformItem, PlatformPlayer> {
     private final PagedInventoryContentProvider provider;
     private final @Nullable BigInteger @NotNull [] loadedPages = new BigInteger[1 + UNLOAD_RANGE * 2];
     private final int loadedPageIdx = UNLOAD_RANGE;
+    private final @Nullable Updater updater;
     private int[] viewSortedSlots;
     private BigInteger expectedSize;
     private BigInteger pageFirstIndex;
@@ -73,17 +74,18 @@ public class PaginationCalculator<PlatformItem, PlatformPlayer> {
         this.prevButton = new ButtonImpl(this.pagination.previousButton());
         this.nextButton = new ButtonImpl(this.pagination.nextButton());
         this.provider = this.content.provider();
+        var configured = this.pagination.isConfigured();
+        this.updater = configured ? new Updater() : null;
 
-        if (this.pagination.isConfigured()) {
+        if (configured) {
             if (!enabled) {
                 throw new IllegalArgumentException("Paged inventory MUST have pageSlots configured with at least 1 slot. Even if specialPageSlots are configured, pageSlots must be usable as fallback");
             }
             this.prevButton.init();
             this.nextButton.init();
 
-            var updater = new Updater();
-            this.pagination.content.addUpdater(updater);
-            itemHandler.template().pagination().content.addUpdater(updater);
+            this.pagination.content.addUpdater(this.updater);
+            itemHandler.template().pagination().content.addUpdater(this.updater);
 
             var contents = itemHandler.contents();
             for (var slot = 0; slot < contents.length; slot++) {
@@ -107,6 +109,12 @@ public class PaginationCalculator<PlatformItem, PlatformPlayer> {
         this.prevButton.load(user);
         this.nextButton.load(user);
         loadPage0(user, BigInteger.ZERO);
+    }
+
+    public void onClose(@NotNull User user) {
+        if (this.updater != null) {
+            this.itemHandler.template().pagination().content.removeUpdater(this.updater);
+        }
     }
 
     public void loadPage(@NotNull BigInteger page) {
@@ -492,35 +500,35 @@ public class PaginationCalculator<PlatformItem, PlatformPlayer> {
         }
     }
 
-    private static class Updater implements PagedInventoryContentImpl.Updater {
+    private class Updater implements PagedInventoryContentImpl.Updater {
         @Override
         public void update(int index) {
-            nyi();
+            updateAll();
         }
 
         @Override
         public void updatePage() {
-            nyi();
+            updateAll();
         }
 
         @Override
         public void updateAll() {
-            nyi();
+            itemHandler.updateSlots(PagedInventoryContent.PRIORITY, pagination.pageSlots);
         }
 
         @Override
         public void updateRemoveAt(int index) {
-            nyi();
+            updateAll();
         }
 
         @Override
         public void updateInsertBefore(int index) {
-            nyi();
+            updateAll();
         }
 
         @Override
         public void updateInsertAfter(int index) {
-            nyi();
+            updateAll();
         }
 
         private void nyi() {

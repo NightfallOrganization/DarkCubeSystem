@@ -63,6 +63,17 @@ public class MinestomTemplateInventory extends MinestomInventory implements Temp
     }
 
     @Override
+    protected void unregister() {
+        super.unregister();
+        if (this.player == null) {
+            // What the heck?
+            return;
+        }
+        var user = UserAPI.instance().user(player.getUuid());
+        this.itemHandler.doClose(player, user);
+    }
+
+    @Override
     protected void handleClick(int slot, @NotNull ItemStack itemStack, @NotNull ItemBuilder item) {
         this.itemHandler.handleClick(slot, itemStack, item);
     }

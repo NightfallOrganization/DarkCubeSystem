@@ -98,6 +98,11 @@ public class SimpleItemHandler<PlatformItem, PlatformPlayer> implements Inventor
     }
 
     @Override
+    public void doClose(@NotNull PlatformPlayer platformPlayer, @NotNull User user) {
+        this.paginationCalculator.onClose(user);
+    }
+
+    @Override
     public void handleClick(int slot, @NotNull PlatformItem itemStack, @NotNull ItemBuilder item) {
         this.paginationCalculator.handleClick(slot, itemStack, item);
     }
