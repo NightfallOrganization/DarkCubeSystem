@@ -13,6 +13,7 @@ import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.libs.net.kyori.adventure.sound.Sound;
 import eu.darkcube.system.libs.net.kyori.adventure.sound.SoundStop;
 import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
+import eu.darkcube.system.libs.net.kyori.adventure.text.format.TextColor;
 import eu.darkcube.system.libs.net.kyori.adventure.title.Title;
 import eu.darkcube.system.libs.org.jetbrains.annotations.ApiStatus;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
@@ -55,6 +56,12 @@ public interface KyoriAdventureSupport extends AdventureSupport {
 
     @NotNull
     net.kyori.adventure.bossbar.BossBar.Flag convert(@NotNull BossBar.Flag flag);
+
+    @NotNull
+    TextColor convert(@NotNull net.kyori.adventure.text.format.TextColor color);
+
+    @NotNull
+    net.kyori.adventure.text.format.TextColor convert(@NotNull TextColor color);
 
     @NotNull
     ChatType convert(@NotNull net.kyori.adventure.chat.ChatType chatType);

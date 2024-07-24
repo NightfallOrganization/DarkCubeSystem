@@ -18,6 +18,7 @@ import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.libs.net.kyori.adventure.sound.Sound;
 import eu.darkcube.system.libs.net.kyori.adventure.sound.SoundStop;
 import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
+import eu.darkcube.system.libs.net.kyori.adventure.text.format.TextColor;
 import eu.darkcube.system.libs.net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import eu.darkcube.system.libs.net.kyori.adventure.title.Title;
 import eu.darkcube.system.libs.org.jetbrains.annotations.ApiStatus;
@@ -25,6 +26,16 @@ import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 
 public interface DefaultKyoriAdventureSupport extends KyoriAdventureSupport {
+    @NotNull
+    @Override
+    default net.kyori.adventure.text.format.TextColor convert(@NotNull TextColor color) {
+        return net.kyori.adventure.text.format.TextColor.color(color.red(), color.green(), color.blue());
+    }
+
+    @Override
+    default @NotNull TextColor convert(@NotNull net.kyori.adventure.text.format.TextColor color) {
+        return TextColor.color(color.red(), color.green(), color.blue());
+    }
 
     @Override
     @NotNull
