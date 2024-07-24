@@ -7,6 +7,7 @@
 
 package eu.darkcube.system.impl.server.inventory.paged;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -81,7 +82,7 @@ public class PagedInventoryContentImpl implements PagedInventoryContent {
     }
 
     @Override
-    public void publishUpdate(int index) {
+    public void publishUpdate(BigInteger index) {
         for (var i = 0; i < updaters.size(); i++) {
             updaters.get(i).update(index);
         }
@@ -102,37 +103,37 @@ public class PagedInventoryContentImpl implements PagedInventoryContent {
     }
 
     @Override
-    public void publishUpdateRemoveAt(int index) {
+    public void publishUpdateRemoveAt(BigInteger index) {
         for (var i = 0; i < updaters.size(); i++) {
             updaters.get(i).updateRemoveAt(index);
         }
     }
 
     @Override
-    public void publishUpdateInsertBefore(int index) {
+    public void publishUpdateInsertBefore(BigInteger index) {
         for (var i = 0; i < updaters.size(); i++) {
             updaters.get(i).updateInsertBefore(index);
         }
     }
 
     @Override
-    public void publishUpdateInsertAfter(int index) {
+    public void publishUpdateInsertAfter(BigInteger index) {
         for (var i = 0; i < updaters.size(); i++) {
             updaters.get(i).updateInsertAfter(index);
         }
     }
 
     public interface Updater {
-        void update(int index);
+        void update(BigInteger index);
 
         void updatePage();
 
         void updateAll();
 
-        void updateRemoveAt(int index);
+        void updateRemoveAt(BigInteger index);
 
-        void updateInsertBefore(int index);
+        void updateInsertBefore(BigInteger index);
 
-        void updateInsertAfter(int index);
+        void updateInsertAfter(BigInteger index);
     }
 }

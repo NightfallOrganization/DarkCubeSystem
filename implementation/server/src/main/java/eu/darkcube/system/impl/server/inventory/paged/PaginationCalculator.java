@@ -189,6 +189,22 @@ public class PaginationCalculator<PlatformItem, PlatformPlayer> {
         return loadPages(loadPages.toArray(BigInteger[]::new));
     }
 
+    private void recalculateAll() {
+        synchronized (this.inventoryLock) {
+            var currentPage = this.loadedPages[this.loadedPageIdx];
+            var unloadPages = new ArrayList<BigInteger>();
+            for (var i = 0; i < this.loadedPages.length; i++) {
+                var loadedPage = this.loadedPages[i];
+                if (loadedPage != null) {
+                    this.loadedPages[i] = null;
+                    unloadPages.add(loadedPage);
+                }
+            }
+            unloadPages(unloadPages.toArray(BigInteger[]::new));
+            loadPage0(user, currentPage == null ? BigInteger.ZERO : currentPage);
+        }
+    }
+
     private void insertAt(BigInteger page, int index) {
         if (this.loadedPages[index] == null) {
             this.loadedPages[index] = page;
@@ -358,16 +374,17 @@ public class PaginationCalculator<PlatformItem, PlatformPlayer> {
 
     private void syncCompute(PageCache<PlatformItem> pageCache, User user, Object object, int pageIndex) {
         var item = this.itemHandler.inventory().computeItem(user, object);
-        var itemUpdated = pageCache.cache(pageIndex, item);
-        if (itemUpdated) {
-            synchronized (this.inventoryLock) {
-                if (!this.loadingPage) {
-                    // TODO we might want to only update the slot for the specified item.
-                    //  Hard to figure out that slot though, maybe something for the future.
-                    this.itemHandler.updateSlots(PagedInventoryContent.PRIORITY, pagination.pageSlots);
-                }
+        pageCache.forceCache(pageIndex, item);
+        // var itemUpdated = pageCache.cache(pageIndex, item);
+        // if (itemUpdated) {
+        synchronized (this.inventoryLock) {
+            if (!this.loadingPage) {
+                // TODO we might want to only update the slot for the specified item.
+                //  Hard to figure out that slot though, maybe something for the future.
+                this.itemHandler.updateSlots(PagedInventoryContent.PRIORITY, pagination.pageSlots);
             }
         }
+        // }
     }
 
     /**
@@ -389,8 +406,12 @@ public class PaginationCalculator<PlatformItem, PlatformPlayer> {
                 for (var i = 0; i < slots.length; i++) {
                     var s = slots[i];
                     if (s == slot) {
-                        var page = this.pageCache.getIfPresent(loadedPage);
-                        return page.cache(i);
+                        @Nullable var page = this.pageCache.getIfPresent(loadedPage);
+                        if (page != null) {
+                            return page.cache(i);
+                        } else {
+                            return null;
+                        }
                     }
                 }
             }
@@ -407,12 +428,10 @@ public class PaginationCalculator<PlatformItem, PlatformPlayer> {
 
     private static class PageCache<PlatformItem> {
         private static final VarHandle ELEMENT = MethodHandles.arrayElementVarHandle(Object[].class);
-        private final int pageSize;
         private final Object[] items;
         private int currentItemCount = 0;
 
         public PageCache(int pageSize) {
-            this.pageSize = pageSize;
             this.items = new Object[pageSize];
         }
 
@@ -422,6 +441,10 @@ public class PaginationCalculator<PlatformItem, PlatformPlayer> {
 
         private boolean cache(int pageIndex, PlatformItem item) {
             return ELEMENT.compareAndSet(this.items, pageIndex, null, item);
+        }
+
+        private void forceCache(int pageIndex, PlatformItem item) {
+            ELEMENT.setVolatile(this.items, pageIndex, item);
         }
     }
 
@@ -502,7 +525,7 @@ public class PaginationCalculator<PlatformItem, PlatformPlayer> {
 
     private class Updater implements PagedInventoryContentImpl.Updater {
         @Override
-        public void update(int index) {
+        public void update(BigInteger index) {
             updateAll();
         }
 
@@ -513,21 +536,21 @@ public class PaginationCalculator<PlatformItem, PlatformPlayer> {
 
         @Override
         public void updateAll() {
-            itemHandler.updateSlots(PagedInventoryContent.PRIORITY, pagination.pageSlots);
+            recalculateAll();
         }
 
         @Override
-        public void updateRemoveAt(int index) {
+        public void updateRemoveAt(BigInteger index) {
             updateAll();
         }
 
         @Override
-        public void updateInsertBefore(int index) {
+        public void updateInsertBefore(BigInteger index) {
             updateAll();
         }
 
         @Override
-        public void updateInsertAfter(int index) {
+        public void updateInsertAfter(BigInteger index) {
             updateAll();
         }
 
