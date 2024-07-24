@@ -14,3 +14,11 @@ dependencies {
     api(projects.darkcubesystemApi)
     compileOnly(libs.adventure.api)
 }
+
+publishing {
+    publications {
+        register<MavenPublication>("maven") {
+            from(components["java"])
+        }
+    }
+}
