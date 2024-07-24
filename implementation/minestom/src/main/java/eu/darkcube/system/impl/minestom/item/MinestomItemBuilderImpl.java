@@ -7,6 +7,7 @@
 
 package eu.darkcube.system.impl.minestom.item;
 
+import static eu.darkcube.system.minestom.util.adventure.MinestomAdventureSupport.adventureSupport;
 import static net.minestom.server.item.Enchantment.INFINITY;
 import static net.minestom.server.item.Enchantment.PROTECTION;
 import static net.minestom.server.item.Material.BOW;
@@ -15,7 +16,6 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.Collections;
 
-import eu.darkcube.system.impl.minestom.adventure.AdventureUtils;
 import eu.darkcube.system.impl.minestom.item.attribute.MinestomAttributeModifierImpl;
 import eu.darkcube.system.impl.minestom.item.enchant.MinestomEnchantmentImpl;
 import eu.darkcube.system.impl.minestom.item.firework.MinestomFireworkEffectImpl;
@@ -95,7 +95,7 @@ public class MinestomItemBuilderImpl extends AbstractItemBuilder implements Mine
 
         unbreakable(meta.isUnbreakable());
         if (meta.getDisplayName() != null) {
-            displaynameRaw(AdventureUtils.convert(meta.getDisplayName()));
+            displaynameRaw(adventureSupport().convert(meta.getDisplayName()));
         }
         for (var entry : meta.getEnchantmentMap().entrySet()) {
             enchant(entry.getKey(), entry.getValue());
@@ -108,7 +108,7 @@ public class MinestomItemBuilderImpl extends AbstractItemBuilder implements Mine
                 flag(flag);
             }
         }
-        lore.addAll(AdventureUtils.convertComponentsBack(meta.getLore()));
+        lore.addAll(adventureSupport().convertComponentsP2C(meta.getLore()));
         damage(meta.getDamage());
         {
             var fireworkEffect = item.meta(FireworkEffectMeta.class).getFireworkEffect();
@@ -163,7 +163,7 @@ public class MinestomItemBuilderImpl extends AbstractItemBuilder implements Mine
                 meta.unbreakable(true);
             }
             if (displayname != Component.empty()) {
-                meta.displayName(AdventureUtils.convert(displayname));
+                meta.displayName(adventureSupport().convert(displayname));
             }
             for (var entry : enchantments.entrySet()) {
                 meta.enchantment(((MinestomEnchantmentImpl) entry.getKey()).minestomType(), entry.getValue().shortValue());
@@ -172,7 +172,7 @@ public class MinestomItemBuilderImpl extends AbstractItemBuilder implements Mine
             if (!flags.isEmpty()) {
                 meta.hideFlag(flags.stream().map(flag -> ((MinestomItemFlagImpl) flag).minestomType()).toArray(ItemHideFlag[]::new));
             }
-            if (!lore.isEmpty()) meta.lore(lore.stream().map(AdventureUtils::convert).toList());
+            if (!lore.isEmpty()) meta.lore(lore.stream().map(adventureSupport()::convert).toList());
             if (glow) {
                 if (enchantments.isEmpty()) {
                     meta.enchantment(material == BOW ? PROTECTION : INFINITY, (short) 1);

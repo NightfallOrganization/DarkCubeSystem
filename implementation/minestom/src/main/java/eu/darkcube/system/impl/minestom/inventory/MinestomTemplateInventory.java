@@ -32,7 +32,7 @@ public class MinestomTemplateInventory extends MinestomInventory implements Temp
     private final @NotNull AtomicInteger animationsStarted = new AtomicInteger();
     private final @NotNull Instant openInstant;
 
-    public MinestomTemplateInventory(@Nullable Component title, @NotNull MinestomInventoryType type, @NotNull MinestomInventoryTemplate template, @Nullable Player player) {
+    public MinestomTemplateInventory(@NotNull Component title, @NotNull MinestomInventoryType type, @NotNull MinestomInventoryTemplate template, @Nullable Player player) {
         super(title, type);
         this.player = player;
         for (var listener : template.listeners()) {

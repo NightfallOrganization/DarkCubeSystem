@@ -7,13 +7,13 @@
 
 package eu.darkcube.system.impl.minestom.inventory;
 
-import eu.darkcube.system.impl.minestom.adventure.AdventureUtils;
 import eu.darkcube.system.impl.server.inventory.InventoryTemplateImpl;
 import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 import eu.darkcube.system.minestom.inventory.MinestomInventoryType;
+import eu.darkcube.system.minestom.util.adventure.MinestomAdventureSupport;
 import eu.darkcube.system.server.inventory.Inventory;
 import eu.darkcube.system.server.inventory.InventoryType;
 import eu.darkcube.system.userapi.User;
@@ -39,7 +39,7 @@ public class MinestomInventoryTemplate extends InventoryTemplateImpl<Player> {
     @NotNull
     @Override
     protected Inventory open(@Nullable Component title, @Nullable Player player) {
-        var inventory = new MinestomTemplateInventory(title, (MinestomInventoryType) type, this, player);
+        var inventory = new MinestomTemplateInventory(title != null ? title : Component.empty(), (MinestomInventoryType) type, this, player);
         inventory.open(player);
         return inventory;
     }
@@ -47,7 +47,7 @@ public class MinestomInventoryTemplate extends InventoryTemplateImpl<Player> {
     @Override
     protected @Nullable Object tryConvertTitle(@NotNull Object title) {
         if (title instanceof net.kyori.adventure.text.Component component) {
-            return AdventureUtils.convert(component);
+            return MinestomAdventureSupport.adventureSupport().convert(component);
         }
         return null;
     }

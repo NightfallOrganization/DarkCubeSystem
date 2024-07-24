@@ -12,12 +12,12 @@ import static net.minestom.server.event.EventListener.builder;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import eu.darkcube.system.impl.minestom.adventure.AdventureUtils;
 import eu.darkcube.system.impl.server.inventory.AbstractInventory;
 import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 import eu.darkcube.system.minestom.inventory.MinestomInventoryType;
+import eu.darkcube.system.minestom.util.adventure.MinestomAdventureSupport;
 import eu.darkcube.system.server.item.ItemBuilder;
 import eu.darkcube.system.userapi.User;
 import eu.darkcube.system.userapi.UserAPI;
@@ -49,9 +49,9 @@ public class MinestomInventory extends AbstractInventory<ItemStack> {
     private volatile boolean modified = false;
     private volatile net.minestom.server.timer.Task updateScheduler;
 
-    public MinestomInventory(@Nullable Component title, @NotNull MinestomInventoryType type) {
+    public MinestomInventory(@NotNull Component title, @NotNull MinestomInventoryType type) {
         super(title, type, type.minestomType().getSize());
-        this.inventory = new ServerInventory(type.minestomType(), AdventureUtils.convert(title), this);
+        this.inventory = new ServerInventory(type.minestomType(), MinestomAdventureSupport.adventureSupport().convert(title), this);
         this.node.addListener(InventoryCloseEvent.class, this::handleClose);
         this.node.addListener(builder(InventoryClickEvent.class).ignoreCancelled(false).handler(this::handleClick).build());
     }
