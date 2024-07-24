@@ -7,6 +7,7 @@
 
 package eu.darkcube.system.server.inventory.paged;
 
+import java.math.BigInteger;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -110,13 +111,13 @@ public interface PagedInventoryContent {
 
     /**
      * Updates the item at the given index.
-     * In case of removal, use {@link #publishUpdateRemoveAt(int)}
-     * In case of addition, use {@link #publishUpdateInsertAfter(int)} or {@link #publishUpdateInsertAfter(int)}
+     * In case of removal, use {@link #publishUpdateRemoveAt(BigInteger)}
+     * In case of addition, use {@link #publishUpdateInsertAfter(BigInteger)} or {@link #publishUpdateInsertAfter(BigInteger)}
      *
      * @param index the index that was updated
      */
     @Api
-    void publishUpdate(int index);
+    void publishUpdate(BigInteger index);
 
     /**
      * Updates the entire page.
@@ -147,12 +148,12 @@ public interface PagedInventoryContent {
 
     /**
      * Updates the index to be removed.
-     * In case of removal, use this rather than {@link #publishUpdate(int)} to also update all following items.
+     * In case of removal, use this rather than {@link #publishUpdate(BigInteger)} to also update all following items.
      *
      * @param index the index that was removed
      */
     @Api
-    void publishUpdateRemoveAt(int index);
+    void publishUpdateRemoveAt(BigInteger index);
 
     /**
      * Updates the index to have an item inserted before it.
@@ -160,7 +161,7 @@ public interface PagedInventoryContent {
      * @param index the index as a reference
      */
     @Api
-    void publishUpdateInsertBefore(int index);
+    void publishUpdateInsertBefore(BigInteger index);
 
     /**
      * Updates the index to have an item inserted after it.
@@ -168,5 +169,5 @@ public interface PagedInventoryContent {
      * @param index the index as a reference
      */
     @Api
-    void publishUpdateInsertAfter(int index);
+    void publishUpdateInsertAfter(BigInteger index);
 }
