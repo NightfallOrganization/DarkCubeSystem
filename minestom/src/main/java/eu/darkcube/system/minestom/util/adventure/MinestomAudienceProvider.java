@@ -9,7 +9,9 @@ package eu.darkcube.system.minestom.util.adventure;
 
 import eu.darkcube.system.libs.net.kyori.adventure.audience.Audience;
 import eu.darkcube.system.libs.net.kyori.adventure.platform.AudienceProvider;
+import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 
 public interface MinestomAudienceProvider extends AudienceProvider {
-    Audience audience(net.kyori.adventure.audience.Audience audience);
+    @NotNull
+    Audience audience(@NotNull net.kyori.adventure.audience.Audience audience);
 }

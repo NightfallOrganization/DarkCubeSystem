@@ -7,14 +7,16 @@
 
 package eu.darkcube.system.minestom.util.adventure;
 
+import eu.darkcube.system.kyori.wrapper.KyoriAdventureSupport;
 import eu.darkcube.system.util.AdventureSupport;
 
-public interface MinestomAdventureSupport extends AdventureSupport {
+public interface MinestomAdventureSupport extends KyoriAdventureSupport {
 
     static MinestomAdventureSupport adventureSupport() {
         return (MinestomAdventureSupport) AdventureSupport.adventureSupport();
     }
 
-    @Override MinestomAudienceProvider audienceProvider();
+    @Override
+    MinestomAudienceProvider audienceProvider();
 
 }
