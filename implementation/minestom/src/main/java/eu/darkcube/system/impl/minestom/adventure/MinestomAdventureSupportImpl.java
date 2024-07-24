@@ -12,7 +12,7 @@ import eu.darkcube.system.minestom.util.adventure.MinestomAdventureSupport;
 import eu.darkcube.system.minestom.util.adventure.MinestomAudienceProvider;
 
 public class MinestomAdventureSupportImpl implements MinestomAdventureSupport, DefaultKyoriAdventureSupport {
-    private final MinestomAudienceProvider audienceProvider = new MinestomAudienceProviderImpl();
+    private final MinestomAudienceProvider audienceProvider = new MinestomAudienceProviderImpl(this);
 
     @Override
     public MinestomAudienceProvider audienceProvider() {

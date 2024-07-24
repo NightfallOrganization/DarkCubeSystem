@@ -15,7 +15,6 @@ import eu.darkcube.system.libs.net.kyori.adventure.audience.Audience;
 import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.libs.net.kyori.adventure.text.flattener.ComponentFlattener;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
-import eu.darkcube.system.minestom.util.adventure.MinestomAdventureSupport;
 import eu.darkcube.system.minestom.util.adventure.MinestomAudienceProvider;
 import net.minestom.server.adventure.audience.Audiences;
 import net.minestom.server.entity.Player;
@@ -23,10 +22,14 @@ import net.minestom.server.permission.PermissionHandler;
 
 public class MinestomAudienceProviderImpl implements MinestomAudienceProvider {
     private static final ComponentFlattener FLATTENER = ComponentFlattener.basic().toBuilder().build();
-    private final KyoriAdventureSupport support = MinestomAdventureSupport.adventureSupport();
+    private final KyoriAdventureSupport support;
     private final Audience all = audience(Audiences.all());
     private final Audience console = audience(Audiences.console());
     private final Audience players = audience(Audiences.players());
+
+    public MinestomAudienceProviderImpl(KyoriAdventureSupport support) {
+        this.support = support;
+    }
 
     @Override
     public @NotNull Audience all() {
