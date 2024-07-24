@@ -87,6 +87,7 @@ configurations.consumable("cloudnetInject") {
 dependencies {
     implementation(projects.darkcubesystemImplementationProvider)
     api(projects.darkcubesystemMinestom)
+    api(projects.darkcubesystemImplementationKyoriWrapper)
     api(projects.darkcubesystemImplementationServer)
 
     pluginSourceSet.implementationConfigurationName(sourceSets.main.map { it.output })
@@ -98,6 +99,8 @@ dependencies {
     standaloneSourceSet.implementationConfigurationName(pluginSourceSet.output)
 
     cloudnetInjectContent(projects.darkcubesystemMinestom)
+    cloudnetInjectContent(projects.darkcubesystemKyoriWrapper)
+    cloudnetInjectContent(projects.darkcubesystemImplementationKyoriWrapper)
     cloudnetInjectContent(projects.darkcubesystemServer)
     cloudnetInjectContent(projects.darkcubesystemServerCloudnet)
     cloudnetInjectContent(projects.darkcubesystemImplementationServer)

@@ -11,15 +11,6 @@ plugins {
 }
 
 dependencies {
-    api(projects.darkcubesystemServer)
-    api(projects.darkcubesystemKyoriWrapper)
-    api(libs.bundles.minestom)
-}
-
-publishing {
-    publications {
-        register<MavenPublication>("maven") {
-            from(components["java"])
-        }
-    }
+    api(projects.darkcubesystemApi)
+    compileOnly(libs.adventure.api)
 }
