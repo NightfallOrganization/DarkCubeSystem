@@ -9,10 +9,11 @@ package eu.darkcube.system.impl.minestom.item.enchant;
 
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.minestom.item.enchant.MinestomEnchantment;
+import net.minestom.server.item.enchant.Enchantment;
 
-public record MinestomEnchantmentImpl(@NotNull net.minestom.server.item.Enchantment minestomType) implements MinestomEnchantment {
+public record MinestomEnchantmentImpl(@NotNull Enchantment minestomType) implements MinestomEnchantment {
     @Override
     public int maxLevel() {
-        return (int) minestomType.registry().maxLevel();
+        return minestomType.maxLevel();
     }
 }

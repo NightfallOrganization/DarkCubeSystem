@@ -10,5 +10,6 @@ package eu.darkcube.system.util;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 
 public interface ColorProvider {
-    @NotNull Color color(@NotNull Object color);
+    @NotNull
+    Color color(@NotNull Object color);
 }

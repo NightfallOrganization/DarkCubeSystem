@@ -12,5 +12,5 @@ import eu.darkcube.system.server.item.enchant.Enchantment;
 
 public interface MinestomEnchantment extends Enchantment {
     @NotNull
-    net.minestom.server.item.Enchantment minestomType();
+    net.minestom.server.item.enchant.Enchantment minestomType();
 }

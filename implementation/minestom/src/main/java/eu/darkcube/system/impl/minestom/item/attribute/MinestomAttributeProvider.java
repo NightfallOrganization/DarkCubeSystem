@@ -15,12 +15,12 @@ import eu.darkcube.system.server.item.attribute.Attribute;
 import eu.darkcube.system.server.item.attribute.AttributeProvider;
 
 public class MinestomAttributeProvider implements AttributeProvider {
-    private final Map<net.minestom.server.attribute.Attribute, Attribute> attributeMap = new ConcurrentHashMap<>();
+    private final Map<net.minestom.server.entity.attribute.Attribute, Attribute> attributeMap = new ConcurrentHashMap<>();
 
     @Override
     public @NotNull Attribute of(@NotNull Object platformAttribute) {
         if (platformAttribute instanceof Attribute attribute) return attribute;
-        if (platformAttribute instanceof net.minestom.server.attribute.Attribute attribute) return attributeMap.computeIfAbsent(attribute, MinestomAttributeImpl::new);
+        if (platformAttribute instanceof net.minestom.server.entity.attribute.Attribute attribute) return attributeMap.computeIfAbsent(attribute, MinestomAttributeImpl::new);
         throw new IllegalArgumentException("Invalid Attribute: " + platformAttribute);
     }
 }

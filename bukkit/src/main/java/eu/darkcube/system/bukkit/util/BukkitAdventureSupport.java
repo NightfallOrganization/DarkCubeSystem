@@ -8,11 +8,12 @@
 package eu.darkcube.system.bukkit.util;
 
 import eu.darkcube.system.annotations.Api;
+import eu.darkcube.system.kyori.wrapper.KyoriAdventureSupport;
 import eu.darkcube.system.libs.net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import eu.darkcube.system.util.AdventureSupport;
 
 @Api
-public interface BukkitAdventureSupport extends AdventureSupport {
+public interface BukkitAdventureSupport extends AdventureSupport, KyoriAdventureSupport {
     @Api
     static BukkitAdventureSupport adventureSupport() {
         return (BukkitAdventureSupport) AdventureSupport.adventureSupport();

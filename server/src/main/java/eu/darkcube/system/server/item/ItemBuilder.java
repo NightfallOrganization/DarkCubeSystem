@@ -15,6 +15,7 @@ import java.util.function.Consumer;
 
 import eu.darkcube.system.annotations.Api;
 import eu.darkcube.system.libs.com.google.gson.JsonElement;
+import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
 import eu.darkcube.system.libs.net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
@@ -22,6 +23,7 @@ import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Unmodifiable;
 import eu.darkcube.system.server.item.attribute.Attribute;
 import eu.darkcube.system.server.item.attribute.AttributeModifier;
+import eu.darkcube.system.server.item.attribute.AttributeModifierOperation;
 import eu.darkcube.system.server.item.enchant.Enchantment;
 import eu.darkcube.system.server.item.flag.ItemFlag;
 import eu.darkcube.system.server.item.material.Material;
@@ -88,12 +90,12 @@ public interface ItemBuilder {
     @Api
     @NotNull
     @Unmodifiable
-    Map<@NotNull Attribute, @NotNull @Unmodifiable Collection<@NotNull AttributeModifier>> attributeModifiers();
+    Collection<@NotNull AttributeModifier> attributeModifiers();
 
     @Api
     @NotNull
     @Unmodifiable
-    Map<@NotNull Attribute, @NotNull @Unmodifiable Collection<@NotNull AttributeModifier>> attributeModifiers(EquipmentSlot slot);
+    Collection<@NotNull AttributeModifier> attributeModifiers(@NotNull EquipmentSlot slot);
 
     @Api
     @NotNull
@@ -101,16 +103,19 @@ public interface ItemBuilder {
 
     @Api
     @NotNull
-    ItemBuilder attributeModifiers(@NotNull Map<@NotNull Attribute, @NotNull Collection<@NotNull AttributeModifier>> attributeModifiers);
+    ItemBuilder attributeModifiers(@NotNull Collection<@NotNull AttributeModifier> attributeModifiers);
 
     @Api
     @NotNull
-    ItemBuilder attributeModifier(@NotNull Attribute attribute, @NotNull AttributeModifier modifier);
+    ItemBuilder attributeModifier(@NotNull AttributeModifier attributeModifier);
 
     @Api
-    default @NotNull ItemBuilder attributeModifier(@NotNull Object attribute, @NotNull Object modifier) {
-        return attributeModifier(Attribute.of(attribute), AttributeModifier.of(modifier));
-    }
+    @NotNull
+    ItemBuilder attributeModifier(@NotNull Attribute attribute, @NotNull Key key, @NotNull EquipmentSlotGroup equipmentSlotGroup, double amount, @NotNull AttributeModifierOperation operation);
+
+    @Api
+    @NotNull
+    ItemBuilder attributeModifier(@NotNull Object attribute, @NotNull Object key, @NotNull Object equipmentSlotGroup, double amount, @NotNull Object operation);
 
     @Api
     @NotNull
@@ -122,7 +127,7 @@ public interface ItemBuilder {
 
     @Api
     @NotNull
-    ItemBuilder removeAttributeModifier(@NotNull Attribute attribute, @NotNull AttributeModifier modifier);
+    ItemBuilder removeAttributeModifier(@NotNull AttributeModifier modifier);
 
     @Api
     @NotNull

@@ -25,24 +25,14 @@ import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.Event;
 import net.minestom.server.event.EventNode;
-import net.minestom.server.event.inventory.InventoryClickEvent;
 import net.minestom.server.event.inventory.InventoryCloseEvent;
-import net.minestom.server.inventory.ContainerInventory;
+import net.minestom.server.event.inventory.InventoryPreClickEvent;
 import net.minestom.server.inventory.Inventory;
 import net.minestom.server.inventory.InventoryType;
-import net.minestom.server.inventory.click.Click.Info;
-import net.minestom.server.inventory.click.Click.Info.DropSlot;
-import net.minestom.server.inventory.click.Click.Info.HotbarSwap;
-import net.minestom.server.inventory.click.Click.Info.Left;
-import net.minestom.server.inventory.click.Click.Info.LeftDrag;
-import net.minestom.server.inventory.click.Click.Info.LeftShift;
-import net.minestom.server.inventory.click.Click.Info.Right;
-import net.minestom.server.inventory.click.Click.Info.RightDrag;
-import net.minestom.server.inventory.click.Click.Info.RightShift;
+import net.minestom.server.inventory.click.ClickType;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.timer.ExecutionType;
 import net.minestom.server.timer.TaskSchedule;
-import net.minestom.server.utils.inventory.PlayerInventoryUtils;
 
 public class MinestomInventory extends AbstractInventory<ItemStack> {
     protected final AtomicInteger openCount = new AtomicInteger(0);
@@ -55,7 +45,7 @@ public class MinestomInventory extends AbstractInventory<ItemStack> {
         super(title, type, type.minestomType().getSize());
         this.inventory = new ServerInventory(type.minestomType(), MinestomAdventureSupport.adventureSupport().convert(title), this);
         this.node.addListener(InventoryCloseEvent.class, this::handleClose);
-        this.node.addListener(builder(InventoryClickEvent.class).ignoreCancelled(false).handler(this::handleClick).build());
+        this.node.addListener(builder(InventoryPreClickEvent.class).ignoreCancelled(false).handler(this::handleClick).build());
     }
 
     @Override
@@ -127,35 +117,37 @@ public class MinestomInventory extends AbstractInventory<ItemStack> {
         return opened.contains(user);
     }
 
-    private void handleClick(InventoryClickEvent event) {
+    private void handleClick(InventoryPreClickEvent event) {
         var minestomInventory = event.getInventory();
         if (!(minestomInventory instanceof ServerInventory serverInventory)) return;
         var inventory = serverInventory.inventory;
         if (inventory != this) return;
         event.setCancelled(true);
         var user = UserAPI.instance().user(event.getPlayer().getUuid());
-        var info = event.getClickInfo();
-        LOGGER.debug("Clicked inventory with info: {}", info);
-        var slot = switch (info) {
-            case Left left -> left.slot();
-            case Right right -> right.slot();
-            case LeftShift(var s) -> s;
-            case RightShift(var s) -> s;
-            case LeftDrag(var slots) -> slots.isEmpty() ? -1 : slots.getFirst();
-            case RightDrag(var slots) -> slots.isEmpty() ? -1 : slots.getFirst();
-            case Info.Double(var s) -> s;
-            case HotbarSwap(var ignored, var s) -> s;
-            case DropSlot(var s, var ignored) -> s;
+        var clickType = event.getClickType();
+        LOGGER.info("Clicked inventory with info: {}", clickType);
+        var slot = switch (clickType) {
+            case LEFT_CLICK, RIGHT_CLICK, DOUBLE_CLICK, DROP -> event.getSlot();
+            // case Left left -> left.slot();
+            // case Right right -> right.slot();
+            // case LeftShift(var s) -> s;
+            // case RightShift(var s) -> s;
+            // case LeftDrag(var slots) -> slots.isEmpty() ? -1 : slots.getFirst();
+            // case RightDrag(var slots) -> slots.isEmpty() ? -1 : slots.getFirst();
+            // case Info.Double(var s) -> s;
+            // case HotbarSwap(var ignored, var s) -> s;
+            // case DropSlot(var s, var ignored) -> s;
             default -> {
-                LOGGER.error("Click not supported by InventoryAPI: {}", event.getClickInfo());
+                LOGGER.error("Click not supported by InventoryAPI: {}", clickType);
                 yield -1;
             }
         };
-        if (info instanceof Info.Double)
+        if (clickType == ClickType.DOUBLE_CLICK)
             // Do not handle double clicks, they are also sent as a Left click, so they are duplicate.
             return;
 
-        var itemStack = itemStack(slot, event.getInventory(), event.getPlayerInventory());
+        // var itemStack = itemStack(slot, event.getInventory(), event.getPlayerInventory());
+        var itemStack = event.getClickedItem();
         var item = itemStack.isAir() ? ItemBuilder.item() : ItemBuilder.item(itemStack);
         handleClick(slot, itemStack, item);
         for (var i = 0; i < listeners.size(); i++) {
@@ -180,19 +172,19 @@ public class MinestomInventory extends AbstractInventory<ItemStack> {
         }
     }
 
-    private static ItemStack itemStack(int slot, Inventory clickedInventory, Inventory playerInventory) {
-        if (slot < 0) {
-            return ItemStack.AIR;
-        }
-        if (slot >= clickedInventory.getSize()) {
-            var converted = PlayerInventoryUtils.protocolToMinestom(slot, clickedInventory.getSize());
-            return playerInventory.getItemStack(converted);
-        } else {
-            return clickedInventory.getItemStack(slot);
-        }
-    }
+    // private static ItemStack itemStack(int slot, Inventory clickedInventory, Inventory playerInventory) {
+    //     if (slot < 0) {
+    //         return ItemStack.AIR;
+    //     }
+    //     if (slot >= clickedInventory.getSize()) {
+    //         var converted = PlayerInventoryUtils.protocolToMinestom(slot, clickedInventory.getSize());
+    //         return playerInventory.getItemStack(converted);
+    //     } else {
+    //         return clickedInventory.getItemStack(slot);
+    //     }
+    // }
 
-    public static class ServerInventory extends ContainerInventory {
+    public static class ServerInventory extends Inventory {
 
         private final MinestomInventory inventory;
 

@@ -7,21 +7,39 @@
 
 package eu.darkcube.system.impl.minestom.item.attribute;
 
-import java.util.UUID;
+import static eu.darkcube.system.minestom.util.adventure.MinestomAdventureSupport.adventureSupport;
 
+import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.minestom.item.attribute.MinestomAttributeModifier;
-import eu.darkcube.system.server.item.EquipmentSlot;
-import net.minestom.server.item.attribute.ItemAttribute;
+import eu.darkcube.system.server.item.EquipmentSlotGroup;
+import eu.darkcube.system.server.item.attribute.Attribute;
+import eu.darkcube.system.server.item.attribute.AttributeModifierOperation;
+import net.minestom.server.item.component.AttributeList;
 
-public record MinestomAttributeModifierImpl(@NotNull ItemAttribute minestomType) implements MinestomAttributeModifier {
+public record MinestomAttributeModifierImpl(@NotNull AttributeList.Modifier minestomType) implements MinestomAttributeModifier {
     @Override
-    public @NotNull EquipmentSlot equipmentSlot() {
-        return EquipmentSlot.of(minestomType.slot());
+    public @NotNull EquipmentSlotGroup equipmentSlotGroup() {
+        return EquipmentSlotGroup.of(minestomType.slot());
     }
 
     @Override
-    public @NotNull UUID uniqueId() {
-        return minestomType.uuid();
+    public @NotNull Key key() {
+        return adventureSupport().convert(minestomType.modifier().id());
+    }
+
+    @Override
+    public double amount() {
+        return minestomType.modifier().amount();
+    }
+
+    @Override
+    public @NotNull AttributeModifierOperation operation() {
+        return AttributeModifierOperation.of(minestomType.modifier().operation());
+    }
+
+    @Override
+    public @NotNull Attribute attribute() {
+        return Attribute.of(minestomType.attribute());
     }
 }

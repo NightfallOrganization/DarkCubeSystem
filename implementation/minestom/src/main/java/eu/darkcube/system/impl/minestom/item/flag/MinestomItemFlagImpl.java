@@ -7,9 +7,7 @@
 
 package eu.darkcube.system.impl.minestom.item.flag;
 
-import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.minestom.item.flag.MinestomItemFlag;
-import net.minestom.server.item.ItemHideFlag;
 
-public record MinestomItemFlagImpl(@NotNull ItemHideFlag minestomType) implements MinestomItemFlag {
+public record MinestomItemFlagImpl() implements MinestomItemFlag {
 }

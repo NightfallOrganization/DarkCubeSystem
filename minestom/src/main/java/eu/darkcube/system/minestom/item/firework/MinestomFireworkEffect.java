@@ -9,8 +9,9 @@ package eu.darkcube.system.minestom.item.firework;
 
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.server.item.firework.FireworkEffect;
+import net.minestom.server.item.component.FireworkExplosion;
 
 public interface MinestomFireworkEffect extends FireworkEffect {
     @NotNull
-    net.minestom.server.item.firework.FireworkEffect minestomType();
+    FireworkExplosion minestomType();
 }

@@ -7,7 +7,7 @@
 
 package eu.darkcube.system.impl.bukkit.item;
 
-import eu.darkcube.system.server.item.EquipmentSlot;
+import eu.darkcube.system.bukkit.item.BukkitEquipmentSlot;
 
-public record BukkitEquipmentSlot(org.bukkit.inventory.EquipmentSlot bukkitType) implements EquipmentSlot {
+public record BukkitEquipmentSlotImpl(org.bukkit.inventory.EquipmentSlot bukkitType) implements BukkitEquipmentSlot {
 }

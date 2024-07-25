@@ -16,20 +16,22 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
 import eu.darkcube.system.libs.net.kyori.adventure.text.format.TextDecoration;
 import eu.darkcube.system.libs.net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 import eu.darkcube.system.server.item.EquipmentSlot;
+import eu.darkcube.system.server.item.EquipmentSlotGroup;
 import eu.darkcube.system.server.item.ItemBuilder;
 import eu.darkcube.system.server.item.ItemRarity;
 import eu.darkcube.system.server.item.attribute.Attribute;
 import eu.darkcube.system.server.item.attribute.AttributeModifier;
+import eu.darkcube.system.server.item.attribute.AttributeModifierOperation;
 import eu.darkcube.system.server.item.enchant.Enchantment;
 import eu.darkcube.system.server.item.flag.ItemFlag;
 import eu.darkcube.system.server.item.material.Material;
@@ -53,13 +55,9 @@ public abstract class AbstractItemBuilder implements ItemBuilder {
     protected int customModelData = Integer.MAX_VALUE;
     protected int repairCost = 0;
     protected ItemRarity rarity = null;
-    protected @NotNull Map<Attribute, Collection<AttributeModifier>> attributeModifiers = new HashMap<>();
+    protected @NotNull List<@NotNull AttributeModifier> attributeModifiers = new ArrayList<>();
 
     protected BasicItemPersistentDataStorage storage = new BasicItemPersistentDataStorage(this);
-
-    protected Collection<AttributeModifier> computeModifiers(Attribute attribute) {
-        return attributeModifiers.computeIfAbsent(attribute, a -> new HashSet<>());
-    }
 
     @Override
     public @NotNull Material material() {
@@ -84,89 +82,65 @@ public abstract class AbstractItemBuilder implements ItemBuilder {
     }
 
     @Override
-    public @NotNull Map<Attribute, Collection<AttributeModifier>> attributeModifiers() {
-        var result = new HashMap<>(attributeModifiers);
-        result.replaceAll((a, v) -> Set.of(v.toArray(new AttributeModifier[0])));
-        return Map.copyOf(result);
+    public @NotNull Collection<@NotNull AttributeModifier> attributeModifiers() {
+        return List.copyOf(attributeModifiers);
     }
 
     @Override
-    public @NotNull Map<Attribute, Collection<AttributeModifier>> attributeModifiers(EquipmentSlot slot) {
-        Map<Attribute, Collection<AttributeModifier>> result = new HashMap<>();
-        for (var entry : this.attributeModifiers.entrySet()) {
-            for (var modifier : entry.getValue()) {
-                var equipmentSlot = modifier.equipmentSlot();
-                if (equipmentSlot == null || equipmentSlot == slot) {
-                    var modifiers = result.computeIfAbsent(entry.getKey(), attribute -> new HashSet<>());
-                    modifiers.add(modifier);
-                }
+    public @NotNull Collection<@NotNull AttributeModifier> attributeModifiers(@NotNull EquipmentSlot slot) {
+        Collection<@NotNull AttributeModifier> result = new ArrayList<>();
+        for (var modifier : attributeModifiers) {
+            var group = modifier.equipmentSlotGroup();
+            if (group.slots().contains(slot)) {
+                result.add(modifier);
             }
         }
-        result.replaceAll((a, v) -> Set.of(v.toArray(new AttributeModifier[0])));
-        return Map.copyOf(result);
+        return List.copyOf(result);
     }
 
     @Override
     public @NotNull Collection<AttributeModifier> attributeModifiers(@NotNull Attribute attribute) {
-        if (!attributeModifiers.containsKey(attribute)) return List.of();
-        return List.copyOf(attributeModifiers.get(attribute));
+        return attributeModifiers.stream().filter(m -> m.attribute().equals(attribute)).toList();
     }
 
     @Override
-    public @NotNull AbstractItemBuilder attributeModifiers(@NotNull Map<Attribute, Collection<AttributeModifier>> attributeModifiers) {
+    public @NotNull AbstractItemBuilder attributeModifiers(@NotNull Collection<@NotNull AttributeModifier> attributeModifiers) {
         this.attributeModifiers.clear();
-        for (var entry : attributeModifiers.entrySet()) {
-            computeModifiers(entry.getKey()).addAll(entry.getValue());
-        }
+        this.attributeModifiers.addAll(attributeModifiers);
         return this;
     }
 
     @Override
-    public @NotNull AbstractItemBuilder attributeModifier(@NotNull Attribute attribute, @NotNull AttributeModifier modifier) {
-        for (var entry : this.attributeModifiers.entrySet()) {
-            for (var entryModifier : entry.getValue()) {
-                if (entryModifier.uniqueId().equals(modifier.uniqueId())) {
-                    throw new IllegalArgumentException("Cannot register AttributeModifier. Modifier is already applied! " + modifier);
-                }
-            }
-        }
-        computeModifiers(attribute).add(modifier);
+    public @NotNull AbstractItemBuilder attributeModifier(@NotNull AttributeModifier attributeModifier) {
+        this.attributeModifiers.add(attributeModifier);
         return this;
     }
 
     @Override
-    public @NotNull AbstractItemBuilder removeAttributeModifiers(EquipmentSlot slot) {
-        var it = this.attributeModifiers.entrySet().iterator();
-        while (it.hasNext()) {
-            var entry = it.next();
-            // Explicitly match against null because (as of MC 1.13) AttributeModifiers without a -
-            // set slot are active in any slot.
-            entry.getValue().removeIf(m -> m.equipmentSlot() == null || m.equipmentSlot() == slot);
-            if (entry.getValue().isEmpty()) {
-                it.remove();
-            }
-        }
+    public @NotNull ItemBuilder attributeModifier(@NotNull Attribute attribute, @NotNull Key key, @NotNull EquipmentSlotGroup equipmentSlotGroup, double amount, @NotNull AttributeModifierOperation operation) {
+        return attributeModifier(AttributeModifier.of(attribute, key, equipmentSlotGroup, amount, operation));
+    }
+
+    @Override
+    public @NotNull ItemBuilder attributeModifier(@NotNull Object attribute, @NotNull Object key, @NotNull Object equipmentSlotGroup, double amount, @NotNull Object operation) {
+        return attributeModifier(Attribute.of(attribute), KeyProvider.get(key), EquipmentSlotGroup.of(equipmentSlotGroup), amount, AttributeModifierOperation.of(operation));
+    }
+
+    @Override
+    public @NotNull AbstractItemBuilder removeAttributeModifier(@NotNull AttributeModifier attributeModifier) {
+        this.attributeModifiers.remove(attributeModifier);
+        return this;
+    }
+
+    @Override
+    public @NotNull AbstractItemBuilder removeAttributeModifiers(@Nullable EquipmentSlot slot) {
+        this.attributeModifiers.removeIf(a -> a.equipmentSlotGroup().slots().contains(slot));
         return this;
     }
 
     @Override
     public @NotNull AbstractItemBuilder removeAttributeModifiers(@NotNull Attribute attribute) {
-        attributeModifiers.remove(attribute);
-        return this;
-    }
-
-    @Override
-    public @NotNull AbstractItemBuilder removeAttributeModifier(@NotNull Attribute attribute, @NotNull AttributeModifier modifier) {
-        var iter = this.attributeModifiers.entrySet().iterator();
-        while (iter.hasNext()) {
-            var entry = iter.next();
-            if (Objects.equals(entry.getKey(), attribute)) {
-                entry.getValue().removeIf(attributeModifier -> attributeModifier.uniqueId().equals(modifier.uniqueId()));
-                if (entry.getValue().isEmpty()) {
-                    iter.remove();
-                }
-            }
-        }
+        this.attributeModifiers.removeIf(a -> a.attribute().equals(attribute));
         return this;
     }
 

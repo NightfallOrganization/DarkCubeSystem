@@ -9,6 +9,7 @@ package eu.darkcube.system.impl.minestom.item.attribute;
 
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.minestom.item.attribute.MinestomAttribute;
+import net.minestom.server.entity.attribute.Attribute;
 
-public record MinestomAttributeImpl(@NotNull net.minestom.server.attribute.Attribute minestomType) implements MinestomAttribute {
+public record MinestomAttributeImpl(@NotNull Attribute minestomType) implements MinestomAttribute {
 }

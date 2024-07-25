@@ -9,9 +9,9 @@ package eu.darkcube.system.minestom.item.attribute;
 
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.server.item.attribute.AttributeModifier;
-import net.minestom.server.item.attribute.ItemAttribute;
+import net.minestom.server.item.component.AttributeList;
 
 public interface MinestomAttributeModifier extends AttributeModifier {
     @NotNull
-    ItemAttribute minestomType();
+    AttributeList.Modifier minestomType();
 }

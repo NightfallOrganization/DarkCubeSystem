@@ -10,12 +10,13 @@ package eu.darkcube.system.impl.minestom.item.firework;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.server.item.firework.FireworkEffect;
 import eu.darkcube.system.server.item.firework.FireworkEffectProvider;
+import net.minestom.server.item.component.FireworkExplosion;
 
 public class MinestomFireworkEffectProvider implements FireworkEffectProvider {
     @Override
     public @NotNull FireworkEffect of(@NotNull Object platformFireworkEffect) {
         if (platformFireworkEffect instanceof FireworkEffect fireworkEffect) return fireworkEffect;
-        if (platformFireworkEffect instanceof net.minestom.server.item.firework.FireworkEffect fireworkEffect) return new MinestomFireworkEffectImpl(fireworkEffect);
+        if (platformFireworkEffect instanceof FireworkExplosion fireworkEffect) return new MinestomFireworkEffectImpl(fireworkEffect);
         throw new IllegalArgumentException("Invalid FireworkEffect: " + platformFireworkEffect);
     }
 }

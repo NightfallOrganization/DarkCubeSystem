@@ -41,7 +41,7 @@ public final class SkullBuilderMeta implements BuilderMeta {
         private final UUID uuid;
         private final Texture texture;
 
-        public UserProfile(@NotNull String playerName) {
+        public UserProfile(String playerName) {
             this(playerName, null);
         }
 

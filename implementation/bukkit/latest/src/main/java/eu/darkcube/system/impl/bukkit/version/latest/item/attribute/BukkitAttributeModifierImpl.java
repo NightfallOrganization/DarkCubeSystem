@@ -7,22 +7,35 @@
 
 package eu.darkcube.system.impl.bukkit.version.latest.item.attribute;
 
-import java.util.UUID;
+import static eu.darkcube.system.bukkit.util.BukkitAdventureSupport.adventureSupport;
 
 import eu.darkcube.system.bukkit.item.attribute.BukkitAttributeModifier;
+import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
-import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
-import eu.darkcube.system.server.item.EquipmentSlot;
+import eu.darkcube.system.libs.org.jetbrains.annotations.Unmodifiable;
+import eu.darkcube.system.server.item.EquipmentSlotGroup;
+import eu.darkcube.system.server.item.attribute.Attribute;
+import eu.darkcube.system.server.item.attribute.AttributeModifierOperation;
 import org.bukkit.attribute.AttributeModifier;
 
-public record BukkitAttributeModifierImpl(AttributeModifier bukkitType) implements BukkitAttributeModifier {
-    @Override public @Nullable EquipmentSlot equipmentSlot() {
-        var slot = bukkitType.getSlot();
-        if (slot == null) return null;
-        return EquipmentSlot.of(slot);
+public record BukkitAttributeModifierImpl(@NotNull AttributeModifier bukkitType, @NotNull Attribute attribute) implements BukkitAttributeModifier {
+    @Override
+    public @NotNull @Unmodifiable EquipmentSlotGroup equipmentSlotGroup() {
+        return EquipmentSlotGroup.of(bukkitType.getSlotGroup());
     }
 
-    @Override public @NotNull UUID uniqueId() {
-        return bukkitType.getUniqueId();
+    @Override
+    public @NotNull Key key() {
+        return adventureSupport().convert(bukkitType.key());
+    }
+
+    @Override
+    public double amount() {
+        return bukkitType.getAmount();
+    }
+
+    @Override
+    public @NotNull AttributeModifierOperation operation() {
+        return AttributeModifierOperation.of(bukkitType.getOperation());
     }
 }

@@ -13,7 +13,7 @@ import eu.darkcube.system.server.item.EquipmentSlot;
 import eu.darkcube.system.server.item.EquipmentSlotProvider;
 
 public class BukkitEquipmentSlotProvider implements EquipmentSlotProvider {
-    private final EquipmentSlot[] slots = EnumConverter.convert(org.bukkit.inventory.EquipmentSlot.class, EquipmentSlot.class, BukkitEquipmentSlot::new);
+    private final EquipmentSlot[] slots = EnumConverter.convert(org.bukkit.inventory.EquipmentSlot.class, EquipmentSlot.class, BukkitEquipmentSlotImpl::new);
 
     @Override public @NotNull EquipmentSlot of(@NotNull Object platformObject) {
         if (platformObject instanceof EquipmentSlot slot) return slot;

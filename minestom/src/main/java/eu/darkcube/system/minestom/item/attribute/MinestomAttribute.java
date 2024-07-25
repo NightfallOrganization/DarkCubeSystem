@@ -12,5 +12,5 @@ import eu.darkcube.system.server.item.attribute.Attribute;
 
 public interface MinestomAttribute extends Attribute {
     @NotNull
-    net.minestom.server.attribute.Attribute minestomType();
+    net.minestom.server.entity.attribute.Attribute minestomType();
 }

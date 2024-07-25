@@ -131,7 +131,7 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
             }
 
             if (meta.getAttributeModifiers() != null) {
-                meta.getAttributeModifiers().forEach(this::attributeModifier);
+                meta.getAttributeModifiers().forEach((attribute, m) -> this.attributeModifier(attribute, m.key(), m.getSlotGroup(), m.getAmount(), m.getOperation()));
                 meta.setAttributeModifiers(null);
             }
 
@@ -251,7 +251,7 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
                     meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
                 }
             }
-            attributeModifiers.forEach((attribute, modifiers) -> modifiers.forEach(modifier -> meta.addAttributeModifier(((BukkitAttribute) attribute).bukkitType(), ((BukkitAttributeModifierImpl) modifier).bukkitType())));
+            attributeModifiers.forEach((modifier) -> meta.addAttributeModifier(((BukkitAttribute) modifier.attribute()).bukkitType(), ((BukkitAttributeModifierImpl) modifier).bukkitType()));
             if (meta instanceof Damageable damageable) {
                 damageable.setDamage(damage);
             }

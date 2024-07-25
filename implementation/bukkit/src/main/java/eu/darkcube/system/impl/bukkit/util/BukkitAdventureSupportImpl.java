@@ -9,9 +9,10 @@ package eu.darkcube.system.impl.bukkit.util;
 
 import eu.darkcube.system.bukkit.util.BukkitAdventureSupport;
 import eu.darkcube.system.impl.bukkit.DarkCubeSystemBukkit;
+import eu.darkcube.system.impl.kyori.wrapper.DefaultKyoriAdventureSupport;
 import eu.darkcube.system.libs.net.kyori.adventure.platform.bukkit.BukkitAudiences;
 
-public class BukkitAdventureSupportImpl implements BukkitAdventureSupport {
+public class BukkitAdventureSupportImpl implements BukkitAdventureSupport, DefaultKyoriAdventureSupport {
     private final BukkitAudiences audienceProvider;
 
     public BukkitAdventureSupportImpl(DarkCubeSystemBukkit system) {

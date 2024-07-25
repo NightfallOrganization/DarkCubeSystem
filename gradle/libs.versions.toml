@@ -12,7 +12,7 @@ viaversion = "5.0.1"
 caffeine = "3.1.8"
 slf4j-api = "2.0.13"
 
-minestom = "7f15222468"
+minestom = "5f0fbba498"
 minestom-extensions = "1.2.0"
 
 shadow = "8.1.8"
