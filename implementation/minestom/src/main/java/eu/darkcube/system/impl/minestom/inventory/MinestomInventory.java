@@ -43,9 +43,14 @@ public class MinestomInventory extends AbstractInventory<ItemStack> {
 
     public MinestomInventory(@NotNull Component title, @NotNull MinestomInventoryType type) {
         super(title, type, type.minestomType().getSize());
-        this.inventory = new ServerInventory(type.minestomType(), MinestomAdventureSupport.adventureSupport().convert(title), this);
+        this.inventory = new ServerInventory(type.minestomType(), MinestomAdventureSupport
+                .adventureSupport()
+                .convert(title), this);
         this.node.addListener(InventoryCloseEvent.class, this::handleClose);
-        this.node.addListener(builder(InventoryPreClickEvent.class).ignoreCancelled(false).handler(this::handleClick).build());
+        this.node.addListener(builder(InventoryPreClickEvent.class)
+                .ignoreCancelled(false)
+                .handler(this::handleClick)
+                .build());
     }
 
     @Override
@@ -125,9 +130,9 @@ public class MinestomInventory extends AbstractInventory<ItemStack> {
         event.setCancelled(true);
         var user = UserAPI.instance().user(event.getPlayer().getUuid());
         var clickType = event.getClickType();
-        LOGGER.info("Clicked inventory with info: {}", clickType);
+        LOGGER.debug("Clicked inventory with info: {}", clickType);
         var slot = switch (clickType) {
-            case LEFT_CLICK, RIGHT_CLICK, DOUBLE_CLICK, DROP -> event.getSlot();
+            case LEFT_CLICK, RIGHT_CLICK, START_DOUBLE_CLICK, START_SHIFT_CLICK, DROP -> event.getSlot();
             // case Left left -> left.slot();
             // case Right right -> right.slot();
             // case LeftShift(var s) -> s;
@@ -142,7 +147,7 @@ public class MinestomInventory extends AbstractInventory<ItemStack> {
                 yield -1;
             }
         };
-        if (clickType == ClickType.DOUBLE_CLICK)
+        if (clickType == ClickType.START_DOUBLE_CLICK)
             // Do not handle double clicks, they are also sent as a Left click, so they are duplicate.
             return;
 
