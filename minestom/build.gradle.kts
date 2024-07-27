@@ -14,6 +14,8 @@ dependencies {
     api(projects.darkcubesystemServer)
     api(projects.darkcubesystemKyoriWrapper)
     api(libs.bundles.minestom)
+
+    compileOnly(projects.darkcubesystemImplementationProvider)
 }
 
 publishing {

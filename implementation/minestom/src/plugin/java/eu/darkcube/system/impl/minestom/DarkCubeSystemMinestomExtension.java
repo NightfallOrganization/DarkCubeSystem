@@ -18,7 +18,7 @@ import eu.darkcube.system.impl.minestom.item.attribute.MinestomAttributeOperatio
 import eu.darkcube.system.impl.minestom.item.attribute.MinestomAttributeProvider;
 import eu.darkcube.system.impl.minestom.item.enchant.MinestomEnchantmentProvider;
 import eu.darkcube.system.impl.minestom.item.firework.MinestomFireworkEffectProvider;
-import eu.darkcube.system.impl.minestom.item.flag.MinestomItemFlagProvider;
+import eu.darkcube.system.impl.minestom.item.flag.MinestomItemFlagProviderImpl;
 import eu.darkcube.system.impl.minestom.item.material.MinestomMaterialProvider;
 import eu.darkcube.system.impl.minestom.util.MinestomColorProvider;
 import eu.darkcube.system.impl.server.inventory.item.ItemReferenceProviderImpl;
@@ -54,7 +54,7 @@ public class DarkCubeSystemMinestomExtension extends Extension {
         install(AttributeModifierOperationProvider.class, new MinestomAttributeOperationProviderImpl());
         install(ItemProvider.class, new MinestomItemProvider());
         install(MaterialProvider.class, new MinestomMaterialProvider());
-        install(ItemFlagProvider.class, new MinestomItemFlagProvider());
+        install(ItemFlagProvider.class, new MinestomItemFlagProviderImpl());
         install(FireworkEffectProvider.class, new MinestomFireworkEffectProvider());
         install(EnchantmentProvider.class, new MinestomEnchantmentProvider());
         install(AttributeProvider.class, new MinestomAttributeProvider());

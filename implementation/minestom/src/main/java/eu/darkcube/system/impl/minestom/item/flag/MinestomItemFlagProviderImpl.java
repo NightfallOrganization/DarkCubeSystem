@@ -8,13 +8,21 @@
 package eu.darkcube.system.impl.minestom.item.flag;
 
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
+import eu.darkcube.system.minestom.item.flag.MinestomItemFlag;
+import eu.darkcube.system.minestom.item.flag.MinestomItemFlagProvider;
 import eu.darkcube.system.server.item.flag.ItemFlag;
-import eu.darkcube.system.server.item.flag.ItemFlagProvider;
 
-public class MinestomItemFlagProvider implements ItemFlagProvider {
+public class MinestomItemFlagProviderImpl implements MinestomItemFlagProvider {
+    private int id = 0;
+
     @Override
     public @NotNull ItemFlag of(@NotNull Object platformItemFlag) {
         if (platformItemFlag instanceof ItemFlag itemFlag) return itemFlag;
         throw new IllegalArgumentException("Invalid ItemFlag: " + platformItemFlag);
+    }
+
+    @Override
+    public MinestomItemFlag create() {
+        return new MinestomItemFlagImpl(id++);
     }
 }

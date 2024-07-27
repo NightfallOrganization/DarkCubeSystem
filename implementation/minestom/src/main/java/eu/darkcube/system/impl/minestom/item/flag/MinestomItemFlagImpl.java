@@ -9,5 +9,5 @@ package eu.darkcube.system.impl.minestom.item.flag;
 
 import eu.darkcube.system.minestom.item.flag.MinestomItemFlag;
 
-public record MinestomItemFlagImpl() implements MinestomItemFlag {
+public record MinestomItemFlagImpl(int id) implements MinestomItemFlag {
 }
