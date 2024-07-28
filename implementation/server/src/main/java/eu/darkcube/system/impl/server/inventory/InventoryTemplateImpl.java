@@ -9,13 +9,16 @@ package eu.darkcube.system.impl.server.inventory;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
 import eu.darkcube.system.BaseMessage;
 import eu.darkcube.system.impl.server.inventory.animated.AnimatedTemplateSettingsImpl;
 import eu.darkcube.system.impl.server.inventory.item.ItemReferenceImpl;
+import eu.darkcube.system.impl.server.inventory.listener.TemplateWrapperListener;
 import eu.darkcube.system.impl.server.inventory.paged.PagedTemplateSettingsImpl;
 import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
@@ -27,6 +30,7 @@ import eu.darkcube.system.server.inventory.InventoryTemplate;
 import eu.darkcube.system.server.inventory.InventoryType;
 import eu.darkcube.system.server.inventory.item.ItemTemplate;
 import eu.darkcube.system.server.inventory.listener.InventoryListener;
+import eu.darkcube.system.server.inventory.listener.TemplateInventoryListener;
 import eu.darkcube.system.userapi.User;
 import eu.darkcube.system.util.Language;
 
@@ -37,6 +41,7 @@ public abstract class InventoryTemplateImpl<PlatformPlayer> implements Inventory
     protected final @NotNull AnimatedTemplateSettingsImpl<PlatformPlayer> animation;
     protected final @NotNull PagedTemplateSettingsImpl pagination;
     protected final @NotNull List<InventoryListener> listeners;
+    protected final @NotNull Map<TemplateInventoryListener, List<InventoryListener>> templateListenerMap = new HashMap<>();
     protected final SortedMap<Integer, ItemReferenceImpl>[] contents;
     protected @Nullable Object title;
 
@@ -92,6 +97,25 @@ public abstract class InventoryTemplateImpl<PlatformPlayer> implements Inventory
     @Override
     public void removeListener(@NotNull InventoryListener listener) {
         this.listeners.remove(listener);
+    }
+
+    @Override
+    public void addListener(@NotNull TemplateInventoryListener listener) {
+        var list = this.templateListenerMap.computeIfAbsent(listener, _ -> new ArrayList<>());
+        var wrapper = new TemplateWrapperListener(listener);
+        list.add(wrapper);
+        addListener(wrapper);
+    }
+
+    @Override
+    public void removeListener(@NotNull TemplateInventoryListener listener) {
+        var wrappers = this.templateListenerMap.get(listener);
+        if (wrappers == null) return;
+        var wrapper = wrappers.removeLast();
+        removeListener(wrapper);
+        if (wrappers.isEmpty()) {
+            this.templateListenerMap.remove(listener);
+        }
     }
 
     @Override

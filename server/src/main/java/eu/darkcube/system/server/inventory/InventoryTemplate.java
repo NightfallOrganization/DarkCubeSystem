@@ -23,6 +23,7 @@ import eu.darkcube.system.server.inventory.item.ItemFactory;
 import eu.darkcube.system.server.inventory.item.ItemReference;
 import eu.darkcube.system.server.inventory.item.ItemTemplate;
 import eu.darkcube.system.server.inventory.listener.InventoryListener;
+import eu.darkcube.system.server.inventory.listener.TemplateInventoryListener;
 import eu.darkcube.system.server.inventory.paged.PagedInventoryContent;
 import eu.darkcube.system.server.inventory.paged.PagedTemplateSettings;
 import eu.darkcube.system.server.item.ItemBuilder;
@@ -138,6 +139,22 @@ public interface InventoryTemplate extends Keyed {
      */
     @Api
     void removeListener(@NotNull InventoryListener listener);
+
+    /**
+     * Adds an {@link TemplateInventoryListener} to this template
+     *
+     * @param listener the listener to add
+     */
+    @Api
+    void addListener(@NotNull TemplateInventoryListener listener);
+
+    /**
+     * Removes an {@link TemplateInventoryListener} from this template
+     *
+     * @param listener the listener to remove
+     */
+    @Api
+    void removeListener(@NotNull TemplateInventoryListener listener);
 
     /**
      * Sets an item.
