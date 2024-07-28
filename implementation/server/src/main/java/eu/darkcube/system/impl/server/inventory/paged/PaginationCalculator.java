@@ -553,9 +553,5 @@ public class PaginationCalculator<PlatformItem, PlatformPlayer> {
         public void updateInsertAfter(BigInteger index) {
             updateAll();
         }
-
-        private void nyi() {
-            throw new UnsupportedOperationException("Not yet implemented.");
-        }
     }
 }
