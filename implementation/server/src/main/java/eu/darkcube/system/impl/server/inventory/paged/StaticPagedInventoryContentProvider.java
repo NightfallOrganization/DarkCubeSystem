@@ -18,8 +18,16 @@ import eu.darkcube.system.server.inventory.item.ItemReference;
 import eu.darkcube.system.server.inventory.item.ItemReferenceProvider;
 import eu.darkcube.system.server.inventory.paged.PagedInventoryContentProvider;
 
-public class StaticPagedInventoryContentProvider implements PagedInventoryContentProvider {
+public final class StaticPagedInventoryContentProvider implements PagedInventoryContentProvider, Cloneable {
     private final List<ItemReferenceImpl> items = Collections.synchronizedList(new ArrayList<>());
+
+    public StaticPagedInventoryContentProvider() {
+    }
+
+    public StaticPagedInventoryContentProvider(List<ItemReferenceImpl> items) {
+        this();
+        this.items.addAll(items);
+    }
 
     @Override
     public @NotNull BigInteger size() {
@@ -40,5 +48,18 @@ public class StaticPagedInventoryContentProvider implements PagedInventoryConten
         var reference = new ItemReferenceImpl(item);
         this.items.add(reference);
         return reference;
+    }
+
+    public void removeItem(ItemReferenceImpl item) {
+        items.remove(item);
+    }
+
+    public List<ItemReferenceImpl> items() {
+        return items;
+    }
+
+    @Override
+    protected StaticPagedInventoryContentProvider clone() {
+        return new StaticPagedInventoryContentProvider(this.items);
     }
 }

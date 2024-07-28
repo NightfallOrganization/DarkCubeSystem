@@ -104,6 +104,10 @@ public class PaginationCalculator<PlatformItem, PlatformPlayer> {
         }
     }
 
+    public PagedTemplateSettingsImpl pagination() {
+        return pagination;
+    }
+
     public void onOpen(@NotNull User user) {
         if (!this.pagination.isConfigured()) return;
         this.prevButton.load(user);
@@ -343,6 +347,14 @@ public class PaginationCalculator<PlatformItem, PlatformPlayer> {
         return new ComputationResult(computations);
     }
 
+    public @NotNull BigInteger currentPage() {
+        synchronized (this.inventoryLock) {
+            var currentPage = this.loadedPages[this.loadedPageIdx];
+            if (currentPage != null) return currentPage;
+            return BigInteger.valueOf(-1L);
+        }
+    }
+
     private record ComputationResult(Map<BigInteger, Entry> entries) {
         private record Entry(ItemReference[] items, int fromIndex, int toIndex, boolean extend) {
         }
@@ -424,6 +436,10 @@ public class PaginationCalculator<PlatformItem, PlatformPlayer> {
         LOGGER.debug("Page click event - slot: {}", slot);
         this.prevButton.handleClick(slot, itemStack, item);
         this.nextButton.handleClick(slot, itemStack, item);
+    }
+
+    public PagedInventoryContentImpl.Updater updater() {
+        return updater;
     }
 
     private static class PageCache<PlatformItem> {

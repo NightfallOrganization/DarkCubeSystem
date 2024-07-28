@@ -36,6 +36,7 @@ public class PagedInventoryContentImpl implements PagedInventoryContent {
 
     @Override
     public PagedInventoryContentImpl clone() {
+        var provider = this.provider instanceof StaticPagedInventoryContentProvider p ? p.clone() : this.provider;
         return new PagedInventoryContentImpl(staticUsable, staticUsed, async, provider, updaters);
     }
 
@@ -58,7 +59,9 @@ public class PagedInventoryContentImpl implements PagedInventoryContent {
     public @NotNull ItemReference addStaticItem(@NotNull Object item) {
         if (!staticUsable) throw new IllegalStateException("Static Items can't be used with a custom content provider");
         staticUsed = true;
-        return ((StaticPagedInventoryContentProvider) provider).addItem(item);
+        var reference = ((StaticPagedInventoryContentProvider) provider).addItem(item);
+        publishUpdateInsertAfter(provider.size().subtract(BigInteger.TWO));
+        return reference;
     }
 
     @Override

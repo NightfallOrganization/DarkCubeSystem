@@ -87,6 +87,10 @@ public class SimpleItemHandler<PlatformItem, PlatformPlayer> implements Inventor
         return contents;
     }
 
+    public @NotNull PaginationCalculator<PlatformItem, PlatformPlayer> paginationCalculator() {
+        return paginationCalculator;
+    }
+
     @Override
     public void doOpen(@NotNull PlatformPlayer player, @NotNull User user) {
         this.user = user;

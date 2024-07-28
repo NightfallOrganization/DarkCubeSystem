@@ -7,8 +7,13 @@
 
 package eu.darkcube.system.server.inventory;
 
+import eu.darkcube.system.annotations.Api;
+import eu.darkcube.system.server.inventory.controller.PagedInventoryController;
+
 /**
  * Represents an inventory created from an {@link InventoryTemplate}
  */
 public interface TemplateInventory extends Inventory {
+    @Api
+    PagedInventoryController pagedController();
 }

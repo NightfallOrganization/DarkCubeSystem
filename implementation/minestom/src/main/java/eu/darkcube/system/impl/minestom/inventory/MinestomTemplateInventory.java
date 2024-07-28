@@ -13,10 +13,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import eu.darkcube.system.impl.server.inventory.InventoryItemHandler;
 import eu.darkcube.system.impl.server.inventory.TemplateInventoryImpl;
+import eu.darkcube.system.impl.server.inventory.controller.PagedInventoryControllerImpl;
 import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 import eu.darkcube.system.minestom.inventory.MinestomInventoryType;
+import eu.darkcube.system.server.inventory.controller.PagedInventoryController;
 import eu.darkcube.system.server.item.ItemBuilder;
 import eu.darkcube.system.userapi.User;
 import eu.darkcube.system.userapi.UserAPI;
@@ -31,6 +33,7 @@ public class MinestomTemplateInventory extends MinestomInventory implements Temp
     private final @NotNull InventoryItemHandler<ItemStack, Player> itemHandler;
     private final @NotNull AtomicInteger animationsStarted = new AtomicInteger();
     private final @NotNull Instant openInstant;
+    private final @NotNull PagedInventoryControllerImpl pagedController;
 
     public MinestomTemplateInventory(@NotNull Component title, @NotNull MinestomInventoryType type, @NotNull MinestomInventoryTemplate template, @Nullable Player player) {
         super(title, type);
@@ -40,6 +43,7 @@ public class MinestomTemplateInventory extends MinestomInventory implements Temp
         }
         this.itemHandler = InventoryItemHandler.simple(this, template);
         this.openInstant = Instant.now(); // This inventory gets opened right after creation
+        this.pagedController = new PagedInventoryControllerImpl(this.itemHandler);
     }
 
     @Override
@@ -115,5 +119,10 @@ public class MinestomTemplateInventory extends MinestomInventory implements Temp
     @Override
     public void setAir(int slot) {
         setItem(slot, ItemStack.AIR);
+    }
+
+    @Override
+    public PagedInventoryController pagedController() {
+        return pagedController;
     }
 }
