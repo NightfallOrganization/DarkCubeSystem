@@ -51,6 +51,25 @@ public class SimpleItemHandler<PlatformItem, PlatformPlayer> implements Inventor
         return service;
     }
 
+    @Override
+    public void updateSlots(int... slots) {
+        synchronized (this) {
+            for (var slot : slots) {
+                var map = tasks[slot];
+                if (map != null) {
+                    for (var value : map.values()) {
+                        value.cancel();
+                    }
+                    map.clear();
+                }
+            }
+            for (var slot : slots) {
+                updateSlot(player, user, slot);
+            }
+        }
+    }
+
+    @Override
     public void updateSlots(int priority, int... slots) {
         synchronized (this) {
             for (var slot : slots) {

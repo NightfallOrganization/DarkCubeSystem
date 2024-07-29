@@ -125,4 +125,14 @@ public class MinestomTemplateInventory extends MinestomInventory implements Temp
     public PagedInventoryController pagedController() {
         return pagedController;
     }
+
+    @Override
+    public void updateSlotsAtPriority(int priority, int... slots) {
+        this.itemHandler.updateSlots(priority, slots);
+    }
+
+    @Override
+    public void updateSlots(int... slots) {
+        this.itemHandler.updateSlots(slots);
+    }
 }

@@ -16,4 +16,10 @@ import eu.darkcube.system.server.inventory.controller.PagedInventoryController;
 public interface TemplateInventory extends Inventory {
     @Api
     PagedInventoryController pagedController();
+
+    @Api
+    void updateSlotsAtPriority(int priority, int... slots);
+
+    @Api
+    void updateSlots(int... slots);
 }

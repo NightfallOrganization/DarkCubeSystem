@@ -28,4 +28,7 @@ public interface InventoryItemHandler<PlatformItem, PlatformPlayer> {
 
     void handleClick(int slot, @NotNull PlatformItem itemStack, @NotNull ItemBuilder item);
 
+    void updateSlots(int... slots);
+
+    void updateSlots(int priority, int... slots);
 }
