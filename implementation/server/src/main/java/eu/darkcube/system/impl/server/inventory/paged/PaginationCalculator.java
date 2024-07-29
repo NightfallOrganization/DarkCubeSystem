@@ -281,7 +281,7 @@ public class PaginationCalculator<PlatformItem, PlatformPlayer> {
 
         // var hasNextPage = this.unknownSize ? references.length >= length : this.pageLastIndex.compareTo(this.expectedSize) < 0;
         // var hasNextPage = pageCache.currentItemCount == this.pageSize;
-        var hasNextPage = this.unknownSize ? (nextPageCache != null && nextPageCache.currentItemCount > 0) : this.pageLastIndex.compareTo(this.expectedSize) < 0;
+        var hasNextPage = this.unknownSize ? (nextPageCache != null && nextPageCache.currentItemCount > 0) : this.pageLastIndex.compareTo(this.expectedSize.subtract(BigInteger.ONE)) < 0;
         var hasPrevPage = BigInteger.ZERO.compareTo(this.pageFirstIndex) < 0;
 
         this.viewPageSize = pageCache.currentItemCount;
