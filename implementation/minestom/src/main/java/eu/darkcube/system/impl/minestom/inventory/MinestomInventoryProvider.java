@@ -9,6 +9,9 @@ package eu.darkcube.system.impl.minestom.inventory;
 
 import static net.minestom.server.inventory.InventoryType.*;
 
+import java.util.function.Supplier;
+
+import eu.darkcube.system.impl.server.inventory.LazyInventoryTemplate;
 import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
@@ -37,6 +40,11 @@ public class MinestomInventoryProvider implements InventoryProvider {
     @Override
     public @NotNull PreparedInventory prepareChest(int size, @NotNull Component title) {
         return prepare(type(size), title);
+    }
+
+    @Override
+    public @NotNull InventoryTemplate lazy(@NotNull Supplier<@NotNull InventoryTemplate> supplier) {
+        return new LazyInventoryTemplate(supplier);
     }
 
     private @NotNull InventoryType type(int size) {

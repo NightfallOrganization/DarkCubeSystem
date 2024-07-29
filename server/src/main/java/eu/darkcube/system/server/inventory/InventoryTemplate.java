@@ -221,4 +221,10 @@ public interface InventoryTemplate extends Keyed {
     @Api
     @NotNull
     Inventory open(@NotNull Object player);
+
+    @Api
+    @NotNull
+    static InventoryTemplate lazy(@NotNull Supplier<@NotNull InventoryTemplate> supplier) {
+        return InventoryProviderImpl.inventoryProvider().lazy(supplier);
+    }
 }

@@ -7,6 +7,8 @@
 
 package eu.darkcube.system.server.inventory;
 
+import java.util.function.Supplier;
+
 import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
@@ -23,4 +25,7 @@ public interface InventoryProvider {
 
     @NotNull
     PreparedInventory prepareChest(int size, @NotNull Component title);
+
+    @NotNull
+    InventoryTemplate lazy(@NotNull Supplier<@NotNull InventoryTemplate> supplier);
 }
