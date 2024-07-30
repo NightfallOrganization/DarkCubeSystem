@@ -125,6 +125,10 @@ public class MinestomItemBuilderImpl extends AbstractItemBuilder implements Mine
                 this.attributeModifier(modifier.attribute(), modifier.modifier().id(), modifier.slot(), modifier.modifier().amount(), modifier.modifier().operation());
             }
         }
+        if (item.has(ItemComponent.ENCHANTMENT_GLINT_OVERRIDE)) {
+            var override = Objects.requireNonNull(item.get(ItemComponent.ENCHANTMENT_GLINT_OVERRIDE));
+            glow(override);
+        }
         if (item.has(ItemComponent.LORE)) {
             var loreList = Objects.requireNonNull(item.get(ItemComponent.LORE));
             lore.addAll(adventureSupport().convertComponentsP2C(loreList));
