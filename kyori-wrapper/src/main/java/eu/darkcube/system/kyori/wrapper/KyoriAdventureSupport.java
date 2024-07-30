@@ -3,6 +3,7 @@ package eu.darkcube.system.kyori.wrapper;
 import java.util.List;
 import java.util.Set;
 
+import eu.darkcube.system.annotations.Api;
 import eu.darkcube.system.libs.net.kyori.adventure.audience.MessageType;
 import eu.darkcube.system.libs.net.kyori.adventure.bossbar.BossBar;
 import eu.darkcube.system.libs.net.kyori.adventure.chat.ChatType;
@@ -20,6 +21,12 @@ import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.util.AdventureSupport;
 
 public interface KyoriAdventureSupport extends AdventureSupport {
+
+    @Api
+    @NotNull
+    static KyoriAdventureSupport adventureSupport() {
+        return (KyoriAdventureSupport) AdventureSupport.adventureSupport();
+    }
 
     @NotNull
     Component convert(@NotNull net.kyori.adventure.text.Component component);

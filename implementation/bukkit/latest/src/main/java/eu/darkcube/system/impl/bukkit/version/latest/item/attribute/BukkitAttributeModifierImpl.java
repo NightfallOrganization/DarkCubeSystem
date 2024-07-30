@@ -7,7 +7,7 @@
 
 package eu.darkcube.system.impl.bukkit.version.latest.item.attribute;
 
-import static eu.darkcube.system.bukkit.util.BukkitAdventureSupport.adventureSupport;
+import static eu.darkcube.system.kyori.wrapper.KyoriAdventureSupport.adventureSupport;
 
 import eu.darkcube.system.bukkit.item.attribute.BukkitAttributeModifier;
 import eu.darkcube.system.libs.net.kyori.adventure.key.Key;

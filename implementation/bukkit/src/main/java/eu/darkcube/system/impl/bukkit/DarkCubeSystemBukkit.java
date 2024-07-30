@@ -13,12 +13,10 @@ import eu.darkcube.system.bukkit.DarkCubePlugin;
 import eu.darkcube.system.bukkit.commandapi.CommandAPI;
 import eu.darkcube.system.bukkit.commandapi.argument.EntityOptions;
 import eu.darkcube.system.impl.bukkit.commandapi.DarkCubeSystemCommand;
-import eu.darkcube.system.impl.bukkit.util.BukkitAdventureSupportImpl;
 import eu.darkcube.system.impl.bukkit.version.BukkitVersionHandler;
 import eu.darkcube.system.impl.bukkit.version.BukkitVersionLoader;
 import eu.darkcube.system.libs.org.jetbrains.annotations.ApiStatus;
 import eu.darkcube.system.link.LinkManager;
-import eu.darkcube.system.provider.InternalProvider;
 import eu.darkcube.system.util.AdventureSupport;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
@@ -48,14 +46,13 @@ public class DarkCubeSystemBukkit extends DarkCubePlugin implements Listener {
 
     @Override
     public void onDisable() {
-        AdventureSupport.adventureSupport().audienceProvider().close();
         linkManager.unregisterLinks();
         versionHandler.onDisable(this);
+        AdventureSupport.adventureSupport().audienceProvider().close();
     }
 
     @Override
     public void onEnable() {
-        InternalProvider.instance().register(AdventureSupport.class, new BukkitAdventureSupportImpl(this));
         versionHandler.onEnable(this);
         Bukkit.getPluginManager().registerEvents(this, this);
         linkManager.enableLinks();

@@ -88,6 +88,8 @@ dependencies {
 
     inject(projects.darkcubesystemBukkit)
     inject(projects.darkcubesystemServer)
+    inject(projects.darkcubesystemKyoriWrapper)
+    inject(projects.darkcubesystemImplementationKyoriWrapper)
     inject(projects.darkcubesystemServerCloudnet)
     inject(projects.darkcubesystemImplementationServer)
 }

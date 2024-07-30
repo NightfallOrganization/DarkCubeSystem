@@ -9,8 +9,11 @@ package eu.darkcube.system.impl.bukkit.version.v1_8_8;
 
 import eu.darkcube.system.bukkit.provider.via.ViaSupport;
 import eu.darkcube.system.impl.bukkit.DarkCubeSystemBukkit;
+import eu.darkcube.system.impl.bukkit.util.BukkitAdventureSupportImpl;
 import eu.darkcube.system.impl.bukkit.version.BukkitVersionImpl;
 import eu.darkcube.system.impl.bukkit.version.v1_8_8.provider.via.ViaSupportImpl;
+import eu.darkcube.system.provider.InternalProvider;
+import eu.darkcube.system.util.AdventureSupport;
 
 public class Version extends BukkitVersionImpl {
     public Version() {
@@ -32,6 +35,7 @@ public class Version extends BukkitVersionImpl {
 
     @Override
     public void enabled(DarkCubeSystemBukkit system) {
+        InternalProvider.instance().register(AdventureSupport.class, new BukkitAdventureSupportImpl(system));
         super.enabled(system);
         var support = provider.service(ViaSupport.class);
         if (support.supported()) ((ViaSupportImpl) support).enable();
