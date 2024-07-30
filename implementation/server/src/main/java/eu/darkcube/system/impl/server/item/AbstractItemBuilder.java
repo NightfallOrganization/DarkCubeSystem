@@ -376,7 +376,7 @@ public abstract class AbstractItemBuilder implements ItemBuilder {
 
     @Override
     public boolean hasCustomModelData() {
-        return customModelData == Integer.MAX_VALUE;
+        return customModelData != Integer.MAX_VALUE;
     }
 
     @Override

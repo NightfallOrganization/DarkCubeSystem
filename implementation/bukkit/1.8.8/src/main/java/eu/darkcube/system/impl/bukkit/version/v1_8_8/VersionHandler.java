@@ -9,12 +9,15 @@ package eu.darkcube.system.impl.bukkit.version.v1_8_8;
 
 import eu.darkcube.system.impl.bukkit.version.AbstractVersionHandler;
 import eu.darkcube.system.impl.bukkit.version.v1_8_8.item.ItemProviderImpl;
+import eu.darkcube.system.impl.bukkit.version.v1_8_8.item.KeyProviderImpl;
+import eu.darkcube.system.impl.server.item.KeyProvider;
 import eu.darkcube.system.provider.InternalProvider;
 import eu.darkcube.system.server.item.ItemProvider;
 
 public class VersionHandler extends AbstractVersionHandler {
     public VersionHandler() {
         InternalProvider.instance().register(ItemProvider.class, new ItemProviderImpl());
+        InternalProvider.instance().register(KeyProvider.class, new KeyProviderImpl());
     }
 
     @Override
