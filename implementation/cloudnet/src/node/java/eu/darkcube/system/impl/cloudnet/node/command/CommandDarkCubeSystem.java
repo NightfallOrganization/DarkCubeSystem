@@ -30,6 +30,7 @@ public class CommandDarkCubeSystem {
     public void migrateAll() {
         migrateUserApi();
         migrateLobbySystem();
+        migrateWoolBattle();
     }
 
     @CommandMethod("darkcubesystem migrateWoolBattle")
