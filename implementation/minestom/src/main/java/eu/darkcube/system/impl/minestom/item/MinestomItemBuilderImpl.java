@@ -9,9 +9,6 @@ package eu.darkcube.system.impl.minestom.item;
 
 import static eu.darkcube.system.minestom.item.flag.MinestomItemFlag.*;
 import static eu.darkcube.system.minestom.util.adventure.MinestomAdventureSupport.adventureSupport;
-import static net.minestom.server.item.Material.BOW;
-import static net.minestom.server.item.enchant.Enchantment.INFINITY;
-import static net.minestom.server.item.enchant.Enchantment.PROTECTION;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -67,28 +64,26 @@ import net.minestom.server.tag.Tag;
 
 @SuppressWarnings({"UnstableApiUsage", "unchecked"})
 public class MinestomItemBuilderImpl extends AbstractItemBuilder implements MinestomItemBuilder {
-    private static final Gson gson = new GsonBuilder()
-            .registerTypeHierarchyAdapter(ItemStack.class, new TypeAdapter<ItemStack>() {
-                @Override
-                public void write(JsonWriter writer, ItemStack value) throws IOException {
-                    if (value == null) {
-                        writer.nullValue();
-                        return;
-                    }
-                    writer.value(TagStringIO.get().asString(value.toItemNBT()));
-                }
+    private static final Gson gson = new GsonBuilder().registerTypeHierarchyAdapter(ItemStack.class, new TypeAdapter<ItemStack>() {
+        @Override
+        public void write(JsonWriter writer, ItemStack value) throws IOException {
+            if (value == null) {
+                writer.nullValue();
+                return;
+            }
+            writer.value(TagStringIO.get().asString(value.toItemNBT()));
+        }
 
-                @Override
-                public ItemStack read(JsonReader reader) throws IOException {
-                    if (reader.peek() == JsonToken.NULL) {
-                        reader.nextNull();
-                        return null;
-                    }
-                    var tag = reader.nextString();
-                    return ItemStack.fromItemNBT(TagStringIO.get().asCompound(tag));
-                }
-            })
-            .create();
+        @Override
+        public ItemStack read(JsonReader reader) throws IOException {
+            if (reader.peek() == JsonToken.NULL) {
+                reader.nextNull();
+                return null;
+            }
+            var tag = reader.nextString();
+            return ItemStack.fromItemNBT(TagStringIO.get().asCompound(tag));
+        }
+    }).create();
     private static final Tag<String> TAG_DOCUMENT = Tag.String("darkcubesystem:persistent_data_storage");
     private static final Tag<Integer> REPAIR_COST = Tag.Integer("RepairCost").defaultValue(0);
 
@@ -127,9 +122,7 @@ public class MinestomItemBuilderImpl extends AbstractItemBuilder implements Mine
                 flag(HIDE_ATTRIBUTE_LIST);
             }
             for (var modifier : attributeList.modifiers()) {
-                this.attributeModifier(modifier.attribute(), modifier.modifier().id(), modifier.slot(), modifier
-                        .modifier()
-                        .amount(), modifier.modifier().operation());
+                this.attributeModifier(modifier.attribute(), modifier.modifier().id(), modifier.slot(), modifier.modifier().amount(), modifier.modifier().operation());
             }
         }
         if (item.has(ItemComponent.LORE)) {
@@ -192,10 +185,10 @@ public class MinestomItemBuilderImpl extends AbstractItemBuilder implements Mine
         var material = ((MinestomMaterialImpl) this.material).minestomType();
         var builder = ItemStack.builder(material);
         builder.amount(amount);
-        if (repairCost != 0) {
-            builder.set(ItemComponent.REPAIR_COST, repairCost);
+        if (repairCost.isPresent()) {
+            builder.set(ItemComponent.REPAIR_COST, repairCost.getAsInt());
         }
-        if (unbreakable) {
+        if (unbreakable.isPresent() && unbreakable.get()) {
             builder.set(ItemComponent.UNBREAKABLE, new Unbreakable(!flags.contains(HIDE_UNBREAKABLE)));
         }
         if (displayname != Component.empty()) {
@@ -216,11 +209,8 @@ public class MinestomItemBuilderImpl extends AbstractItemBuilder implements Mine
         if (!lore.isEmpty()) {
             builder.set(ItemComponent.LORE, adventureSupport().convertComponentsC2P(lore));
         }
-        if (glow) {
-            if (enchantments.isEmpty()) {
-                var enchantment = material == BOW ? PROTECTION : INFINITY;
-                builder.set(ItemComponent.ENCHANTMENTS, new EnchantmentList(enchantment, 1).withTooltip(false));
-            }
+        if (glow.isPresent()) {
+            builder.set(ItemComponent.ENCHANTMENT_GLINT_OVERRIDE, glow.get());
         }
         {
             var modifiers = new ArrayList<AttributeList.Modifier>();
@@ -231,8 +221,8 @@ public class MinestomItemBuilderImpl extends AbstractItemBuilder implements Mine
             var attributeList = new AttributeList(modifiers, !flags.contains(HIDE_ATTRIBUTE_LIST));
             builder.set(ItemComponent.ATTRIBUTE_MODIFIERS, attributeList);
         }
-        if (material.registry().prototype().has(ItemComponent.MAX_DAMAGE) && damage != 0) {
-            builder.set(ItemComponent.DAMAGE, damage);
+        if (material.registry().prototype().has(ItemComponent.MAX_DAMAGE) && damage.isPresent()) {
+            builder.set(ItemComponent.DAMAGE, damage.getAsInt());
         }
 
         for (var meta : metas) {
@@ -252,22 +242,16 @@ public class MinestomItemBuilderImpl extends AbstractItemBuilder implements Mine
                     var properties = texture == null ? List.<HeadProfile.Property>of() : List.of(new HeadProfile.Property("textures", texture.value(), texture.signature()));
                     builder.set(ItemComponent.PROFILE, new HeadProfile(name, uuid, properties));
                 }
-                case LeatherArmorBuilderMeta leatherArmor ->
-                        builder.set(ItemComponent.DYED_COLOR, new DyedItemColor(leatherArmor
-                                .color()
-                                .rgb(), !flags.contains(HIDE_DYED_COLOR)));
+                case LeatherArmorBuilderMeta leatherArmor -> builder.set(ItemComponent.DYED_COLOR, new DyedItemColor(leatherArmor.color().rgb(), !flags.contains(HIDE_DYED_COLOR)));
                 case EnchantmentStorageBuilderMeta enchantmentStorage -> {
                     var enchantments = new HashMap<DynamicRegistry.Key<Enchantment>, Integer>();
                     for (var entry : enchantmentStorage.enchantments().entrySet()) {
-                        enchantments.put(MinecraftServer
-                                .getEnchantmentRegistry()
-                                .getKey(((MinestomEnchantment) entry.getKey()).minestomType()), entry.getValue());
+                        enchantments.put(MinecraftServer.getEnchantmentRegistry().getKey(((MinestomEnchantment) entry.getKey()).minestomType()), entry.getValue());
                     }
                     var enchantmentList = new EnchantmentList(enchantments, !flags.contains(HIDE_STORED_ENCHANTMENTS));
                     builder.set(ItemComponent.STORED_ENCHANTMENTS, enchantmentList);
                 }
-                case null, default ->
-                        throw new UnsupportedOperationException("Meta not supported for this mc version: " + meta);
+                case null, default -> throw new UnsupportedOperationException("Meta not supported for this mc version: " + meta);
             }
         }
         {

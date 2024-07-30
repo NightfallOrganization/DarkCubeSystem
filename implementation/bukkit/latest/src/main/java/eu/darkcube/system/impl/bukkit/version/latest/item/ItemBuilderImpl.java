@@ -49,7 +49,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
@@ -139,16 +138,14 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
             meta.removeItemFlags(ItemFlag.values());
             if (meta.lore() != null) {
                 lore.addAll(AdventureUtils.convert2(Objects.requireNonNull(meta.lore())));
-                meta.lore(new ArrayList<>());
+                meta.lore(null);
             }
-            if (meta instanceof Damageable damageable) {
+            if (meta instanceof Damageable damageable && damageable.hasDamageValue()) {
                 damage(damageable.getDamage());
-                damageable.setDamage(0);
+                damageable.resetDamage();
             }
-            if (meta instanceof Repairable repairable) {
-                if (repairable.hasRepairCost()) {
-                    repairCost(repairable.getRepairCost());
-                }
+            if (meta instanceof Repairable repairable && repairable.hasRepairCost()) {
+                repairCost(repairable.getRepairCost());
             }
             if (meta instanceof FireworkEffectMeta fireworkEffectMeta) {
                 meta(FireworkBuilderMeta.class).fireworkEffect(fireworkEffectMeta.getEffect());
@@ -161,14 +158,16 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
                 }
             }
             if (meta instanceof SkullMeta skullMeta) {
-                var pp = skullMeta.getPlayerProfile();
-                if (pp != null) {
-                    var prop = pp.getProperties().stream().filter(p -> p.getName().equals("textures")).findFirst().orElse(null);
-                    var texture = prop == null ? null : new SkullBuilderMeta.UserProfile.Texture(prop.getValue(), prop.getSignature());
-                    var up = new SkullBuilderMeta.UserProfile(pp.getName(), pp.getId(), texture);
-                    meta(SkullBuilderMeta.class).owningPlayer(up);
+                if (skullMeta.hasOwner()) {
+                    var pp = skullMeta.getPlayerProfile();
+                    if (pp != null) {
+                        var prop = pp.getProperties().stream().filter(p -> p.getName().equals("textures")).findFirst().orElse(null);
+                        var texture = prop == null ? null : new SkullBuilderMeta.UserProfile.Texture(prop.getValue(), prop.getSignature());
+                        var up = new SkullBuilderMeta.UserProfile(pp.getName(), pp.getId(), texture);
+                        meta(SkullBuilderMeta.class).owningPlayer(up);
+                    }
+                    skullMeta.setOwningPlayer(null);
                 }
-                skullMeta.setOwningPlayer(null);
             }
             if (meta instanceof LeatherArmorMeta leatherArmorMeta) {
                 if (leatherArmorMeta.isDyed()) {
@@ -227,9 +226,11 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
         item.setAmount(amount);
         var meta = item.getItemMeta();
         if (meta != null) {
-            meta.setUnbreakable(unbreakable);
-            if (hasCustomModelData()) {
-                meta.setCustomModelData(customModelData);
+            if (unbreakable.isPresent()) {
+                meta.setUnbreakable(unbreakable.get());
+            }
+            if (customModelData.isPresent()) {
+                meta.setCustomModelData(customModelData.getAsInt());
             }
             if (rarity != null) {
                 meta.setRarity(org.bukkit.inventory.ItemRarity.values()[rarity.ordinal()]);
@@ -243,20 +244,19 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
 
             meta.addItemFlags(flags.stream().map(flag -> ((BukkitItemFlagImpl) flag).bukkitType()).toArray(ItemFlag[]::new));
             if (!lore.isEmpty()) meta.lore(lore.stream().map(AdventureUtils::convert).toList());
-            if (glow) {
-                if (enchantments.isEmpty()) {
-                    meta.addEnchant(item.getType() == Material.BOW
-                            // Intellij inspection is dumb...
-                            ? Enchantment.PROTECTION : Enchantment.INFINITY, 1, true);
-                    meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-                }
+            if (glow.isPresent()) {
+                meta.setEnchantmentGlintOverride(glow.get());
             }
             attributeModifiers.forEach((modifier) -> meta.addAttributeModifier(((BukkitAttribute) modifier.attribute()).bukkitType(), ((BukkitAttributeModifierImpl) modifier).bukkitType()));
             if (meta instanceof Damageable damageable) {
-                damageable.setDamage(damage);
+                if (damage.isPresent()) {
+                    damageable.setDamage(damage.getAsInt());
+                }
             }
             if (meta instanceof Repairable repairable) {
-                repairable.setRepairCost(repairCost);
+                if (repairCost.isPresent()) {
+                    repairable.setRepairCost(repairCost.getAsInt());
+                }
             }
             for (var builderMeta : metas) {
                 switch (builderMeta) {

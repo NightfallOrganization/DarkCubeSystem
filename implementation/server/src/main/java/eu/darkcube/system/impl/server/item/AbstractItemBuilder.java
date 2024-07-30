@@ -16,6 +16,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -44,16 +46,16 @@ public abstract class AbstractItemBuilder implements ItemBuilder {
     protected static final Logger LOGGER = LoggerFactory.getLogger("ItemBuilder");
     protected @NotNull Material material = Material.air();
     protected int amount = 1;
-    protected int damage = 0;
+    protected OptionalInt damage = OptionalInt.empty();
     protected @NotNull Set<BuilderMeta> metas = new HashSet<>();
     protected @NotNull Map<Enchantment, Integer> enchantments = new HashMap<>();
     protected @NotNull Component displayname = Component.empty();
     protected @NotNull List<Component> lore = new ArrayList<>();
     protected @NotNull List<ItemFlag> flags = new ArrayList<>();
-    protected boolean unbreakable = false;
-    protected boolean glow = false;
-    protected int customModelData = Integer.MAX_VALUE;
-    protected int repairCost = 0;
+    protected Optional<Boolean> unbreakable = Optional.empty();
+    protected Optional<Boolean> glow = Optional.empty();
+    protected OptionalInt customModelData = OptionalInt.empty();
+    protected OptionalInt repairCost = OptionalInt.empty();
     protected ItemRarity rarity = null;
     protected @NotNull List<@NotNull AttributeModifier> attributeModifiers = new ArrayList<>();
 
@@ -146,13 +148,13 @@ public abstract class AbstractItemBuilder implements ItemBuilder {
 
     @Override
     public @NotNull AbstractItemBuilder damage(int damage) {
-        this.damage = damage;
+        this.damage = OptionalInt.of(damage);
         return this;
     }
 
     @Override
     public int damage() {
-        return damage;
+        return damage.orElse(0);
     }
 
     @Override
@@ -284,24 +286,24 @@ public abstract class AbstractItemBuilder implements ItemBuilder {
 
     @Override
     public @NotNull AbstractItemBuilder unbreakable(boolean unbreakable) {
-        this.unbreakable = unbreakable;
+        this.unbreakable = Optional.of(unbreakable);
         return this;
     }
 
     @Override
     public boolean unbreakable() {
-        return unbreakable;
+        return unbreakable.orElse(false);
     }
 
     @Override
     public @NotNull AbstractItemBuilder glow(boolean glow) {
-        this.glow = glow;
+        this.glow = Optional.of(glow);
         return this;
     }
 
     @Override
     public boolean glow() {
-        return glow;
+        return glow.orElse(false);
     }
 
     @Override
@@ -358,31 +360,30 @@ public abstract class AbstractItemBuilder implements ItemBuilder {
 
     @Override
     public int repairCost() {
-        return repairCost;
+        return repairCost.orElse(-1);
     }
 
     @Override
     public @NotNull AbstractItemBuilder repairCost(int repairCost) {
-        this.repairCost = repairCost;
+        this.repairCost = OptionalInt.of(repairCost);
         return this;
     }
 
     @NotNull
     @Override
     public AbstractItemBuilder customModelData(int customModelData) {
-        this.customModelData = customModelData;
+        this.customModelData = OptionalInt.of(customModelData);
         return this;
     }
 
     @Override
     public boolean hasCustomModelData() {
-        return customModelData != Integer.MAX_VALUE;
+        return customModelData.isPresent();
     }
 
     @Override
     public int customModelData() {
-        if (!hasCustomModelData()) return Integer.MAX_VALUE;
-        return customModelData;
+        return customModelData.orElse(Integer.MAX_VALUE);
     }
 
     @Override

@@ -163,10 +163,14 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
     public @NotNull ItemStack build() {
         var item = new ItemStack(((BukkitMaterialImpl) material).bukkitType());
         item.setAmount(amount);
-        item.setDurability((short) damage);
+        if (damage.isPresent()) {
+            item.setDurability((short) damage.getAsInt());
+        }
         var meta = item.getItemMeta();
         if (meta != null) {
-            meta.spigot().setUnbreakable(unbreakable);
+            if (unbreakable.isPresent()) {
+                meta.spigot().setUnbreakable(unbreakable.get());
+            }
             if (displayname != Component.empty()) meta.setDisplayName(LegacyComponentSerializer.legacySection().serialize(displayname));
             for (var e : enchantments.entrySet()) {
                 meta.addEnchant(((BukkitEnchantmentImpl) e.getKey()).bukkitType(), e.getValue(), true);
@@ -183,10 +187,12 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
                 }
             }
             meta.setLore(lore);
-            if (glow) {
-                if (enchantments.isEmpty()) {
-                    meta.addEnchant(item.getType() == Material.BOW ? Enchantment.PROTECTION_ENVIRONMENTAL : Enchantment.ARROW_INFINITE, 1, true);
-                    meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+            if (glow.isPresent()) {
+                if (glow.get()) {
+                    if (enchantments.isEmpty()) {
+                        meta.addEnchant(item.getType() == Material.BOW ? Enchantment.PROTECTION_ENVIRONMENTAL : Enchantment.ARROW_INFINITE, 1, true);
+                        meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+                    }
                 }
             }
             for (var builderMeta : metas) {
