@@ -43,21 +43,21 @@ public class InventoryListenerProviderImpl implements InventoryListenerProvider 
             @Override
             public void onOpenAnimationFinished(@NotNull Inventory inventory) {
                 var listener = listeners.get(inventory);
-                if (listener == null) throw new NullPointerException("Failed to find stateful listener");
+                if (listener == null) return;
                 listener.onOpenAnimationFinished(inventory);
             }
 
             @Override
             public void onUpdate(@NotNull Inventory inventory) {
                 var listener = listeners.get(inventory);
-                if (listener == null) throw new NullPointerException("Failed to find stateful listener");
+                if (listener == null) return;
                 listener.onUpdate(inventory);
             }
 
             @Override
             public void onSlotUpdate(@NotNull Inventory inventory, int slot) {
                 var listener = listeners.get(inventory);
-                if (listener == null) throw new NullPointerException("Failed to find stateful listener");
+                if (listener == null) return;
                 listener.onSlotUpdate(inventory, slot);
             }
 
@@ -99,21 +99,21 @@ public class InventoryListenerProviderImpl implements InventoryListenerProvider 
             @Override
             public void onOpenAnimationFinished(@NotNull TemplateInventory inventory) {
                 var listener = listeners.get(inventory);
-                if (listener == null) throw new NullPointerException("Failed to find stateful listener");
+                if (listener == null) return;
                 listener.onOpenAnimationFinished(inventory);
             }
 
             @Override
             public void onUpdate(@NotNull TemplateInventory inventory) {
                 var listener = listeners.get(inventory);
-                if (listener == null) throw new NullPointerException("Failed to find stateful listener");
+                if (listener == null) return;
                 listener.onUpdate(inventory);
             }
 
             @Override
             public void onSlotUpdate(@NotNull TemplateInventory inventory, int slot) {
                 var listener = listeners.get(inventory);
-                if (listener == null) throw new NullPointerException("Failed to find stateful listener");
+                if (listener == null) return;
                 listener.onSlotUpdate(inventory, slot);
             }
 
