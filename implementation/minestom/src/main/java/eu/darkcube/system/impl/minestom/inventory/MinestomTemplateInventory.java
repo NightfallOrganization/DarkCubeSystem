@@ -58,7 +58,7 @@ public class MinestomTemplateInventory extends MinestomInventory implements Temp
             listeners.get(i).onPreOpen(this, user);
         }
         opened.add(user);
-        MinecraftServer.getSchedulerManager().scheduleNextProcess(() -> {
+        onMainThread(() -> {
             player.openInventory(inventory);
             for (var i = 0; i < listeners.size(); i++) {
                 listeners.get(i).onOpen(this, user);

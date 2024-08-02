@@ -1,11 +1,17 @@
 package eu.darkcube.system.server.inventory.listener;
 
+import java.util.function.Supplier;
+
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.server.inventory.TemplateInventory;
 import eu.darkcube.system.server.item.ItemBuilder;
 import eu.darkcube.system.userapi.User;
 
 public interface TemplateInventoryListener {
+    static @NotNull TemplateInventoryListener ofStateful(@NotNull Supplier<@NotNull TemplateInventoryListener> listener) {
+        return InventoryListenerProviderImpl.listenerProvider().ofStatefulTemplate(listener);
+    }
+
     /**
      * Called before a player has opened an inventory
      *
