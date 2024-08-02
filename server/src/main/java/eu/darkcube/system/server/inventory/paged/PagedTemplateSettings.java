@@ -47,7 +47,7 @@ public interface PagedTemplateSettings extends InventoryTemplateSettings, Clonea
      * @param pageSlots the pageSlots to use
      */
     @Api
-    void pageSlots(int @NotNull [] pageSlots);
+    void pageSlots(int @NotNull ... pageSlots);
 
     /**
      * Gets the sorter for this inventory.
@@ -78,7 +78,7 @@ public interface PagedTemplateSettings extends InventoryTemplateSettings, Clonea
      * @param pageSlots the pageSlots to use
      */
     @Api
-    void specialPageSlots(int @NotNull [] pageSlots);
+    void specialPageSlots(int @NotNull ... pageSlots);
 
     /**
      * Removes a special configuration for page slots.

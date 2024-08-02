@@ -79,7 +79,7 @@ public class PagedTemplateSettingsImpl implements PagedTemplateSettings {
     }
 
     @Override
-    public void pageSlots(int @NotNull [] pageSlots) {
+    public void pageSlots(int @NotNull ... pageSlots) {
         this.configured = true;
         this.pageSlots = pageSlots.clone();
     }
@@ -96,7 +96,7 @@ public class PagedTemplateSettingsImpl implements PagedTemplateSettings {
     }
 
     @Override
-    public void specialPageSlots(int @NotNull [] pageSlots) {
+    public void specialPageSlots(int @NotNull ... pageSlots) {
         this.configured = true;
         this.specialPageSlots.put(pageSlots.length, pageSlots.clone());
     }
