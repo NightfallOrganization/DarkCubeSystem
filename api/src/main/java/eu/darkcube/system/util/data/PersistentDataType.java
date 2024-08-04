@@ -8,6 +8,7 @@
 package eu.darkcube.system.util.data;
 
 import eu.darkcube.system.libs.com.google.gson.JsonElement;
+import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 
 /**
  * @param <T> the data type
@@ -15,14 +16,17 @@ import eu.darkcube.system.libs.com.google.gson.JsonElement;
  */
 public interface PersistentDataType<T> {
 
-    T deserialize(JsonElement json);
+    @NotNull
+    T deserialize(@NotNull JsonElement json);
 
-    JsonElement serialize(T data);
+    @NotNull
+    JsonElement serialize(@NotNull T data);
 
     /**
      * @param object the object to clone
      * @return a new cloned object, or the same if immutable
      */
-    T clone(T object);
+    @NotNull
+    T clone(@NotNull T object);
 
 }

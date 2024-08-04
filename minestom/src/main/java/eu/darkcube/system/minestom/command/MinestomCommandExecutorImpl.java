@@ -32,7 +32,7 @@ class MinestomCommandExecutorImpl implements MinestomCommandExecutor {
     }
 
     @Override
-    public String commandPrefix() {
+    public @NotNull String commandPrefix() {
         return sender instanceof Player ? "/" : MinestomCommandExecutor.super.commandPrefix();
     }
 
@@ -42,7 +42,7 @@ class MinestomCommandExecutorImpl implements MinestomCommandExecutor {
     }
 
     @Override
-    public Language language() {
+    public @NotNull Language language() {
         if (sender instanceof Player player) {
             return UserAPI.instance().user(player.getUuid()).language();
         }
@@ -50,7 +50,7 @@ class MinestomCommandExecutorImpl implements MinestomCommandExecutor {
     }
 
     @Override
-    public void language(Language language) {
+    public void language(@NotNull Language language) {
         if (sender instanceof Player player) {
             UserAPI.instance().user(player.getUuid()).language(language);
         }

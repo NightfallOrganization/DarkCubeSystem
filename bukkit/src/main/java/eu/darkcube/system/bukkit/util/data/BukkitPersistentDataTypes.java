@@ -9,6 +9,7 @@ package eu.darkcube.system.bukkit.util.data;
 
 import eu.darkcube.system.libs.com.google.gson.JsonElement;
 import eu.darkcube.system.libs.com.google.gson.JsonObject;
+import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.util.data.PersistentDataType;
 import eu.darkcube.system.util.data.PersistentDataTypes;
 import org.bukkit.Bukkit;
@@ -17,7 +18,7 @@ import org.bukkit.Location;
 public class BukkitPersistentDataTypes extends PersistentDataTypes {
     public static final PersistentDataType<Location> LOCATION = new PersistentDataType<>() {
         @Override
-        public Location deserialize(JsonElement json) {
+        public @NotNull Location deserialize(@NotNull JsonElement json) {
             var d = json.getAsJsonObject();
             var x = d.get("x").getAsDouble();
             var y = d.get("y").getAsDouble();
@@ -29,7 +30,7 @@ public class BukkitPersistentDataTypes extends PersistentDataTypes {
         }
 
         @Override
-        public JsonElement serialize(Location data) {
+        public @NotNull JsonElement serialize(@NotNull Location data) {
             var d = new JsonObject();
             d.addProperty("x", data.getX());
             d.addProperty("y", data.getY());
@@ -41,7 +42,7 @@ public class BukkitPersistentDataTypes extends PersistentDataTypes {
         }
 
         @Override
-        public Location clone(Location object) {
+        public @NotNull Location clone(@NotNull Location object) {
             return object.clone();
         }
     };

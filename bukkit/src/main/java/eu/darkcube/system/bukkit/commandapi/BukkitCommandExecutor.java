@@ -48,7 +48,7 @@ public class BukkitCommandExecutor implements CommandExecutor, ForwardingAudienc
     }
 
     @Override
-    public Language language() {
+    public @NotNull Language language() {
         if (sender instanceof Player) {
             return UserAPI.instance().user(((Player) sender).getUniqueId()).language();
         }
@@ -56,7 +56,7 @@ public class BukkitCommandExecutor implements CommandExecutor, ForwardingAudienc
     }
 
     @Override
-    public void language(Language language) {
+    public void language(@NotNull Language language) {
         if (sender instanceof Player) {
             UserAPI.instance().user(((Player) sender).getUniqueId()).language(language);
             return;
@@ -65,7 +65,7 @@ public class BukkitCommandExecutor implements CommandExecutor, ForwardingAudienc
     }
 
     @Override
-    public String commandPrefix() {
+    public @NotNull String commandPrefix() {
         return sender instanceof Player ? "/" : CommandExecutor.super.commandPrefix();
     }
 

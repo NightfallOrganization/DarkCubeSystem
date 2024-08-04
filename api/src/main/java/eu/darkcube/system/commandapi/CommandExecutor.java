@@ -9,15 +9,16 @@ package eu.darkcube.system.commandapi;
 
 import eu.darkcube.system.BaseMessage;
 import eu.darkcube.system.libs.net.kyori.adventure.audience.Audience;
+import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.util.Language;
 
 public interface CommandExecutor extends Audience {
 
-    default void sendMessage(BaseMessage message, Object... components) {
+    default void sendMessage(@NotNull BaseMessage message, @NotNull Object @NotNull ... components) {
         this.sendMessage(message.getMessage(this, components));
     }
 
-    default void sendActionBar(BaseMessage message, Object... components) {
+    default void sendActionBar(@NotNull BaseMessage message, @NotNull Object @NotNull ... components) {
         this.sendActionBar(message.getMessage(this, components));
     }
 
@@ -26,7 +27,9 @@ public interface CommandExecutor extends Audience {
      *
      * @deprecated {@link #language()}
      */
-    @Deprecated(forRemoval = true) default Language getLanguage() {
+    @Deprecated(forRemoval = true)
+    @NotNull
+    default Language getLanguage() {
         return language();
     }
 
@@ -35,19 +38,24 @@ public interface CommandExecutor extends Audience {
      *
      * @deprecated {@link #language(Language)}
      */
-    @Deprecated(forRemoval = true) default void setLanguage(Language language) {
+    @Deprecated(forRemoval = true)
+    default void setLanguage(@NotNull Language language) {
         language(language);
     }
 
+    @NotNull
     Language language();
 
-    void language(Language language);
+    void language(@NotNull Language language);
 
+    @NotNull
     default String commandPrefix() {
         return "";
     }
 
-    @Deprecated(forRemoval = true) default String getCommandPrefix() {
+    @NotNull
+    @Deprecated(forRemoval = true)
+    default String getCommandPrefix() {
         return commandPrefix();
     }
 }

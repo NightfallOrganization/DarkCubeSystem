@@ -10,6 +10,7 @@ package eu.darkcube.system.impl.cloudnet.node.userapi;
 import eu.darkcube.system.impl.cloudnet.userapi.CloudNetUser;
 import eu.darkcube.system.impl.common.userapi.CommonUserData;
 import eu.darkcube.system.libs.net.kyori.adventure.audience.Audience;
+import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 
 public class NodeUser extends CloudNetUser {
     public NodeUser(CommonUserData userData) {
@@ -17,7 +18,7 @@ public class NodeUser extends CloudNetUser {
     }
 
     @Override
-    public Audience audience() {
+    public @NotNull Audience audience() {
         return Audience.empty(); // TODO implement an audience for sending data from the node
     }
 }

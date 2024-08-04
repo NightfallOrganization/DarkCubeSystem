@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 
+import eu.darkcube.system.annotations.Api;
 import eu.darkcube.system.libs.com.google.gson.Gson;
 import eu.darkcube.system.libs.com.google.gson.GsonBuilder;
 import eu.darkcube.system.libs.com.google.gson.JsonArray;
@@ -29,8 +30,10 @@ import eu.darkcube.system.libs.com.google.gson.TypeAdapter;
 import eu.darkcube.system.libs.com.google.gson.stream.JsonReader;
 import eu.darkcube.system.libs.com.google.gson.stream.JsonWriter;
 import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
+import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 
 public class PersistentDataTypes {
+    @Api
     public static final Gson GSON = new GsonBuilder().registerTypeHierarchyAdapter(Key.class, new TypeAdapter<Key>() {
         @Override
         public void write(JsonWriter out, Key value) throws IOException {
@@ -42,7 +45,9 @@ public class PersistentDataTypes {
             return Key.key(in.nextString());
         }
     }).create();
+    @Api
     public static final PersistentDataType<BigInteger> BIGINTEGER = simpleImmutable(BigInteger.class);
+    @Api
     public static final PersistentDataType<UUID> UUID = create(json -> {
         var array = json.getAsJsonArray();
         return new UUID(array.get(0).getAsLong(), array.get(1).getAsLong());
@@ -52,14 +57,23 @@ public class PersistentDataTypes {
         array.add(uuid.getLeastSignificantBits());
         return array;
     }, uuid -> uuid);
+    @Api
     public static final PersistentDataType<JsonElement> JSON_ELEMENT = simple(JsonElement.class, JsonElement::deepCopy);
+    @Api
     public static final PersistentDataType<JsonObject> JSON_OBJECT = simple(JsonObject.class, JsonObject::deepCopy);
+    @Api
     public static final PersistentDataType<String> STRING = simpleImmutable(String.class);
+    @Api
     public static final PersistentDataType<byte[]> BYTE_ARRAY = new Builder<byte[]>().addSimpleDeserializer(byte[].class).addDeserializer(json -> Base64.getDecoder().decode(json.getAsString())).addSimpleSerializer(byte[].class).addClone(byte[]::clone).build();
+    @Api
     public static final PersistentDataType<Boolean> BOOLEAN = simpleImmutable(Boolean.class);
+    @Api
     public static final PersistentDataType<Integer> INTEGER = simpleImmutable(Integer.class);
+    @Api
     public static final PersistentDataType<Long> LONG = simpleImmutable(Long.class);
+    @Api
     public static final PersistentDataType<Double> DOUBLE = simpleImmutable(Double.class);
+    @Api
     public static final PersistentDataType<int[]> INT_ARRAY = new Builder<int[]>().addSimpleDeserializer(int[].class).addDeserializer(json -> {
         var bytes = BYTE_ARRAY.deserialize(json);
         var buf = ByteBuffer.wrap(bytes).asIntBuffer();
@@ -71,7 +85,8 @@ public class PersistentDataTypes {
         return ar;
     }).addSimpleSerializer(int[].class).addClone(int[]::clone).build();
 
-    public static <T> PersistentDataType<Set<T>> set(PersistentDataType<T> dataType) {
+    @Api
+    public static <T> PersistentDataType<Set<T>> set(@NotNull PersistentDataType<T> dataType) {
         var l = list(dataType);
         return map(l, List::copyOf, Set::copyOf, set -> {
             var s = new ArrayList<T>();
@@ -82,7 +97,8 @@ public class PersistentDataTypes {
         });
     }
 
-    public static <T> PersistentDataType<List<T>> list(PersistentDataType<T> dataType) {
+    @Api
+    public static <T> PersistentDataType<List<T>> list(@NotNull PersistentDataType<T> dataType) {
         return new Builder<List<T>>().addDeserializer(json -> {
             var obj = json.getAsJsonObject();
             var list = new ArrayList<T>();
@@ -113,67 +129,82 @@ public class PersistentDataTypes {
         }).build();
     }
 
+    @Api
     @SuppressWarnings("Convert2MethodRef")
-    public static <T> PersistentDataType<T[]> array(PersistentDataType<T> dataType, Class<T> type) {
+    public static <T> @NotNull PersistentDataType<T[]> array(@NotNull PersistentDataType<T> dataType, @NotNull Class<T> type) {
         return map(list(dataType), Arrays::asList, l -> l.toArray((T[]) Array.newInstance(type, 0)), a -> a.clone());
     }
 
-    public static <T extends Enum<T>> PersistentDataType<T> enumType(Class<T> cls) {
+    @Api
+    public static <T extends Enum<T>> @NotNull PersistentDataType<T> enumType(@NotNull Class<T> cls) {
         return simpleImmutable(cls);
     }
 
-    public static <T> PersistentDataType<T> simpleImmutable(Type type) {
+    @Api
+    public static <T> @NotNull PersistentDataType<T> simpleImmutable(@NotNull Type type) {
         return simple(type, t -> t);
     }
 
-    public static <T> Function<JsonElement, T> simpleDeserializer(Type type) {
+    @Api
+    public static <T> Function<@NotNull JsonElement, @NotNull T> simpleDeserializer(@NotNull Type type) {
         return json -> GSON.fromJson(json, type);
     }
 
-    public static <T> Function<T, JsonElement> simpleSerialize(Type type) {
+    @Api
+    public static <T> Function<@NotNull T, @NotNull JsonElement> simpleSerialize(@NotNull Type type) {
         return data -> GSON.toJsonTree(data, type);
     }
 
-    public static <T> PersistentDataType<T> simple(Type type, Function<T, T> clone) {
+    @Api
+    public static <T> PersistentDataType<T> simple(@NotNull Type type, @NotNull Function<@NotNull T, @NotNull T> clone) {
         return create(simpleDeserializer(type), simpleSerialize(type), clone);
     }
 
-    public static <T> PersistentDataType<T> create(Function<JsonElement, T> deserialize, Function<T, JsonElement> serialize, Function<T, T> clone) {
+    @Api
+    public static <T> PersistentDataType<T> create(@NotNull Function<@NotNull JsonElement, @NotNull T> deserialize, @NotNull Function<@NotNull T, @NotNull JsonElement> serialize, @NotNull Function<@NotNull T, @NotNull T> clone) {
         return new Builder<T>().addDeserializer(deserialize).addSerializer(serialize).addClone(clone).build();
     }
 
-    public static <T, V> PersistentDataType<T> map(PersistentDataType<V> type, Function<T, V> serialize, Function<V, T> deserialize, Function<T, T> clone) {
+    @Api
+    public static <T, V> PersistentDataType<T> map(@NotNull PersistentDataType<V> type, @NotNull Function<@NotNull T, @NotNull V> serialize, @NotNull Function<@NotNull V, @NotNull T> deserialize, Function<@NotNull T, @NotNull T> clone) {
         return create(json -> deserialize.apply(type.deserialize(json)), data -> type.serialize(serialize.apply(data)), clone);
     }
 
+    @Api
     public static class Builder<T> {
         private final List<Function<T, JsonElement>> serializers = new ArrayList<>();
         private final List<Function<JsonElement, T>> deserializers = new ArrayList<>();
         private final List<Function<T, T>> clones = new ArrayList<>();
 
-        public Builder<T> addSerializer(Function<T, JsonElement> serializer) {
+        @Api
+        public Builder<T> addSerializer(@NotNull Function<@NotNull T, @NotNull JsonElement> serializer) {
             serializers.add(serializer);
             return this;
         }
 
-        public Builder<T> addSimpleSerializer(Type type) {
+        @Api
+        public Builder<T> addSimpleSerializer(@NotNull Type type) {
             return addSerializer(simpleSerialize(type));
         }
 
-        public Builder<T> addDeserializer(Function<JsonElement, T> deserializer) {
+        @Api
+        public Builder<T> addDeserializer(@NotNull Function<@NotNull JsonElement, @NotNull T> deserializer) {
             deserializers.add(deserializer);
             return this;
         }
 
-        public Builder<T> addSimpleDeserializer(Type type) {
+        @Api
+        public Builder<T> addSimpleDeserializer(@NotNull Type type) {
             return addDeserializer(simpleDeserializer(type));
         }
 
+        @Api
         public Builder<T> addClone(Function<T, T> clone) {
             clones.add(clone);
             return this;
         }
 
+        @Api
         public PersistentDataType<T> build() {
             var s = List.copyOf(serializers);
             var d = List.copyOf(deserializers);
@@ -185,23 +216,23 @@ public class PersistentDataTypes {
             var clo = combine(c);
             return new PersistentDataType<>() {
                 @Override
-                public T deserialize(JsonElement json) {
+                public @NotNull T deserialize(@NotNull JsonElement json) {
                     return des.apply(json);
                 }
 
                 @Override
-                public JsonElement serialize(T data) {
+                public @NotNull JsonElement serialize(@NotNull T data) {
                     return ser.apply(data);
                 }
 
                 @Override
-                public T clone(T object) {
+                public @NotNull T clone(@NotNull T object) {
                     return clo.apply(object);
                 }
             };
         }
 
-        private static <T, V> Function<T, V> combine(List<Function<T, V>> functions) {
+        private static <T, V> @NotNull Function<@NotNull T, @NotNull V> combine(@NotNull List<@NotNull Function<@NotNull T, @NotNull V>> functions) {
             if (functions.size() == 1) return functions.getFirst();
             return t -> {
                 Throwable exception = null;
