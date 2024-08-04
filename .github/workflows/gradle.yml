@@ -29,7 +29,7 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Build with Gradle Wrapper
         run: ./gradlew -PDarkCubeUsername="${{ secrets.REPOSITORY_USERNAME }}" -PDarkCubePassword="${{ secrets.REPOSITORY_PASSWORD }}" build --configuration-cache-problems=warn --no-daemon --stacktrace
