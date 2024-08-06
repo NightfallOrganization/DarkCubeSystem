@@ -13,8 +13,8 @@ import net.minestom.server.command.builder.Command;
 public class StopCommand extends Command {
     public StopCommand() {
         super("stop", "exit");
-        setCondition((sender, commandString) -> sender.hasPermission("command.stop"));
-        setDefaultExecutor((sender, context) -> {
+        setCondition((sender, _) -> PermissionProvider.provider().hasPermission(sender, "command.stop"));
+        setDefaultExecutor((_, _) -> {
             MinecraftServer.stopCleanly();
 
             System.exit(0);

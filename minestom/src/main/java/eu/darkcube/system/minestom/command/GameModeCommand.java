@@ -13,7 +13,6 @@ import java.util.Locale;
 import eu.darkcube.system.BaseMessage;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.command.CommandSender;
-import net.minestom.server.command.ConsoleSender;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.arguments.ArgumentEnum;
 import net.minestom.server.command.builder.arguments.ArgumentType;
@@ -28,10 +27,10 @@ public class GameModeCommand extends Command {
         var gamemodeArgumentType = ArgumentType.Enum("gamemode", GameMode.class).setFormat(ArgumentEnum.Format.LOWER_CASED);
         var targetsArgumentType = ArgumentType.Entity("targets").onlyPlayers(true);
 
-        setCondition((sender, commandString) -> sender instanceof ConsoleSender || sender.hasPermission("command.gamemode") || (sender instanceof Player player && player.getPermissionLevel() >= 2));
+        setCondition((sender, _) -> PermissionProvider.provider().hasPermission(sender, "command.gamemode"));
         gamemodeArgumentType.setCallback((sender, exception) -> MinestomCommandExecutor.create(sender).sendMessage(Message.INVALID_GAMEMODE, exception.getInput()));
 
-        addConditionalSyntax((sender, commandString) -> sender instanceof Player, (sender, context) -> gamemode(sender, context.get(gamemodeArgumentType), List.of((Player) sender)), gamemodeArgumentType);
+        addConditionalSyntax((sender, _) -> sender instanceof Player, (sender, context) -> gamemode(sender, context.get(gamemodeArgumentType), List.of((Player) sender)), gamemodeArgumentType);
         addSyntax((sender, context) -> gamemode(sender, context.get(gamemodeArgumentType), context.get(targetsArgumentType).find(sender)), gamemodeArgumentType, targetsArgumentType);
     }
 
