@@ -7,7 +7,9 @@
 
 package eu.darkcube.system.impl.bukkit.version.latest;
 
+import eu.darkcube.system.impl.bukkit.inventory.InventoryVersionProvider;
 import eu.darkcube.system.impl.bukkit.version.AbstractVersionHandler;
+import eu.darkcube.system.impl.bukkit.version.latest.inventory.InventoryVersionProviderImpl;
 import eu.darkcube.system.impl.bukkit.version.latest.item.ItemProviderImpl;
 import eu.darkcube.system.impl.bukkit.version.latest.item.KeyProviderImpl;
 import eu.darkcube.system.impl.bukkit.version.latest.item.attribute.BukkitAttributeModifierOperationProvider;
@@ -27,6 +29,7 @@ public class VersionHandler extends AbstractVersionHandler {
         InternalProvider.instance().register(AttributeProvider.class, new BukkitAttributeProvider());
         InternalProvider.instance().register(AttributeModifierProvider.class, new BukkitAttributeModifierProvider());
         InternalProvider.instance().register(AttributeModifierOperationProvider.class, new BukkitAttributeModifierOperationProvider());
+        InternalProvider.instance().register(InventoryVersionProvider.class, new InventoryVersionProviderImpl());
     }
 
     @Override

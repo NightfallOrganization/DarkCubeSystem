@@ -13,4 +13,6 @@ import eu.darkcube.system.server.inventory.InventoryType;
 public interface BukkitInventoryType extends InventoryType {
     @NotNull
     org.bukkit.event.inventory.InventoryType bukkitType();
+
+    int size();
 }

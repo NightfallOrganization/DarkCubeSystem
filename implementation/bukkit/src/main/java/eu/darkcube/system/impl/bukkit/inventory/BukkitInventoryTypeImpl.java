@@ -12,4 +12,8 @@ import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import org.bukkit.event.inventory.InventoryType;
 
 public record BukkitInventoryTypeImpl(@NotNull InventoryType bukkitType) implements BukkitInventoryType {
+    @Override
+    public int size() {
+        return bukkitType.getDefaultSize();
+    }
 }
