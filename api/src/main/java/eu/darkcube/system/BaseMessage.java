@@ -18,30 +18,42 @@ import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
 import eu.darkcube.system.libs.net.kyori.adventure.text.ComponentLike;
 import eu.darkcube.system.libs.net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
-import eu.darkcube.system.userapi.User;
 import eu.darkcube.system.util.Language;
 
 public interface BaseMessage {
+    @NotNull
+    static BaseMessage empty() {
+        return BaseMessageImpl.EMPTY;
+    }
+
+    @NotNull
+    static BaseMessage string(@NotNull String string) {
+        return new BaseMessage() {
+            @Override
+            public @NotNull String key() {
+                return "";
+            }
+
+            @Override
+            public @NotNull Component getMessage(@NotNull Language language, @NotNull String @NotNull [] prefixes, Object @NotNull ... args) {
+                return Component.text(string);
+            }
+        };
+    }
+
     @NotNull
     default String getPrefixModifier() {
         return "";
     }
 
-    @SuppressWarnings({"DataFlowIssue", "ConstantValue"})
-    class S {
-        static {
+    @NotNull
+    default BaseMessage append(@NotNull Object message) {
+        return and(message);
+    }
 
-            User u = null;
-            BaseMessage m = null, m1 = null;
-
-            u.sendMessage(m, 5);
-            u.sendMessage(m1, 3);
-            u.sendMessage(m.and(m1, 3), 5);
-            u.sendMessage(m1, 3, m1.and(m1, 3));
-
-            u.sendMessage(m.and("\n").and(m1, 3), 5);
-
-        }
+    @NotNull
+    default BaseMessage append(@NotNull Object message, Object @NotNull ... args) {
+        return and(message, args);
     }
 
     @NotNull
@@ -53,16 +65,29 @@ public interface BaseMessage {
     default BaseMessage and(@NotNull Object message, Object @NotNull ... args) {
         var outer = this;
         var paramArgs = args;
-        return new BaseMessage() {
-            @Override
-            public @NotNull String key() {
-                throw new UnsupportedOperationException();
-            }
-
+        return new Transforming() {
             @Override
             public @NotNull Component getMessage(@NotNull Language language, String @NotNull [] prefixes, Object @NotNull ... args) {
                 var first = outer.getMessage(language, prefixes, args);
                 return first.append(BaseMessage.getMessage(language, message, paramArgs));
+            }
+        };
+    }
+
+    @NotNull
+    default BaseMessage prepend(@NotNull Object message) {
+        return prepend(message, new Object[0]);
+    }
+
+    @NotNull
+    default BaseMessage prepend(@NotNull Object message, Object @NotNull ... args) {
+        var outer = this;
+        var paramArgs = args;
+        return new Transforming() {
+            @Override
+            public @NotNull Component getMessage(@NotNull Language language, @NotNull String @NotNull [] prefixes, Object @NotNull ... args) {
+                var last = outer.getMessage(language, prefixes, args);
+                return BaseMessage.getMessage(language, message, paramArgs).append(last);
             }
         };
     }
@@ -78,7 +103,7 @@ public interface BaseMessage {
         }
         if (args.length != 0) throw new IllegalArgumentException("This message can't have arguments to replace");
         var string = String.valueOf(message);
-        return Component.text(string);
+        return LegacyComponentSerializer.legacySection().deserialize(string);
     }
 
     @NotNull
@@ -146,5 +171,16 @@ public interface BaseMessage {
     @NotNull
     default Component getMessage(@NotNull Language language, @NotNull String @NotNull [] prefixes, Object @NotNull ... args) {
         return language.getMessage(getPrefixModifier() + String.join("", prefixes) + key(), args);
+    }
+
+    interface Transforming extends BaseMessage {
+        @Override
+        default @NotNull String key() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        @NotNull
+        Component getMessage(@NotNull Language language, @NotNull String @NotNull [] prefixes, Object @NotNull ... args);
     }
 }

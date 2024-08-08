@@ -33,18 +33,18 @@ public interface PersistentDataStorage {
     /**
      * @return an unmodifiable view of this storage
      */
-    @UnmodifiableView
-    @NotNull
     @Api
+    @NotNull
+    @UnmodifiableView
     PersistentDataStorage unmodifiable();
 
-    @Unmodifiable
-    @NotNull
     @Api
+    @NotNull
+    @Unmodifiable
     Collection<@NotNull Key> keys();
 
-    @NotNull
     @Api
+    @NotNull
     default CompletableFuture<@Unmodifiable @NotNull Collection<@NotNull Key>> keysAsync() {
         return supplyAsync(this::keys, virtualService());
     }
@@ -60,8 +60,19 @@ public interface PersistentDataStorage {
     @Api
     <T> void set(@NotNull Key key, @NotNull PersistentDataType<T> type, @NotNull T data);
 
+    @Api
     default <T> @NotNull CompletableFuture<Void> setAsync(@NotNull Key key, @NotNull PersistentDataType<T> type, @NotNull T data) {
         return runAsync(() -> set(key, type, data), virtualService());
+    }
+
+    @Api
+    default <T> void set(@NotNull DataKey<T> key, @NotNull T data) {
+        set(key.key(), key.dataType(), data);
+    }
+
+    @Api
+    default <T> @NotNull CompletableFuture<Void> setAsync(@NotNull DataKey<T> key, @NotNull T data) {
+        return setAsync(key.key(), key.dataType(), data);
     }
 
     /**
@@ -76,10 +87,22 @@ public interface PersistentDataStorage {
     @Nullable
     <T> T remove(@NotNull Key key, @NotNull PersistentDataType<T> type);
 
-    @NotNull
     @Api
+    @NotNull
     default <T> CompletableFuture<@Nullable T> removeAsync(@NotNull Key key, @NotNull PersistentDataType<T> type) {
         return supplyAsync(() -> remove(key, type), virtualService());
+    }
+
+    @Api
+    @Nullable
+    default <T> T remove(@NotNull DataKey<T> key) {
+        return remove(key.key(), key.dataType());
+    }
+
+    @Api
+    @NotNull
+    default <T> CompletableFuture<@Nullable T> removeAsync(@NotNull DataKey<T> key) {
+        return removeAsync(key.key(), key.dataType());
     }
 
     /**
@@ -92,10 +115,22 @@ public interface PersistentDataStorage {
     @Nullable
     <T> T get(@NotNull Key key, @NotNull PersistentDataType<T> type);
 
-    @NotNull
     @Api
+    @NotNull
     default <T> CompletableFuture<@Nullable T> getAsync(@NotNull Key key, @NotNull PersistentDataType<T> type) {
         return supplyAsync(() -> get(key, type), virtualService());
+    }
+
+    @Api
+    @Nullable
+    default <T> T get(@NotNull DataKey<T> key) {
+        return get(key.key(), key.dataType());
+    }
+
+    @Api
+    @NotNull
+    default <T> CompletableFuture<@Nullable T> getAsync(@NotNull DataKey<T> key) {
+        return getAsync(key.key(), key.dataType());
     }
 
     /**
@@ -107,14 +142,26 @@ public interface PersistentDataStorage {
      * @param <T>          the data type
      * @return the saved data, defaultValue if not present
      */
-    @NotNull
     @Api
+    @NotNull
     <T> T get(@NotNull Key key, @NotNull PersistentDataType<T> type, @NotNull Supplier<@NotNull T> defaultValue);
 
-    @NotNull
     @Api
+    @NotNull
     default <T> CompletableFuture<@NotNull T> getAsync(@NotNull Key key, @NotNull PersistentDataType<T> type, @NotNull Supplier<@NotNull T> defaultValue) {
         return supplyAsync(() -> get(key, type, defaultValue), virtualService());
+    }
+
+    @Api
+    @NotNull
+    default <T> T get(@NotNull DataKey<T> key, @NotNull Supplier<@NotNull T> defaultValue) {
+        return get(key.key(), key.dataType(), defaultValue);
+    }
+
+    @Api
+    @NotNull
+    default <T> CompletableFuture<@NotNull T> getAsync(@NotNull DataKey<T> key, @NotNull Supplier<@NotNull T> defaultValue) {
+        return getAsync(key.key(), key.dataType(), defaultValue);
     }
 
     /**
@@ -126,10 +173,21 @@ public interface PersistentDataStorage {
     @Api
     <T> void setIfNotPresent(@NotNull Key key, @NotNull PersistentDataType<T> type, @NotNull T data);
 
-    @NotNull
     @Api
+    @NotNull
     default <T> CompletableFuture<Void> setIfNotPresentAsync(@NotNull Key key, @NotNull PersistentDataType<T> type, @NotNull T data) {
         return runAsync(() -> setIfNotPresent(key, type, data), virtualService());
+    }
+
+    @Api
+    default <T> void setIfNotPresent(@NotNull DataKey<T> key, @NotNull T data) {
+        setIfNotPresent(key.key(), key.dataType(), data);
+    }
+
+    @Api
+    @NotNull
+    default <T> CompletableFuture<Void> setIfNotPresentAsync(@NotNull DataKey<T> key, @NotNull T data) {
+        return setIfNotPresentAsync(key.key(), key.dataType(), data);
     }
 
     /**
@@ -139,10 +197,21 @@ public interface PersistentDataStorage {
     @Api
     boolean has(@NotNull Key key);
 
-    @NotNull
     @Api
+    @NotNull
     default CompletableFuture<@NotNull Boolean> hasAsync(@NotNull Key key) {
         return supplyAsync(() -> has(key), virtualService());
+    }
+
+    @Api
+    default <T> boolean has(@NotNull DataKey<T> key) {
+        return has(key.key());
+    }
+
+    @Api
+    @NotNull
+    default <T> CompletableFuture<@NotNull Boolean> hasAsync(@NotNull DataKey<T> key) {
+        return hasAsync(key.key());
     }
 
     /**
@@ -175,12 +244,12 @@ public interface PersistentDataStorage {
     /**
      * @return a jsonObject with all the data
      */
-    @NotNull
     @Api
+    @NotNull
     JsonObject storeToJsonObject();
 
-    @NotNull
     @Api
+    @NotNull
     default CompletableFuture<@NotNull JsonObject> storeToJsonObjectAsync() {
         return supplyAsync(this::storeToJsonObject, virtualService());
     }
