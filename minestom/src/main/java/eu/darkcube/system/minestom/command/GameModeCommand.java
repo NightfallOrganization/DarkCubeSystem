@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Locale;
 
 import eu.darkcube.system.BaseMessage;
+import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.builder.Command;
@@ -54,7 +55,7 @@ public class GameModeCommand extends Command {
         INVALID_GAMEMODE;
 
         @Override
-        public String key() {
+        public @NotNull String key() {
             return name();
         }
     }

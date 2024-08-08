@@ -15,6 +15,7 @@ import java.util.Objects;
 import eu.darkcube.system.BaseMessage;
 import eu.darkcube.system.annotations.Api;
 import eu.darkcube.system.libs.com.mojang.brigadier.Message;
+import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 
 @Api
 public enum Messages implements BaseMessage {
@@ -76,7 +77,7 @@ public enum Messages implements BaseMessage {
     }
 
     @Override
-    public String key() {
+    public @NotNull String key() {
         return key;
     }
 

@@ -14,12 +14,12 @@ import eu.darkcube.system.util.Language;
 
 public interface CommandExecutor extends Audience {
 
-    default void sendMessage(@NotNull BaseMessage message, @NotNull Object @NotNull ... components) {
-        this.sendMessage(message.getMessage(this, components));
+    default void sendMessage(@NotNull BaseMessage message, @NotNull Object @NotNull ... args) {
+        this.sendMessage(message.getMessage(this, args));
     }
 
-    default void sendActionBar(@NotNull BaseMessage message, @NotNull Object @NotNull ... components) {
-        this.sendActionBar(message.getMessage(this, components));
+    default void sendActionBar(@NotNull BaseMessage message, @NotNull Object @NotNull ... args) {
+        this.sendActionBar(message.getMessage(this, args));
     }
 
     /**
