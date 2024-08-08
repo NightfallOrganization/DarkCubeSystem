@@ -78,6 +78,13 @@ public interface ItemBuilder {
     }
 
     @Api
+    @NotNull
+    default ItemBuilder apply(@NotNull Consumer<@NotNull ItemBuilder> function) {
+        function.accept(this);
+        return this;
+    }
+
+    @Api
     int amount();
 
     @Api
