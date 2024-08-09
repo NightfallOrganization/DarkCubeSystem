@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import eu.darkcube.system.annotations.Api;
 import eu.darkcube.system.libs.com.google.gson.JsonElement;
@@ -82,6 +83,12 @@ public interface ItemBuilder {
     default ItemBuilder apply(@NotNull Consumer<@NotNull ItemBuilder> function) {
         function.accept(this);
         return this;
+    }
+
+    @Api
+    @NotNull
+    default ItemBuilder map(@NotNull Function<@NotNull ItemBuilder, @NotNull ItemBuilder> mapper) {
+        return mapper.apply(this);
     }
 
     @Api
