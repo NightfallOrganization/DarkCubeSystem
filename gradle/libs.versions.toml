@@ -10,7 +10,7 @@ adventure-platform = "4.3.4"
 luckperms = "5.4"
 viaversion = "5.0.3"
 caffeine = "3.1.8"
-slf4j-api = "2.0.13"
+slf4j-api = "2.0.14"
 
 minestom = "2ee5075443"
 minestom-extensions = "1.2.0"
