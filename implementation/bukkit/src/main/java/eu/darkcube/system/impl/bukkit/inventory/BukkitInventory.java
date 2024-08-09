@@ -22,6 +22,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
@@ -123,8 +124,38 @@ public class BukkitInventory extends AbstractInventory<ItemStack> {
     private void handleClick(InventoryClickEvent event) {
         var bukkitInventory = event.getClickedInventory();
         if (bukkitInventory == null) return;
-        if (!(bukkitInventory.getHolder() instanceof Holder holder)) return;
-        if (holder != this.holder) return;
+        var cancel = false;
+
+        if (bukkitInventory.getHolder() instanceof Holder holder) {
+            if (holder == this.holder) {
+                // They clicked into this inventory
+                cancel = true;
+                handleClick1(event);
+            } else {
+                return;
+            }
+        } else {
+            // They might still try to shift items into this inventory
+            // or sth else :)
+            var topInventory = event.getView().getTopInventory();
+            if (topInventory != this.inventory) {
+                // our inventory isn't open
+                return;
+            }
+
+            var clickType = event.getClick();
+            switch (clickType) {
+                case LEFT, CREATIVE, CONTROL_DROP, DROP, RIGHT, WINDOW_BORDER_LEFT, WINDOW_BORDER_RIGHT, NUMBER_KEY, MIDDLE -> {
+                }
+                case SHIFT_LEFT, SHIFT_RIGHT, DOUBLE_CLICK, SWAP_OFFHAND, UNKNOWN -> cancel = true;
+            }
+        }
+        if (cancel) {
+            event.setCancelled(true);
+        }
+    }
+
+    private void handleClick1(InventoryClickEvent event) {
         event.setCancelled(true);
         var user = UserAPI.instance().user(event.getWhoClicked().getUniqueId());
         var clickType = event.getClick();
@@ -143,6 +174,17 @@ public class BukkitInventory extends AbstractInventory<ItemStack> {
         handleClick(slot, itemStack == null ? new ItemStack(Material.AIR) : itemStack, item);
         for (var i = 0; i < listeners.size(); i++) {
             listeners.get(i).onClick(this, user, slot, item);
+        }
+    }
+
+    private void handleDrag(InventoryDragEvent event) {
+        var view = event.getView();
+        for (var slot : event.getRawSlots()) {
+            var inventory = view.getInventory(slot);
+            if (inventory == this.inventory) {
+                event.setCancelled(true);
+                break;
+            }
         }
     }
 
@@ -178,6 +220,11 @@ public class BukkitInventory extends AbstractInventory<ItemStack> {
         @EventHandler
         public void handle(InventoryClickEvent event) {
             handleClick(event);
+        }
+
+        @EventHandler
+        public void handle(InventoryDragEvent event) {
+            handleDrag(event);
         }
     }
 }
