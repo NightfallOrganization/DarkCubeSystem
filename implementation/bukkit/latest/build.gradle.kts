@@ -30,14 +30,27 @@ dependencies {
     cloudnetSource.implementationConfigurationName(libs.cloudnet.wrapper)
 }
 
-tasks {
-    jar {
-        from(cloudnetSource.output)
-    }
+val cloudnetJar = tasks.register<Jar>("cloudnetJar") {
+    from(sourceSets.main.map { it.output })
+    from(cloudnetSource.output)
+    archiveClassifier = "cloudnet"
+}
+val standaloneJar = tasks.register<Jar>("standaloneJar") {
+    from(sourceSets.main.map { it.output })
+    archiveClassifier = "standalone"
 }
 
-configurations.consumable("version") {
-    outgoing.artifact(tasks.jar) {
+tasks {
+    jar { enabled = false }
+}
+
+configurations.consumable("version-cloudnet") {
+    outgoing.artifact(cloudnetJar) {
+        name = "v1_21"
+    }
+}
+configurations.consumable("version-standalone") {
+    outgoing.artifact(standaloneJar) {
         name = "v1_21"
     }
 }

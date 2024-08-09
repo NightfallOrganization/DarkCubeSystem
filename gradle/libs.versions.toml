@@ -11,6 +11,7 @@ luckperms = "5.4"
 viaversion = "5.0.3"
 caffeine = "3.1.8"
 slf4j-api = "2.0.14"
+h2 = "2.3.230"
 
 minestom = "2ee5075443"
 minestom-extensions = "1.2.0"
@@ -37,6 +38,7 @@ brigadier = { group = "com.mojang", name = "brigadier", version.ref = "brigadier
 annotations = { group = "org.jetbrains", name = "annotations", version.ref = "annotations" }
 luckperms = { group = "net.luckperms", name = "api", version.ref = "luckperms" }
 caffeine = { group = "com.github.ben-manes.caffeine", name = "caffeine", version.ref = "caffeine" }
+h2 = { group = "com.h2database", name = "h2", version.ref = "h2" }
 
 minestom = { group = "eu.darkcube", name = "minestom", version.ref = "minestom" }
 minestom-extensions = { group = "dev.hollowcube", name = "minestom-ce-extensions", version.ref = "minestom-extensions" }

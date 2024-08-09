@@ -16,6 +16,22 @@ val cloudnetSource by sourceSets.register("cloudnet")
 val standaloneSource by sourceSets.register("standalone")
 val merge = configurations.register("merge") { isTransitive = false }
 val inject = configurations.register("inject") { isTransitive = false }
+val mergeCloudNet = configurations.register("mergeCloudNet") {
+    isTransitive = false
+    extendsFrom(merge.get())
+}
+val injectCloudNet = configurations.register("injectCloudNet") {
+    isTransitive = false
+    extendsFrom(inject.get())
+}
+val mergeStandalone = configurations.register("mergeStandalone") {
+    isTransitive = false
+    extendsFrom(merge.get())
+}
+val injectStandalone = configurations.register("injectStandalone") {
+    isTransitive = false
+    extendsFrom(inject.get())
+}
 
 configurations.named(cloudnetSource.implementationConfigurationName).configure {
     extendsFrom(configurations.getByName(sourceSets.main.get().compileClasspathConfigurationName))
@@ -35,8 +51,8 @@ tasks.jar.configure {
     destinationDirectory = temporaryDir
 }
 val cloudnetJar = tasks.register<Jar>("cloudnetJar") {
-    dependsOn(merge)
-    include(merge.get(), this, "versions")
+    dependsOn(mergeCloudNet)
+    include(mergeCloudNet.get(), this, "versions")
     from(cloudnetSource.output)
     from(sourceSets.main.map { it.output })
     destinationDirectory = temporaryDir
@@ -46,9 +62,18 @@ val cloudnetJarRaw = tasks.register<Jar>("cloudnetJarRaw") {
     destinationDirectory = temporaryDir
 }
 val cloudnetInjectJar = tasks.register<Jar>("cloudnetInjectJar") {
-    dependsOn(inject)
-    inject.get().forEach { from(zipTree(it)) }
+    dependsOn(injectCloudNet)
+    injectCloudNet.get().forEach { from(zipTree(it)) }
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    destinationDirectory = temporaryDir
+}
+val standaloneJar = tasks.register<Jar>("standaloneJar") {
+    dependsOn(mergeStandalone)
+    dependsOn(injectStandalone)
+    include(mergeStandalone.get(), this, "versions")
+    injectStandalone.get().forEach { from(zipTree(it)) }
+    from(standaloneSource.output)
+    from(sourceSets.main.map { it.output })
     destinationDirectory = temporaryDir
 }
 tasks.assemble.configure {
@@ -69,6 +94,9 @@ configurations.consumable("cloudnetInject") {
 configurations.consumable("cloudnetPluginRaw") {
     outgoing.artifact(cloudnetJarRaw)
 }
+configurations.consumable("standalone") {
+    outgoing.artifact(standaloneJar)
+}
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21-R0.1-20240701.082534-43")
@@ -76,6 +104,7 @@ dependencies {
     api(projects.darkcubesystemBukkit)
     api(projects.darkcubesystemImplementationKyoriWrapper)
     api(projects.darkcubesystemImplementationServer)
+    "standaloneImplementation"(projects.darkcubesystemImplementationStandalone)
 
     cloudnetSource.implementationConfigurationName(sourceSets.main.map { it.output })
     cloudnetSource.implementationConfigurationName(libs.luckperms)
@@ -84,14 +113,16 @@ dependencies {
     standaloneSource.implementationConfigurationName(sourceSets.main.map { it.output })
 
     merge(projects.darkcubesystemImplementationBukkit188) { targetConfiguration = "version" }
-    merge(projects.darkcubesystemImplementationBukkitLatest) { targetConfiguration = "version" }
+    mergeCloudNet(projects.darkcubesystemImplementationBukkitLatest) { targetConfiguration = "version-cloudnet" }
+    mergeStandalone(projects.darkcubesystemImplementationBukkitLatest) { targetConfiguration = "version-standalone" }
 
     inject(projects.darkcubesystemBukkit)
     inject(projects.darkcubesystemServer)
     inject(projects.darkcubesystemKyoriWrapper)
     inject(projects.darkcubesystemImplementationKyoriWrapper)
-    inject(projects.darkcubesystemServerCloudnet)
     inject(projects.darkcubesystemImplementationServer)
+
+    injectCloudNet(projects.darkcubesystemServerCloudnet)
 }
 
 fun include(configuration: Configuration, task: AbstractCopyTask, directory: String) {

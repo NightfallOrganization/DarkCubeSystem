@@ -18,6 +18,8 @@ val cloudnetJarInject = configurations.register("inject") { isTransitive = false
 val cloudnetJar = configurations.register("cloudnetJar") { isTransitive = false }
 val cloudnetJarWrapper = configurations.register("cloudnetJarPlugins") { isTransitive = false }
 val cloudnetJarInclude = configurations.register("cloudnetJarInclude") { isTransitive = false }
+val standaloneJar = configurations.register("standaloneJar") { isTransitive = false }
+
 
 tasks {
     val cloudnetWrapperJar = register<Jar>("cloudnetWrapperJar") {
@@ -46,7 +48,17 @@ tasks {
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         archiveClassifier = "cloudnet"
     }
-    assemble.configure { dependsOn(cloudnetJar) }
+    val standaloneJar = register<Jar>("standaloneJar") {
+        dependsOn(standaloneJar)
+        standaloneJar.get().incoming.files.forEach {
+            from(zipTree(it))
+        }
+        archiveClassifier = "standalone"
+    }
+    assemble.configure {
+        dependsOn(cloudnetJar)
+        dependsOn(standaloneJar)
+    }
 }
 
 fun include(configuration: Configuration, task: AbstractCopyTask, directory: String) {
@@ -77,4 +89,7 @@ dependencies {
     cloudnetJarPlugins(projects.darkcubesystemImplementationBukkit) { targetConfiguration = "cloudnetPlugin" }
     cloudnetJarInject(projects.darkcubesystemImplementationBukkit) { targetConfiguration = "cloudnetInject" }
     cloudnetJarPlugins(projects.darkcubesystemImplementationVelocity) { targetConfiguration = "cloudnetPlugin" }
+
+    standaloneJar(projects.darkcubesystemImplementationStandalone) { targetConfiguration = "standalone" }
+    standaloneJar(projects.darkcubesystemImplementationBukkit) { targetConfiguration = "standalone" }
 }

@@ -1,0 +1,15 @@
+name: DarkCubeSystem
+version: $version
+api-version: "1.21"
+main: eu.darkcube.system.impl.bukkit.standalone.BukkitStandalone
+loader: eu.darkcube.system.impl.bukkit.standalone.ModernPaperLoader
+has-open-classloader: true
+bootstrapper: eu.darkcube.system.impl.bukkit.standalone.ModernPaperBootstrap
+provides:
+  - System
+dependencies:
+  server:
+    ViaVersion:
+      required: false
+    LuckPerms:
+      required: false
