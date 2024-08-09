@@ -8,7 +8,6 @@
 package eu.darkcube.system.impl.minestom.inventory;
 
 import eu.darkcube.system.impl.server.util.ComputationUtil;
-import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 import eu.darkcube.system.userapi.User;
 import net.minestom.server.MinecraftServer;
@@ -24,7 +23,7 @@ class MinestomInventoryUtils {
         return PLAYER_COMPUTER.compute(player, null);
     }
 
-    static @NotNull ItemStack computeItem(@Nullable User user, @Nullable Object item) {
+    static @Nullable ItemStack computeItem(@Nullable User user, @Nullable Object item) {
         return ITEM_COMPUTER.compute(item, user);
     }
 }

@@ -8,6 +8,7 @@
 package eu.darkcube.system.server.inventory;
 
 import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
+import eu.darkcube.system.libs.org.jetbrains.annotations.ApiStatus;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 
 public interface PreparedInventory {
@@ -17,8 +18,15 @@ public interface PreparedInventory {
     @NotNull
     Component title();
 
+    /**
+     * Allowed types:
+     * <ul>
+     *     <li>All types allowed by {@link InventoryTemplate#setItem(int, int, Object)}</li>
+     * </ul>
+     */
     void setItem(int slot, @NotNull Object item);
 
+    @ApiStatus.Experimental
     @NotNull
     Object getItem(int slot);
 }

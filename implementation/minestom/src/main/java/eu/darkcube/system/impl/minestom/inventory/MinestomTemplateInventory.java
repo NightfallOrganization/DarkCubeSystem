@@ -107,7 +107,7 @@ public class MinestomTemplateInventory extends MinestomInventory implements Temp
     }
 
     @Override
-    public @NotNull ItemStack computeItem(@Nullable User user, @Nullable Object item) {
+    public @Nullable ItemStack computeItem(@Nullable User user, @Nullable Object item) {
         return MinestomInventoryUtils.computeItem(user, item);
     }
 
