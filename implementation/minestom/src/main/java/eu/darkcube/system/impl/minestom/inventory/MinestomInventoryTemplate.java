@@ -38,7 +38,7 @@ public class MinestomInventoryTemplate extends InventoryTemplateImpl<Player> {
 
     @NotNull
     @Override
-    protected Inventory open(@Nullable Component title, @Nullable Player player) {
+    protected Inventory open(@Nullable Component title, @NotNull Player player) {
         var inventory = new MinestomTemplateInventory(title != null ? title : Component.empty(), (MinestomInventoryType) type, this, player);
         inventory.open(player);
         return inventory;

@@ -62,6 +62,10 @@ public interface UserData {
     @Api
     void language(@NotNull Language language);
 
+    @Api
+    @NotNull
+    UserSettings settings();
+
     /**
      * @return the user's {@link MetaDataStorage}. This only stores data until the user is unloaded,
      *         then all data is forgotten. This will NOT synchronize over all servers
@@ -137,6 +141,11 @@ public interface UserData {
 
     interface Forwarding extends UserData {
         UserData userData();
+
+        @Override
+        default @NotNull UserSettings settings() {
+            return userData().settings();
+        }
 
         @Override
         default @NotNull UUID uniqueId() {

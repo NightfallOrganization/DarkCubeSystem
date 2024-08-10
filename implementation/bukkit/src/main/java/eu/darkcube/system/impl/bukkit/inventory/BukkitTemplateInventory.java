@@ -22,19 +22,21 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 public class BukkitTemplateInventory extends BukkitInventory implements TemplateInventoryImpl<ItemStack> {
-    private final @Nullable Player player;
+    private final @NotNull Player player;
+    private final @NotNull User user;
     private final @NotNull InventoryItemHandler<ItemStack, Player> itemHandler;
     private final @NotNull AtomicInteger animationsStarted = new AtomicInteger();
     private final @NotNull Instant openInstant;
     private final @NotNull PagedInventoryControllerImpl pagedController;
 
-    public BukkitTemplateInventory(@NotNull Component title, @NotNull BukkitInventoryType type, @NotNull BukkitInventoryTemplate template, @Nullable Player player) {
+    public BukkitTemplateInventory(@NotNull Component title, @NotNull BukkitInventoryType type, @NotNull BukkitInventoryTemplate template, @NotNull Player player) {
         super(title, type);
         this.player = player;
         for (var listener : template.listeners()) {
             this.addListener(listener);
         }
-        this.itemHandler = InventoryItemHandler.simple(this, template);
+        this.user = UserAPI.instance().user(player.getUniqueId());
+        this.itemHandler = InventoryItemHandler.simple(user, player, this, template);
         this.openInstant = Instant.now();
         this.pagedController = new PagedInventoryControllerImpl(this.itemHandler);
     }
@@ -45,8 +47,7 @@ public class BukkitTemplateInventory extends BukkitInventory implements Template
             // Can't open the inventory for someone else than the original player
             return;
         }
-        var user = UserAPI.instance().user(player.getUniqueId());
-        this.itemHandler.doOpen(player, user);
+        this.itemHandler.doOpen();
         for (var i = 0; i < listeners.size(); i++) {
             listeners.get(i).onPreOpen(this, user);
         }
@@ -62,12 +63,7 @@ public class BukkitTemplateInventory extends BukkitInventory implements Template
     @Override
     protected void unregister() {
         super.unregister();
-        if (this.player == null) {
-            // What the heck?
-            return;
-        }
-        var user = UserAPI.instance().user(player.getUniqueId());
-        this.itemHandler.doClose(player, user);
+        this.itemHandler.doClose();
     }
 
     @Override

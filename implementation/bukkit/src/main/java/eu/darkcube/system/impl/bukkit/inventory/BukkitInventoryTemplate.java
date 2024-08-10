@@ -27,7 +27,7 @@ public class BukkitInventoryTemplate extends InventoryTemplateImpl<Player> {
     }
 
     @Override
-    protected @NotNull Inventory open(@Nullable Component title, @Nullable Player player) {
+    protected @NotNull Inventory open(@Nullable Component title, @NotNull Player player) {
         var inventory = new BukkitTemplateInventory(title != null ? title : Component.empty(), (BukkitInventoryType) type, this, player);
         inventory.open(player);
         return inventory;
