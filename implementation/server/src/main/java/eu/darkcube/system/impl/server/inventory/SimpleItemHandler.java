@@ -33,10 +33,12 @@ public class SimpleItemHandler<PlatformItem, PlatformPlayer> implements Inventor
     private final @Nullable SortedMap<Integer, ItemComputeTask<PlatformItem>> @NotNull [] tasks;
     private final ExecutorService service = AsyncExecutor.virtualService();
     private final @NotNull PaginationCalculator<PlatformItem, PlatformPlayer> paginationCalculator;
-    private User user;
-    private PlatformPlayer player;
+    private final User user;
+    private final PlatformPlayer player;
 
-    public SimpleItemHandler(@NotNull TemplateInventoryImpl<PlatformItem> inventory, @NotNull InventoryTemplateImpl<PlatformPlayer> template) {
+    public SimpleItemHandler(@NotNull User user, @NotNull PlatformPlayer player, @NotNull TemplateInventoryImpl<PlatformItem> inventory, @NotNull InventoryTemplateImpl<PlatformPlayer> template) {
+        this.user = user;
+        this.player = player;
         this.inventory = inventory;
         this.template = template;
         this.abstractInventory = (AbstractInventory<PlatformItem>) inventory;
@@ -111,9 +113,7 @@ public class SimpleItemHandler<PlatformItem, PlatformPlayer> implements Inventor
     }
 
     @Override
-    public void doOpen(@NotNull PlatformPlayer player, @NotNull User user) {
-        this.user = user;
-        this.player = player;
+    public void doOpen() {
         this.paginationCalculator.onOpen(user);
         for (var slot = 0; slot < size; slot++) {
             setItem(player, user, slot);
@@ -121,7 +121,7 @@ public class SimpleItemHandler<PlatformItem, PlatformPlayer> implements Inventor
     }
 
     @Override
-    public void doClose(@NotNull PlatformPlayer platformPlayer, @NotNull User user) {
+    public void doClose() {
         this.paginationCalculator.onClose(user);
     }
 

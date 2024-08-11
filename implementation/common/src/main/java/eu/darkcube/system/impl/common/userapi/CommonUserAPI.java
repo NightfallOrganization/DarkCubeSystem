@@ -18,6 +18,7 @@ import eu.darkcube.system.libs.com.github.benmanes.caffeine.cache.Caffeine;
 import eu.darkcube.system.libs.com.github.benmanes.caffeine.cache.LoadingCache;
 import eu.darkcube.system.libs.com.github.benmanes.caffeine.cache.RemovalCause;
 import eu.darkcube.system.libs.com.github.benmanes.caffeine.cache.RemovalListener;
+import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 import eu.darkcube.system.userapi.UserAPI;
@@ -114,5 +115,9 @@ public abstract class CommonUserAPI implements UserAPI {
                 userCollected(uniqueId);
             }
         }
+    }
+
+    public static Key key(String value) {
+        return Key.key("userapi", value);
     }
 }

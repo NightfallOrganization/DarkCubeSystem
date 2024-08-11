@@ -148,7 +148,8 @@ public abstract class InventoryTemplateImpl<PlatformPlayer> implements Inventory
     @Override
     public @NotNull Inventory open(@NotNull Object player) {
         var platformPlayer = onlinePlayer(player);
-        var user = platformPlayer == null ? null : user(platformPlayer);
+        if (platformPlayer == null) throw new IllegalStateException("Player " + player + " not online when trying to open inventory");
+        var user = user(platformPlayer);
         var title = calculateTitle(user);
         return open(title, platformPlayer);
     }
@@ -173,7 +174,7 @@ public abstract class InventoryTemplateImpl<PlatformPlayer> implements Inventory
 
     protected abstract @Nullable PlatformPlayer onlinePlayer(@NotNull Object player);
 
-    protected abstract @NotNull Inventory open(@Nullable Component title, @Nullable PlatformPlayer player);
+    protected abstract @NotNull Inventory open(@Nullable Component title, @NotNull PlatformPlayer player);
 
     protected abstract @Nullable Object tryConvertTitle(@NotNull Object title);
 }

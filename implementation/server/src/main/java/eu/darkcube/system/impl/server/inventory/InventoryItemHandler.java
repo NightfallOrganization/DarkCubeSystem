@@ -12,8 +12,8 @@ import eu.darkcube.system.server.item.ItemBuilder;
 import eu.darkcube.system.userapi.User;
 
 public interface InventoryItemHandler<PlatformItem, PlatformPlayer> {
-    static <PlatformItem, PlatformPlayer> InventoryItemHandler<PlatformItem, PlatformPlayer> simple(TemplateInventoryImpl<PlatformItem> inventory, InventoryTemplateImpl<PlatformPlayer> template) {
-        return new SimpleItemHandler<>(inventory, template);
+    static <PlatformItem, PlatformPlayer> InventoryItemHandler<PlatformItem, PlatformPlayer> simple(@NotNull User user, @NotNull PlatformPlayer player, @NotNull TemplateInventoryImpl<PlatformItem> inventory, @NotNull InventoryTemplateImpl<PlatformPlayer> template) {
+        return new SimpleItemHandler<>(user, player, inventory, template);
     }
 
     @NotNull
@@ -22,9 +22,9 @@ public interface InventoryItemHandler<PlatformItem, PlatformPlayer> {
     /**
      * Calculates all the items in the inventory.
      */
-    void doOpen(@NotNull PlatformPlayer player, @NotNull User user);
+    void doOpen();
 
-    void doClose(@NotNull PlatformPlayer player, @NotNull User user);
+    void doClose();
 
     void handleClick(int slot, @NotNull PlatformItem itemStack, @NotNull ItemBuilder item);
 

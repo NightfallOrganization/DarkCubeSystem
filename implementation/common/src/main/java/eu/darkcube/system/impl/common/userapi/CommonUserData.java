@@ -13,6 +13,7 @@ import java.util.UUID;
 import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.userapi.UserData;
+import eu.darkcube.system.userapi.UserSettings;
 import eu.darkcube.system.util.Language;
 import eu.darkcube.system.util.data.BasicMetaDataStorage;
 import eu.darkcube.system.util.data.MetaDataStorage;
@@ -22,12 +23,11 @@ import eu.darkcube.system.util.data.PersistentDataTypes;
 
 public class CommonUserData implements UserData {
 
-    private static final Key LANGUAGE_KEY = Key.key("userapi", "language");
-    private static final PersistentDataType<Language> LANGUAGE_TYPE = PersistentDataTypes.enumType(Language.class);
-    private static final Key CUBES_KEY = Key.key("userapi", "cubes");
+    private static final Key CUBES_KEY = CommonUserAPI.key("cubes");
     private static final PersistentDataType<BigInteger> CUBES_TYPE = PersistentDataTypes.BIGINTEGER;
     private final UUID uniqueId;
     private volatile String name;
+    private final UserSettings settings;
     private final MetaDataStorage metadata;
     private final PersistentDataStorage persistentData;
 
@@ -36,6 +36,7 @@ public class CommonUserData implements UserData {
         this.name = name;
         this.persistentData = persistentData;
         this.metadata = new BasicMetaDataStorage();
+        this.settings = new CommonUserSettings(persistentData);
     }
 
     @Override
@@ -60,12 +61,17 @@ public class CommonUserData implements UserData {
 
     @Override
     public @NotNull Language language() {
-        return persistentData().get(LANGUAGE_KEY, LANGUAGE_TYPE, () -> Language.DEFAULT);
+        return settings().language();
     }
 
     @Override
     public void language(@NotNull Language language) {
-        persistentData().set(LANGUAGE_KEY, LANGUAGE_TYPE, language);
+        settings().language(language);
+    }
+
+    @Override
+    public @NotNull UserSettings settings() {
+        return settings;
     }
 
     @Override
