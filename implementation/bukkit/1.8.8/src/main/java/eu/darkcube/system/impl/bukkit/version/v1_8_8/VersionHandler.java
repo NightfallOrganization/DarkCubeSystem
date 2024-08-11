@@ -9,12 +9,14 @@ package eu.darkcube.system.impl.bukkit.version.v1_8_8;
 
 import eu.darkcube.system.impl.bukkit.inventory.InventoryVersionProvider;
 import eu.darkcube.system.impl.bukkit.version.AbstractVersionHandler;
+import eu.darkcube.system.impl.bukkit.version.v1_8_8.inventory.BukkitInventoryTemplatePlatformProvider;
 import eu.darkcube.system.impl.bukkit.version.v1_8_8.inventory.BukkitItemTemplateItemProvider;
 import eu.darkcube.system.impl.bukkit.version.v1_8_8.inventory.InventoryVersionProviderImpl;
 import eu.darkcube.system.impl.bukkit.version.v1_8_8.item.ItemProviderImpl;
 import eu.darkcube.system.impl.bukkit.version.v1_8_8.item.KeyProviderImpl;
 import eu.darkcube.system.impl.server.item.KeyProvider;
 import eu.darkcube.system.provider.InternalProvider;
+import eu.darkcube.system.server.inventory.DarkCubeInventoryTemplates;
 import eu.darkcube.system.server.inventory.DarkCubeItemTemplates;
 import eu.darkcube.system.server.item.ItemProvider;
 
@@ -24,6 +26,7 @@ public class VersionHandler extends AbstractVersionHandler {
         InternalProvider.instance().register(KeyProvider.class, new KeyProviderImpl());
         InternalProvider.instance().register(InventoryVersionProvider.class, new InventoryVersionProviderImpl());
         InternalProvider.instance().register(DarkCubeItemTemplates.ItemProvider.class, new BukkitItemTemplateItemProvider());
+        InternalProvider.instance().register(DarkCubeInventoryTemplates.PlatformProvider.class, new BukkitInventoryTemplatePlatformProvider());
     }
 
     @Override

@@ -9,6 +9,7 @@ package eu.darkcube.system.impl.minestom;
 
 import eu.darkcube.system.impl.minestom.adventure.MinestomAdventureSupportImpl;
 import eu.darkcube.system.impl.minestom.inventory.MinestomInventoryProvider;
+import eu.darkcube.system.impl.minestom.inventory.MinestomInventoryTemplatePlatformProvider;
 import eu.darkcube.system.impl.minestom.inventory.MinestomInventoryTypeProvider;
 import eu.darkcube.system.impl.minestom.inventory.MinestomItemTemplateItemProvider;
 import eu.darkcube.system.impl.minestom.item.MinestomEquipmentSlotGroupProvider;
@@ -26,6 +27,7 @@ import eu.darkcube.system.impl.server.inventory.item.ItemReferenceProviderImpl;
 import eu.darkcube.system.impl.server.inventory.item.ItemTemplateProviderImpl;
 import eu.darkcube.system.impl.server.inventory.listener.InventoryListenerProviderImpl;
 import eu.darkcube.system.provider.InternalProvider;
+import eu.darkcube.system.server.inventory.DarkCubeInventoryTemplates;
 import eu.darkcube.system.server.inventory.DarkCubeItemTemplates;
 import eu.darkcube.system.server.inventory.InventoryProvider;
 import eu.darkcube.system.server.inventory.InventoryTypeProvider;
@@ -70,6 +72,7 @@ public class DarkCubeSystemMinestomExtension extends Extension {
         install(InventoryListenerProvider.class, new InventoryListenerProviderImpl());
         install(ColorProvider.class, new MinestomColorProvider());
         install(DarkCubeItemTemplates.ItemProvider.class, new MinestomItemTemplateItemProvider());
+        install(DarkCubeInventoryTemplates.PlatformProvider.class, new MinestomInventoryTemplatePlatformProvider());
     }
 
     private <T> void install(Class<T> type, T instance) {

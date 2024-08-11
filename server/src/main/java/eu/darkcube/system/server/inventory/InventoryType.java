@@ -13,4 +13,6 @@ public interface InventoryType {
     static @NotNull InventoryType of(@NotNull Object inventoryType) {
         return InventoryTypeProviderImpl.inventoryTypeProvider().of(inventoryType);
     }
+
+    int size();
 }
