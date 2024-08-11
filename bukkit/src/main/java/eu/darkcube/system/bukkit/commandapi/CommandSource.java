@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 
 import eu.darkcube.system.BaseMessage;
 import eu.darkcube.system.bukkit.commandapi.argument.EntityAnchorArgument;
-import eu.darkcube.system.commandapi.CommandExecutor;
 import eu.darkcube.system.commandapi.ISuggestionProvider;
 import eu.darkcube.system.commandapi.util.MathHelper;
 import eu.darkcube.system.commandapi.util.Messages.MessageWrapper;
@@ -53,8 +52,8 @@ public class CommandSource implements ISuggestionProvider, ForwardingAudience.Si
 
     public static final SimpleCommandExceptionType REQUIRES_ENTITY_EXCEPTION_TYPE = new SimpleCommandExceptionType(new LiteralMessage("You need to be an entity!"));
 
-    private final CommandExecutor source;
-    private final CommandExecutor originalSource;
+    private final BukkitCommandExecutor source;
+    private final BukkitCommandExecutor originalSource;
     private final Vector3d pos;
     private final World world;
     private final String name;
@@ -66,12 +65,12 @@ public class CommandSource implements ISuggestionProvider, ForwardingAudience.Si
     private final Vector2f rotation;
     private final Map<String, Object> extra;
 
-    public CommandSource(CommandExecutor source, CommandExecutor originalSource, Vector3d pos, World world, String name, Component displayName, Entity entity, Vector2f rotation, Map<String, Object> extra) {
+    public CommandSource(BukkitCommandExecutor source, BukkitCommandExecutor originalSource, Vector3d pos, World world, String name, Component displayName, Entity entity, Vector2f rotation, Map<String, Object> extra) {
         this(source, originalSource, pos, world, name, displayName, false, entity, (context, success, result) -> {
         }, EntityAnchorArgument.Type.FEET, rotation, extra);
     }
 
-    public CommandSource(CommandExecutor source, CommandExecutor originalSource, Vector3d pos, World world, String name, Component displayName, boolean feedbackDisabled, Entity entity, ResultConsumer<CommandSource> resultConsumer, EntityAnchorArgument.Type entityAnchorType, Vector2f rotation, Map<String, Object> extra) {
+    public CommandSource(BukkitCommandExecutor source, BukkitCommandExecutor originalSource, Vector3d pos, World world, String name, Component displayName, boolean feedbackDisabled, Entity entity, ResultConsumer<CommandSource> resultConsumer, EntityAnchorArgument.Type entityAnchorType, Vector2f rotation, Map<String, Object> extra) {
         super();
         this.source = source;
         this.originalSource = originalSource;
@@ -302,7 +301,7 @@ public class CommandSource implements ISuggestionProvider, ForwardingAudience.Si
         return this.name;
     }
 
-    public CommandExecutor originalSource() {
+    public BukkitCommandExecutor originalSource() {
         return originalSource;
     }
 
@@ -314,7 +313,7 @@ public class CommandSource implements ISuggestionProvider, ForwardingAudience.Si
         return this.rotation;
     }
 
-    public CommandExecutor getSource() {
+    public BukkitCommandExecutor getSource() {
         return this.source;
     }
 

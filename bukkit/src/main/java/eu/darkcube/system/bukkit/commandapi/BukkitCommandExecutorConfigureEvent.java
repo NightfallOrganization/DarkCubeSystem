@@ -14,9 +14,9 @@ public class BukkitCommandExecutorConfigureEvent extends Event {
 
     private static final HandlerList handlers = new HandlerList();
 
-    private BukkitCommandExecutor executor;
+    private BukkitCommandExecutorImpl executor;
 
-    public BukkitCommandExecutorConfigureEvent(BukkitCommandExecutor executor) {
+    public BukkitCommandExecutorConfigureEvent(BukkitCommandExecutorImpl executor) {
         this.executor = executor;
     }
 
@@ -24,7 +24,7 @@ public class BukkitCommandExecutorConfigureEvent extends Event {
         return handlers;
     }
 
-    public BukkitCommandExecutor getExecutor() {
+    public BukkitCommandExecutorImpl getExecutor() {
         return executor;
     }
 

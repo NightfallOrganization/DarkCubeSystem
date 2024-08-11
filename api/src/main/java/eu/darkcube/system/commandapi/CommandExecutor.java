@@ -48,6 +48,15 @@ public interface CommandExecutor extends Audience {
 
     void language(@NotNull Language language);
 
+    /**
+     * Simple hasPermission check. At this time this only returns true if used in the bukkit CommandAPI
+     * @deprecated Unsafe
+     */
+    @Deprecated
+    default boolean hasPermission(@NotNull String permission) {
+        return false;
+    }
+
     @NotNull
     default String commandPrefix() {
         return "";

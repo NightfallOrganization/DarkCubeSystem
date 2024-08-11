@@ -9,6 +9,7 @@ package eu.darkcube.system.minestom.command;
 
 import eu.darkcube.system.commandapi.CommandExecutor;
 import eu.darkcube.system.libs.net.kyori.adventure.audience.ForwardingAudience;
+import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import net.minestom.server.command.CommandSender;
 
 public interface MinestomCommandExecutor extends CommandExecutor, ForwardingAudience {
@@ -17,6 +18,7 @@ public interface MinestomCommandExecutor extends CommandExecutor, ForwardingAudi
         return new MinestomCommandExecutorImpl(sender);
     }
 
+    @NotNull
     CommandSender sender();
 
 }
