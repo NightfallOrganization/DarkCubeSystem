@@ -71,7 +71,7 @@ configurations.consumable("cloudnetPluginRaw") {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.21-R0.1-20240701.082534-43")
+    compileOnly(libs.paper.latest)
     compileOnly(libs.viaversion)
     api(projects.darkcubesystemBukkit)
     api(projects.darkcubesystemImplementationKyoriWrapper)
