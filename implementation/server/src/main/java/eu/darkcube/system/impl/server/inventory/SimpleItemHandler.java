@@ -43,10 +43,19 @@ public class SimpleItemHandler<PlatformItem, PlatformPlayer> implements Inventor
         this.template = template;
         this.abstractInventory = (AbstractInventory<PlatformItem>) inventory;
         this.size = abstractInventory.size;
-        this.animationHandler = template.animation().hasAnimation() ? new ConfiguredAnimationHandler<>(inventory, template.animation()) : AnimationHandler.noAnimation();
+        this.animationHandler = useAnimations() ? new ConfiguredAnimationHandler<>(inventory, template.animation()) : AnimationHandler.noAnimation();
         this.contents = TemplateInventoryImpl.deepCopy(template.contents());
         this.tasks = new SortedMap[size];
         this.paginationCalculator = new PaginationCalculator<>(this, this);
+    }
+
+    private boolean useAnimations() {
+        var animation = template.animation;
+        if (!animation.hasAnimation()) return false;
+        if (!animation.ignoreUserSettings()) {
+            return user.settings().animations();
+        }
+        return true;
     }
 
     public ExecutorService service() {

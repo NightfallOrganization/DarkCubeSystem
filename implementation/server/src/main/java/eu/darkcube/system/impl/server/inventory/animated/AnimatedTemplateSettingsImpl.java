@@ -17,6 +17,7 @@ import eu.darkcube.system.server.inventory.animated.AnimatedTemplateSettings;
 public class AnimatedTemplateSettingsImpl<PlatformPlayer> implements AnimatedTemplateSettings {
     private final InventoryTemplateImpl<PlatformPlayer> template;
     private final Duration[] durations;
+    private boolean ignoreUserSettings;
 
     public AnimatedTemplateSettingsImpl(InventoryTemplateImpl<PlatformPlayer> template) {
         this.template = template;
@@ -25,8 +26,23 @@ public class AnimatedTemplateSettingsImpl<PlatformPlayer> implements AnimatedTem
     }
 
     @Override
+    public boolean ignoreUserSettings() {
+        return this.ignoreUserSettings;
+    }
+
+    @Override
+    public void ignoreUserSettings(boolean ignore) {
+        this.ignoreUserSettings = ignore;
+    }
+
+    @Override
+    public void clear() {
+        Arrays.fill(this.durations, Duration.ZERO);
+    }
+
+    @Override
     public boolean hasAnimation() {
-        for (var duration : durations) {
+        for (var duration : this.durations) {
             if (!duration.isZero()) return true;
         }
         return false;
@@ -34,12 +50,12 @@ public class AnimatedTemplateSettingsImpl<PlatformPlayer> implements AnimatedTem
 
     @Override
     public void showAfter(int slot, @NotNull Duration duration) {
-        durations[slot] = duration;
+        this.durations[slot] = duration;
     }
 
     @Override
     public @NotNull Duration getShowAfter(int slot) {
-        return durations[slot];
+        return this.durations[slot];
     }
 
     @Override
@@ -47,8 +63,8 @@ public class AnimatedTemplateSettingsImpl<PlatformPlayer> implements AnimatedTem
         var startRow = slot / 9;
         var startIdx = slot % 9;
 
-        for (var i = 0; i < durations.length; i++) {
-            var duration = durations[i];
+        for (var i = 0; i < this.durations.length; i++) {
+            var duration = this.durations[i];
             if (!duration.isZero()) continue;
             var row = i / 9;
             var idx = i % 9;
@@ -56,12 +72,12 @@ public class AnimatedTemplateSettingsImpl<PlatformPlayer> implements AnimatedTem
             var manifold = Math.abs(startRow - row) + Math.abs(startIdx - idx);
             var millis = Math.round(manifold * 50 * delay);
             duration = Duration.ofMillis(millis);
-            durations[i] = duration;
+            this.durations[i] = duration;
         }
     }
 
     @Override
     public @NotNull InventoryTemplateImpl<PlatformPlayer> inventoryTemplate() {
-        return template;
+        return this.template;
     }
 }

@@ -40,12 +40,12 @@ public class DarkCubeInventoryTemplates {
             }
 
             @Override
-            public void onUpdate(@NotNull TemplateInventory inventory) {
+            public void onOpenAnimationFinished(@NotNull TemplateInventory inventory) {
                 this.finished = true;
             }
 
             @Override
-            public void onOpenAnimationFinished(@NotNull TemplateInventory inventory) {
+            public void onUpdate(@NotNull TemplateInventory inventory) {
                 if (!this.finished) {
                     if (this.user == null) return;
                     if (!this.user.settings().sounds()) return;
