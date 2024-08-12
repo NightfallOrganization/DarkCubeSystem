@@ -10,7 +10,6 @@ package eu.darkcube.system.server.item;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -22,17 +21,19 @@ import eu.darkcube.system.libs.net.kyori.adventure.text.serializer.legacy.Legacy
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Unmodifiable;
+import eu.darkcube.system.server.data.component.DataComponent;
 import eu.darkcube.system.server.item.attribute.Attribute;
 import eu.darkcube.system.server.item.attribute.AttributeModifier;
 import eu.darkcube.system.server.item.attribute.AttributeModifierOperation;
+import eu.darkcube.system.server.item.component.ItemComponent;
 import eu.darkcube.system.server.item.enchant.Enchantment;
 import eu.darkcube.system.server.item.flag.ItemFlag;
 import eu.darkcube.system.server.item.material.Material;
-import eu.darkcube.system.server.item.meta.BuilderMeta;
 import eu.darkcube.system.server.item.storage.ItemPersistentDataStorage;
 
+@SuppressWarnings("removal")
 @Api
-public interface ItemBuilder {
+public interface ItemBuilder extends DataComponent.Holder, ItemComponent {
     @Api
     static @NotNull ItemBuilder item() {
         return item((Material) null);
@@ -90,6 +91,19 @@ public interface ItemBuilder {
     default ItemBuilder map(@NotNull Function<@NotNull ItemBuilder, @NotNull ItemBuilder> mapper) {
         return mapper.apply(this);
     }
+
+    @Override
+    @Api
+    @Nullable
+    <T> T get(@NotNull DataComponent<T> component);
+
+    @Api
+    @NotNull
+    <T> ItemBuilder set(@NotNull DataComponent<T> component, @NotNull T value);
+
+    @Api
+    @NotNull
+    <T> ItemBuilder remove(@NotNull DataComponent<T> component);
 
     @Api
     int amount();
@@ -288,11 +302,13 @@ public interface ItemBuilder {
 
     @Api
     @NotNull
+    @Deprecated(forRemoval = true)
     ItemBuilder setFlags(@NotNull Collection<@NotNull ?> flags);
 
     @Api
     @NotNull
     @Unmodifiable
+    @Deprecated(forRemoval = true)
     List<@NotNull ItemFlag> flags();
 
     @Api
@@ -314,26 +330,6 @@ public interface ItemBuilder {
     ItemPersistentDataStorage persistentDataStorage();
 
     @Api
-    <T extends BuilderMeta> @NotNull T meta(@NotNull Class<T> clazz);
-
-    @Api
-    @NotNull
-    <T extends BuilderMeta> ItemBuilder meta(@NotNull Class<T> clazz, @NotNull Consumer<@NotNull T> meta);
-
-    @Api
-    @NotNull
-    ItemBuilder meta(@NotNull BuilderMeta meta);
-
-    @Api
-    @NotNull
-    @Unmodifiable
-    Set<BuilderMeta> metas();
-
-    @Api
-    @NotNull
-    ItemBuilder metas(@NotNull Set<BuilderMeta> metas);
-
-    @Api
     @NotNull
     ItemBuilder clone();
 
@@ -345,11 +341,12 @@ public interface ItemBuilder {
     ItemBuilder repairCost(int repairCost);
 
     @Api
+    @Nullable
     ItemRarity rarity();
 
     @Api
     @NotNull
-    ItemBuilder rarity(@NotNull ItemRarity rarity);
+    ItemBuilder rarity(@Nullable ItemRarity rarity);
 
     @Api
     @NotNull

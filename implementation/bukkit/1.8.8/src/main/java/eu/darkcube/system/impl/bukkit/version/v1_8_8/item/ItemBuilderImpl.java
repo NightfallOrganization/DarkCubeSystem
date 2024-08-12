@@ -8,55 +8,42 @@
 package eu.darkcube.system.impl.bukkit.version.v1_8_8.item;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
-import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
 import eu.darkcube.system.bukkit.item.BukkitItemBuilder;
-import eu.darkcube.system.bukkit.util.ReflectionUtils;
-import eu.darkcube.system.bukkit.util.ReflectionUtils.PackageType;
-import eu.darkcube.system.impl.bukkit.item.enchant.BukkitEnchantmentImpl;
-import eu.darkcube.system.impl.bukkit.item.firework.BukkitFireworkEffectImpl;
-import eu.darkcube.system.impl.bukkit.item.flag.BukkitItemFlagImpl;
 import eu.darkcube.system.impl.bukkit.item.material.BukkitMaterialImpl;
+import eu.darkcube.system.impl.bukkit.version.v1_8_8.item.mappings.CustomDataMapper;
+import eu.darkcube.system.impl.bukkit.version.v1_8_8.item.mappings.CustomNameMapper;
+import eu.darkcube.system.impl.bukkit.version.v1_8_8.item.mappings.DamageMapper;
+import eu.darkcube.system.impl.bukkit.version.v1_8_8.item.mappings.DyedColorMapper;
+import eu.darkcube.system.impl.bukkit.version.v1_8_8.item.mappings.EnchantmentGlintOverrideMapper;
+import eu.darkcube.system.impl.bukkit.version.v1_8_8.item.mappings.EnchantmentsMapper;
+import eu.darkcube.system.impl.bukkit.version.v1_8_8.item.mappings.FireworkExplosionMapper;
+import eu.darkcube.system.impl.bukkit.version.v1_8_8.item.mappings.LoreMapper;
+import eu.darkcube.system.impl.bukkit.version.v1_8_8.item.mappings.ProfileMapper;
+import eu.darkcube.system.impl.bukkit.version.v1_8_8.item.mappings.SpawnerEntityDataMapper;
+import eu.darkcube.system.impl.bukkit.version.v1_8_8.item.mappings.UnbreakableMapper;
 import eu.darkcube.system.impl.server.item.AbstractItemBuilder;
 import eu.darkcube.system.libs.com.google.gson.Gson;
 import eu.darkcube.system.libs.com.google.gson.GsonBuilder;
 import eu.darkcube.system.libs.com.google.gson.JsonElement;
-import eu.darkcube.system.libs.com.google.gson.JsonObject;
 import eu.darkcube.system.libs.com.google.gson.TypeAdapter;
 import eu.darkcube.system.libs.com.google.gson.stream.JsonReader;
 import eu.darkcube.system.libs.com.google.gson.stream.JsonToken;
 import eu.darkcube.system.libs.com.google.gson.stream.JsonWriter;
-import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
-import eu.darkcube.system.libs.net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.server.item.ItemBuilder;
-import eu.darkcube.system.server.item.meta.FireworkBuilderMeta;
-import eu.darkcube.system.server.item.meta.LeatherArmorBuilderMeta;
-import eu.darkcube.system.server.item.meta.SkullBuilderMeta;
-import eu.darkcube.system.server.item.meta.SpawnEggBuilderMeta;
-import eu.darkcube.system.util.Color;
+import eu.darkcube.system.server.item.component.LegacyItemComponent;
 import net.minecraft.server.v1_8_R3.MojangsonParseException;
 import net.minecraft.server.v1_8_R3.MojangsonParser;
 import net.minecraft.server.v1_8_R3.NBTTagCompound;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_8_R3.inventory.CraftItemStack;
-import org.bukkit.enchantments.Enchantment;
-import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.FireworkEffectMeta;
-import org.bukkit.inventory.meta.LeatherArmorMeta;
-import org.bukkit.inventory.meta.SkullMeta;
 
+@SuppressWarnings("deprecation")
 public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBuilder {
-
-    private static final Gson gson = new GsonBuilder().registerTypeAdapter(ItemStack.class, new TypeAdapter<ItemStack>() {
+    private static final Gson GSON = new GsonBuilder().registerTypeAdapter(ItemStack.class, new TypeAdapter<ItemStack>() {
         @Override
         public void write(JsonWriter writer, ItemStack value) throws IOException {
             if (value == null) {
@@ -86,7 +73,8 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
             return CraftItemStack.asBukkitCopy(nbtItem);
         }
     }).create();
-    private static final Field CraftMetaSkull$profile = ReflectionUtils.getField("CraftMetaSkull", PackageType.CRAFTBUKKIT_INVENTORY, true, "profile");
+    private static final List<Mapping<?>> MAPPINGS;
+    private static final List<Mapping<?>> MAPPINGS_PURE;
 
     public ItemBuilderImpl() {
     }
@@ -94,49 +82,82 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
     public ItemBuilderImpl(ItemStack item) {
         material(item.getType());
         amount(item.getAmount());
+        for (var i = 0; i < MAPPINGS_PURE.size(); i++) {
+            var mapping = MAPPINGS_PURE.get(i);
+            mapping.load(this, item, null);
+        }
         if (item.hasItemMeta()) {
             var meta = item.getItemMeta();
-            unbreakable(meta.spigot().isUnbreakable());
-            var displayname = meta.getDisplayName();
-            if (displayname != null) displayname(LegacyComponentSerializer.legacySection().deserialize(displayname));
-            for (var e : meta.getEnchants().entrySet()) {
-                enchant(e.getKey(), e.getValue());
+            for (var i = 0; i < MAPPINGS.size(); i++) {
+                var mapping = MAPPINGS.get(i);
+                mapping.load(this, item, meta);
             }
-            setFlags(meta.getItemFlags().stream().map(eu.darkcube.system.server.item.flag.ItemFlag::of).toList());
-            lore(meta.hasLore() ? meta.getLore().stream().map(LegacyComponentSerializer.legacySection()::deserialize).collect(Collectors.toList()) : new ArrayList<>());
-            damage(item.getDurability());
-            if (meta instanceof FireworkEffectMeta fireworkEffectMeta) meta(FireworkBuilderMeta.class).fireworkEffect(fireworkEffectMeta.getEffect());
-            if (meta instanceof SkullMeta) {
-                var pp = (GameProfile) ReflectionUtils.getValue(meta, CraftMetaSkull$profile);
-                if (pp != null) {
-                    var prop = pp.getProperties().containsKey("textures") ? pp.getProperties().get("textures").stream().findFirst().orElse(null) : null;
-                    var texture = prop == null ? null : new SkullBuilderMeta.UserProfile.Texture(prop.getValue(), prop.getSignature());
-                    var up = new SkullBuilderMeta.UserProfile(pp.getName(), pp.getId(), texture);
-                    meta(SkullBuilderMeta.class).owningPlayer(up);
-                }
-            }
-            if (meta instanceof LeatherArmorMeta leatherArmorMeta) meta(LeatherArmorBuilderMeta.class).color(new Color(leatherArmorMeta.getColor().asRGB()));
-            var mci = CraftItemStack.asNMSCopy(item);
-            var tag = mci.getTag();
-            if (tag != null) {
-                if (tag.hasKey("System:persistentDataStorage")) {
-                    var s = tag.getString("System:persistentDataStorage");
-                    tag.remove("System:persistentDataStorage");
-                    tag.setString("system:persistent_data_storage", s);
-                }
-                if (tag.hasKey("system:persistent_data_storage")) {
-                    storage.loadFromJsonObject(new Gson().fromJson(tag.getString("system:persistent_data_storage"), JsonObject.class));
-                }
 
-                if (item.getType() == Material.MONSTER_EGG && tag.hasKey("EntityTag")) {
-                    meta(SpawnEggBuilderMeta.class).entityTag(tag.getCompound("EntityTag").toString());
+            // region persistent data migration
+            {
+                var customData = get(CUSTOM_DATA);
+                if (customData != null) {
+                    var original = customData;
+                    if (customData.keySet().contains("System:persistentDataStorage")) {
+                        var s = customData.getString("System:persistentDataStorage");
+                        customData = customData.remove("System:persistentDataStorage");
+                        customData = customData.putString("system:persistent_data_storage", s);
+                    }
+                    if (customData.keySet().contains("system:persistent_data_storage")) {
+                        var s = customData.getString("system:persistent_data_storage");
+                        customData = customData.remove("system:persistent_data_storage");
+                        customData = customData.putString(KEY_DOCUMENT, s);
+                    }
+                    if (original != customData) {
+                        set(CUSTOM_DATA, customData);
+                    }
                 }
             }
+            // endregion
         }
+
+        loadPersistentDataStorage();
+    }
+
+    @Override
+    public @NotNull ItemStack build0() {
+        var item = new ItemStack(((BukkitMaterialImpl) material).bukkitType());
+        item.setAmount(amount);
+
+        for (var i = 0; i < MAPPINGS_PURE.size(); i++) {
+            var mapping = MAPPINGS_PURE.get(i);
+            mapping.apply(this, item, null);
+        }
+        var meta = item.getItemMeta();
+        if (meta != null) {
+            for (var i = 0; i < MAPPINGS.size(); i++) {
+                var mapping = MAPPINGS.get(i);
+                mapping.apply(this, item, meta);
+            }
+            item.setItemMeta(meta);
+        } else {
+            throw new IllegalArgumentException("Item without Meta: " + material);
+        }
+        return item;
+    }
+
+    @Override
+    public final @NotNull ItemStack build() {
+        return super.build();
+    }
+
+    @Override
+    public @NotNull AbstractItemBuilder clone() {
+        return new ItemBuilderImpl(build());
     }
 
     public static ItemBuilderImpl deserialize(JsonElement json) {
-        return new ItemBuilderImpl(gson.fromJson(json, ItemStack.class));
+        return new ItemBuilderImpl(GSON.fromJson(json, ItemStack.class));
+    }
+
+    @Override
+    public @NotNull JsonElement serialize() {
+        return GSON.toJsonTree(build());
     }
 
     @Override
@@ -150,105 +171,25 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
     }
 
     @Override
-    public @NotNull AbstractItemBuilder clone() {
-        return new ItemBuilderImpl(build());
-    }
-
-    @Override
     public boolean canBeRepairedBy(ItemBuilder item) {
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    public @NotNull ItemStack build() {
-        var item = new ItemStack(((BukkitMaterialImpl) material).bukkitType());
-        item.setAmount(amount);
-        if (damage.isPresent()) {
-            item.setDurability((short) damage.getAsInt());
-        }
-        var meta = item.getItemMeta();
-        if (meta != null) {
-            if (unbreakable.isPresent()) {
-                meta.spigot().setUnbreakable(unbreakable.get());
-            }
-            if (displayname != Component.empty()) meta.setDisplayName(LegacyComponentSerializer.legacySection().serialize(displayname));
-            for (var e : enchantments.entrySet()) {
-                meta.addEnchant(((BukkitEnchantmentImpl) e.getKey()).bukkitType(), e.getValue(), true);
-            }
-            meta.addItemFlags(flags.stream().map(flag -> ((BukkitItemFlagImpl) flag).bukkitType()).toArray(ItemFlag[]::new));
-            List<String> lore = new ArrayList<>();
-            for (var loreComponent : this.lore) {
-                var l = LegacyComponentSerializer.legacySection().serialize(loreComponent);
-                String last = null;
-                for (var line : l.split("\\R")) {
-                    if (last != null) line = last + line;
-                    last = ChatColor.getLastColors(line);
-                    lore.add(line);
-                }
-            }
-            meta.setLore(lore);
-            if (glow.isPresent()) {
-                if (glow.get()) {
-                    if (enchantments.isEmpty()) {
-                        meta.addEnchant(item.getType() == Material.BOW ? Enchantment.PROTECTION_ENVIRONMENTAL : Enchantment.ARROW_INFINITE, 1, true);
-                        meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-                    }
-                }
-            }
-            for (var builderMeta : metas) {
-                switch (builderMeta) {
-                    case FireworkBuilderMeta fireworkBuilderMeta -> {
-                        var bukkitFirework = ((BukkitFireworkEffectImpl) fireworkBuilderMeta.fireworkEffect());
-                        ((FireworkEffectMeta) meta).setEffect(bukkitFirework == null ? null : bukkitFirework.bukkitType());
-                    }
-                    case SkullBuilderMeta skullBuilderMeta -> {
-                        var owner = skullBuilderMeta.owningPlayer();
-                        var texture = owner.texture();
-                        var generateUUID = texture != null;
-                        var uuid = generateUUID ? (owner.uniqueId() == null ? UUID.randomUUID() : owner.uniqueId()) : null;
-                        var profile = new GameProfile(uuid, owner.name());
-                        if (texture != null) {
-                            profile.getProperties().put("textures", new Property("textures", texture.value(), texture.signature()));
-                        }
-                        if (owner.name() != null && owner.uniqueId() == null && texture == null) {
-                            ((SkullMeta) meta).setOwner(owner.name());
-                        } else {
-                            ReflectionUtils.setValue(meta, CraftMetaSkull$profile, profile);
-                        }
-                    }
-                    case LeatherArmorBuilderMeta leatherArmorBuilderMeta -> ((LeatherArmorMeta) meta).setColor(org.bukkit.Color.fromRGB(leatherArmorBuilderMeta.color().rgb()));
-                    case SpawnEggBuilderMeta spawnEggBuilderMeta -> {
-                        if (spawnEggBuilderMeta.entityTag() != null) {
-                            item.setItemMeta(meta);
-                            var mci = CraftItemStack.asNMSCopy(item);
-                            var tag = mci.getTag() == null ? new NBTTagCompound() : mci.getTag();
-                            try {
-                                tag.set("EntityTag", MojangsonParser.parse(spawnEggBuilderMeta.entityTag()));
-                            } catch (MojangsonParseException e) {
-                                throw new RuntimeException(e);
-                            }
-                            mci.setTag(tag);
-                            item = CraftItemStack.asBukkitCopy(mci);
-                            meta = item.getItemMeta();
-                        }
-                    }
-                    case null, default -> throw new UnsupportedOperationException("Meta not supported for this mc version: " + builderMeta);
-                }
-            }
-            item.setItemMeta(meta);
-            var mci = CraftItemStack.asNMSCopy(item);
-            var tag = mci.getTag() == null ? new NBTTagCompound() : mci.getTag();
-            tag.setString("System:persistentDataStorage", storage.storeToJsonObject().toString());
-            mci.setTag(tag);
-            item = CraftItemStack.asBukkitCopy(mci);
-        } else {
-            throw new IllegalArgumentException("Item without Meta: " + material);
-        }
-        return item;
-    }
-
-    @Override
-    public @NotNull JsonElement serialize() {
-        return gson.toJsonTree(build());
+    static {
+        var m = new ArrayList<Mapping<?>>();
+        var p = new ArrayList<Mapping<?>>();
+        m.add(new Mapping<>(CUSTOM_DATA, new CustomDataMapper()));
+        m.add(new Mapping<>(CUSTOM_NAME, new CustomNameMapper()));
+        p.add(new Mapping<>(DAMAGE, new DamageMapper()));
+        m.add(new Mapping<>(DYED_COLOR, new DyedColorMapper()));
+        m.add(new Mapping<>(ENCHANTMENT_GLINT_OVERRIDE, new EnchantmentGlintOverrideMapper()));
+        m.add(new Mapping<>(ENCHANTMENTS, new EnchantmentsMapper()));
+        m.add(new Mapping<>(FIREWORK_EXPLOSION, new FireworkExplosionMapper()));
+        m.add(new Mapping<>(LORE, new LoreMapper()));
+        m.add(new Mapping<>(PROFILE, new ProfileMapper()));
+        m.add(new Mapping<>(LegacyItemComponent.SPAWNER_ENTITY_DATA, new SpawnerEntityDataMapper()));
+        m.add(new Mapping<>(UNBREAKABLE, new UnbreakableMapper()));
+        MAPPINGS = List.copyOf(m);
+        MAPPINGS_PURE = List.copyOf(p);
     }
 }

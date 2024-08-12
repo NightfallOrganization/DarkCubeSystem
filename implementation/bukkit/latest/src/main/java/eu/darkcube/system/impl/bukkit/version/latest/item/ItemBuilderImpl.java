@@ -9,13 +9,14 @@ package eu.darkcube.system.impl.bukkit.version.latest.item;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 import com.destroystokyo.paper.profile.ProfileProperty;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import eu.darkcube.system.bukkit.DarkCubePlugin;
 import eu.darkcube.system.bukkit.item.BukkitItemBuilder;
+import eu.darkcube.system.bukkit.item.material.BukkitMaterial;
 import eu.darkcube.system.impl.bukkit.item.enchant.BukkitEnchantmentImpl;
 import eu.darkcube.system.impl.bukkit.item.firework.BukkitFireworkEffectImpl;
 import eu.darkcube.system.impl.bukkit.item.flag.BukkitItemFlagImpl;
@@ -23,6 +24,61 @@ import eu.darkcube.system.impl.bukkit.item.material.BukkitMaterialImpl;
 import eu.darkcube.system.impl.bukkit.version.latest.AdventureUtils;
 import eu.darkcube.system.impl.bukkit.version.latest.item.attribute.BukkitAttribute;
 import eu.darkcube.system.impl.bukkit.version.latest.item.attribute.BukkitAttributeModifierImpl;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.AttributeModifiersMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.BannerPatternsMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.BaseColorMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.BeesMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.BlockEntityDataMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.BlockStateMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.BucketEntityDataMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.BundleContentsMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.CanBreakMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.CanPlaceOnMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.ChargedProjectilesMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.ContainerLootMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.ContainerMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.CustomDataMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.CustomModelDataMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.CustomNameMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.DamageMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.DebugStickStateMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.DyedColorMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.EnchantmentGlintOverrideMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.EnchantmentsMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.EntityDataMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.FireResistantMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.FireworkExplosionMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.FireworksMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.FoodMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.HideAdditionalTooltipMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.HideTooltipMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.InstrumentMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.IntangibleProjectileMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.ItemNameMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.JukeboxPlayableMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.LockMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.LodestoneTrackerMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.LoreMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.MapColorMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.MapDecorationsMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.MapIdMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.MapPostProcessingMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.MaxDamageMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.MaxStackSizeMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.NoteBlockSoundMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.OminousBottleAmplifierMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.PotDecorationsMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.PotionContentsMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.ProfileMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.RecipesMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.RepairCostMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.StoredEnchantmentsMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.SuspiciousStewEffectsMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.ToolMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.TrimMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.UnbreakableMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.WritableBookContentMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.WrittenBookContentMapper;
 import eu.darkcube.system.impl.common.data.LegacyDataTransformer;
 import eu.darkcube.system.impl.server.item.AbstractItemBuilder;
 import eu.darkcube.system.libs.com.google.gson.Gson;
@@ -35,6 +91,7 @@ import eu.darkcube.system.libs.com.google.gson.stream.JsonToken;
 import eu.darkcube.system.libs.com.google.gson.stream.JsonWriter;
 import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
+import eu.darkcube.system.server.data.component.DataComponent;
 import eu.darkcube.system.server.item.ItemBuilder;
 import eu.darkcube.system.server.item.ItemRarity;
 import eu.darkcube.system.server.item.meta.EnchantmentStorageBuilderMeta;
@@ -60,9 +117,9 @@ import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.persistence.PersistentDataType;
 
 public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBuilder {
-    private static final NamespacedKey PERSISTENT_DATA_KEY = new NamespacedKey(DarkCubePlugin.systemPlugin(), "persistentdatastorage");
+    private static final NamespacedKey PERSISTENT_DATA_KEY = new NamespacedKey("darkcubesystem", "persistentdatastorage");
     private static final NamespacedKey PERSISTENT_DATA_KEY_LEGACY = new NamespacedKey("system", "persistentdatastorage");
-    private static final Gson gson = new GsonBuilder().registerTypeAdapter(ItemStack.class, new TypeAdapter<ItemStack>() {
+    private static final Gson GSON = new GsonBuilder().registerTypeAdapter(ItemStack.class, new TypeAdapter<ItemStack>() {
         @Override
         public void write(JsonWriter writer, ItemStack value) throws IOException {
             if (value == null) {
@@ -92,24 +149,50 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
             return CraftItemStack.asBukkitCopy(nbtItem);
         }
     }).create();
-    private final ItemStack item;
+    private static final List<Mapping<?>> MAPPINGS;
 
     public ItemBuilderImpl() {
-        this.item = null;
     }
 
     public ItemBuilderImpl(ItemStack item) {
         var ignoreCloneFailure = false;
-        this.item = item.clone();
-        item = item.clone();
-        item.setItemMeta(item.getItemMeta());
-        this.item.setAmount(1);
         material(item.getType());
         amount(item.getAmount());
 
-        var meta = this.item.getItemMeta();
+        var meta = item.getItemMeta();
 
         if (meta != null) {
+            for (var i = 0; i < MAPPINGS.size(); i++) {
+                var mapping = MAPPINGS.get(i);
+                mapping.apply(this, item, meta);
+            }
+
+            // region persistent data migration
+            {
+                var persistentData = meta.getPersistentDataContainer();
+
+                if (meta.getPersistentDataContainer().has(PERSISTENT_DATA_KEY_LEGACY)) {
+                    var data = meta.getPersistentDataContainer().get(PERSISTENT_DATA_KEY_LEGACY, PersistentDataType.STRING);
+                    if (data != null) {
+                        var json = new Gson().fromJson(data, JsonObject.class);
+                        LegacyDataTransformer.transformLegacyPersistentData(json);
+                        storage.loadFromJsonObject(json);
+                    }
+                    ignoreCloneFailure = true;
+                    meta.getPersistentDataContainer().remove(PERSISTENT_DATA_KEY_LEGACY);
+                } else if (meta.getPersistentDataContainer().has(PERSISTENT_DATA_KEY)) {
+                    var data = meta.getPersistentDataContainer().get(PERSISTENT_DATA_KEY, PersistentDataType.STRING);
+                    if (data != null) {
+                        var json = new Gson().fromJson(data, JsonObject.class);
+                        storage.loadFromJsonObject(json);
+                    }
+                    meta.getPersistentDataContainer().remove(PERSISTENT_DATA_KEY);
+                }
+
+                var customData = get(CUSTOM_DATA);
+            }
+            // endregion
+
             if (meta.hasCustomModelData()) {
                 customModelData(meta.getCustomModelData());
             }
@@ -175,23 +258,6 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
                     leatherArmorMeta.setColor(null);
                 }
             }
-            if (meta.getPersistentDataContainer().has(PERSISTENT_DATA_KEY_LEGACY)) {
-                var data = meta.getPersistentDataContainer().get(PERSISTENT_DATA_KEY_LEGACY, PersistentDataType.STRING);
-                if (data != null) {
-                    var json = new Gson().fromJson(data, JsonObject.class);
-                    LegacyDataTransformer.transformLegacyPersistentData(json);
-                    storage.loadFromJsonObject(json);
-                }
-                ignoreCloneFailure = true;
-                meta.getPersistentDataContainer().remove(PERSISTENT_DATA_KEY_LEGACY);
-            } else if (meta.getPersistentDataContainer().has(PERSISTENT_DATA_KEY)) {
-                var data = meta.getPersistentDataContainer().get(PERSISTENT_DATA_KEY, PersistentDataType.STRING);
-                if (data != null) {
-                    var json = new Gson().fromJson(data, JsonObject.class);
-                    storage.loadFromJsonObject(json);
-                }
-                meta.getPersistentDataContainer().remove(PERSISTENT_DATA_KEY);
-            }
             this.item.setItemMeta(meta);
         }
         if (!ignoreCloneFailure) {
@@ -206,7 +272,7 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
     }
 
     public static ItemBuilderImpl deserialize(JsonElement json) {
-        return new ItemBuilderImpl(gson.fromJson(json, ItemStack.class));
+        return new ItemBuilderImpl(GSON.fromJson(json, ItemStack.class));
     }
 
     @Override
@@ -294,12 +360,100 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
     }
 
     @Override
+    protected @NotNull ItemStack build0() {
+        var item = new ItemStack(((BukkitMaterial) material).bukkitType());
+        item.setAmount(amount);
+
+        var meta = item.getItemMeta();
+        if (meta != null) {
+            for (var i = 0; i < MAPPINGS.size(); i++) {
+                var mapping = MAPPINGS.get(i);
+                mapping.apply(this, item, meta);
+            }
+            item.setItemMeta(meta);
+        }
+        return item;
+    }
+
+    @Override
     public @NotNull AbstractItemBuilder clone() {
         return new ItemBuilderImpl(build());
     }
 
     @Override
     public @NotNull JsonElement serialize() {
-        return gson.toJsonTree(build());
+        return GSON.toJsonTree(build());
+    }
+
+    static {
+        var mappings = new ArrayList<Mapping<?>>();
+        var m = new MappingsGenerator() {
+            @Override
+            public <T> void add(DataComponent<T> component, Mapper<T> mapper) {
+                mappings.add(new Mapping<>(component, mapper));
+            }
+        };
+
+        m.add(ATTRIBUTE_MODIFIERS, new AttributeModifiersMapper());
+        m.add(BANNER_PATTERNS, new BannerPatternsMapper());
+        m.add(BASE_COLOR, new BaseColorMapper());
+        m.add(BEES, new BeesMapper());
+        m.add(BLOCK_ENTITY_DATA, new BlockEntityDataMapper());
+        m.add(BLOCK_STATE, new BlockStateMapper());
+        m.add(BUCKET_ENTITY_DATA, new BucketEntityDataMapper());
+        m.add(BUNDLE_CONTENTS, new BundleContentsMapper());
+        m.add(CAN_BREAK, new CanBreakMapper());
+        m.add(CAN_PLACE_ON, new CanPlaceOnMapper());
+        m.add(CHARGED_PROJECTILES, new ChargedProjectilesMapper());
+        m.add(CONTAINER_LOOT, new ContainerLootMapper());
+        m.add(CONTAINER, new ContainerMapper());
+        m.add(CUSTOM_DATA, new CustomDataMapper());
+        m.add(CUSTOM_MODEL_DATA, new CustomModelDataMapper());
+        m.add(CUSTOM_NAME, new CustomNameMapper());
+        m.add(DAMAGE, new DamageMapper());
+        m.add(DEBUG_STICK_STATE, new DebugStickStateMapper());
+        m.add(DYED_COLOR, new DyedColorMapper());
+        m.add(ENCHANTMENT_GLINT_OVERRIDE, new EnchantmentGlintOverrideMapper());
+        m.add(ENCHANTMENTS, new EnchantmentsMapper());
+        m.add(ENTITY_DATA, new EntityDataMapper());
+        m.add(FIRE_RESISTANT, new FireResistantMapper());
+        m.add(FIREWORK_EXPLOSION, new FireworkExplosionMapper());
+        m.add(FIREWORKS, new FireworksMapper());
+        m.add(FOOD, new FoodMapper());
+        m.add(HIDE_ADDITIONAL_TOOLTIP, new HideAdditionalTooltipMapper());
+        m.add(HIDE_TOOLTIP, new HideTooltipMapper());
+        m.add(INSTRUMENT, new InstrumentMapper());
+        m.add(INTANGIBLE_PROJECTILE, new IntangibleProjectileMapper());
+        m.add(ITEM_NAME, new ItemNameMapper());
+        m.add(JUKEBOX_PLAYABLE, new JukeboxPlayableMapper());
+        m.add(LOCK, new LockMapper());
+        m.add(LODESTONE_TRACKER, new LodestoneTrackerMapper());
+        m.add(LORE, new LoreMapper());
+        m.add(MAP_COLOR, new MapColorMapper());
+        m.add(MAP_DECORATIONS, new MapDecorationsMapper());
+        m.add(MAP_ID, new MapIdMapper());
+        m.add(MAP_POST_PROCESSING, new MapPostProcessingMapper());
+        m.add(MAX_DAMAGE, new MaxDamageMapper());
+        m.add(MAX_STACK_SIZE, new MaxStackSizeMapper());
+        m.add(NOTE_BLOCK_SOUND, new NoteBlockSoundMapper());
+        m.add(OMINOUS_BOTTLE_AMPLIFIER, new OminousBottleAmplifierMapper());
+        m.add(POT_DECORATIONS, new PotDecorationsMapper());
+        m.add(POTION_CONTENTS, new PotionContentsMapper());
+        m.add(PROFILE, new ProfileMapper());
+        m.add(RECIPES, new RecipesMapper());
+        m.add(REPAIR_COST, new RepairCostMapper());
+        m.add(STORED_ENCHANTMENTS, new StoredEnchantmentsMapper());
+        m.add(SUSPICIOUS_STEW_EFFECTS, new SuspiciousStewEffectsMapper());
+        m.add(TOOL, new ToolMapper());
+        m.add(TRIM, new TrimMapper());
+        m.add(UNBREAKABLE, new UnbreakableMapper());
+        m.add(WRITABLE_BOOK_CONTENT, new WritableBookContentMapper());
+        m.add(WRITTEN_BOOK_CONTENT, new WrittenBookContentMapper());
+
+        MAPPINGS = List.copyOf(mappings);
+    }
+
+    private interface MappingsGenerator {
+        <T> void add(DataComponent<T> component, Mapper<T> mapper);
     }
 }

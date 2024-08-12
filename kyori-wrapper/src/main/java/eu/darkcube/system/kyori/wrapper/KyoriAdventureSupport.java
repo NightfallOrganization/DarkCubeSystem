@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2024. [DarkCube]
+ * All rights reserved.
+ * You may not use or redistribute this software or any associated files without permission.
+ * The above copyright notice shall be included in all copies of this software.
+ */
+
 package eu.darkcube.system.kyori.wrapper;
 
 import java.util.List;
@@ -11,11 +18,13 @@ import eu.darkcube.system.libs.net.kyori.adventure.chat.SignedMessage;
 import eu.darkcube.system.libs.net.kyori.adventure.identity.Identity;
 import eu.darkcube.system.libs.net.kyori.adventure.inventory.Book;
 import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
+import eu.darkcube.system.libs.net.kyori.adventure.nbt.CompoundBinaryTag;
 import eu.darkcube.system.libs.net.kyori.adventure.sound.Sound;
 import eu.darkcube.system.libs.net.kyori.adventure.sound.SoundStop;
 import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
 import eu.darkcube.system.libs.net.kyori.adventure.text.format.TextColor;
 import eu.darkcube.system.libs.net.kyori.adventure.title.Title;
+import eu.darkcube.system.libs.net.kyori.adventure.util.RGBLike;
 import eu.darkcube.system.libs.org.jetbrains.annotations.ApiStatus;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.util.AdventureSupport;
@@ -137,6 +146,18 @@ public interface KyoriAdventureSupport extends AdventureSupport {
     net.kyori.adventure.inventory.Book convert(@NotNull Book book);
 
     @NotNull
+    RGBLike convert(@NotNull net.kyori.adventure.util.RGBLike rgbLike);
+
+    @NotNull
+    net.kyori.adventure.util.RGBLike convert(@NotNull RGBLike rgbLike);
+
+    @NotNull
+    CompoundBinaryTag convert(@NotNull net.kyori.adventure.nbt.CompoundBinaryTag tag);
+
+    @NotNull
+    net.kyori.adventure.nbt.CompoundBinaryTag convert(@NotNull CompoundBinaryTag tag);
+
+    @NotNull
     SignedMessage.Signature convert(@NotNull net.kyori.adventure.chat.SignedMessage.Signature signature);
 
     @NotNull
@@ -154,4 +175,9 @@ public interface KyoriAdventureSupport extends AdventureSupport {
     @NotNull
     Set<net.kyori.adventure.bossbar.BossBar.Flag> convertBossBarFlagsC2P(@NotNull Set<BossBar.Flag> flags);
 
+    @NotNull
+    List<RGBLike> convertRGBLikeP2C(@NotNull List<net.kyori.adventure.util.RGBLike> rgbLikes);
+
+    @NotNull
+    List<net.kyori.adventure.util.RGBLike> convertRGBLikeC2P(@NotNull List<RGBLike> rgbLikes);
 }

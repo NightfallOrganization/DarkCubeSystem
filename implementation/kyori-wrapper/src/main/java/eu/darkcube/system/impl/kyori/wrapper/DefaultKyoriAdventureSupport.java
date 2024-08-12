@@ -1,7 +1,15 @@
+/*
+ * Copyright (c) 2024. [DarkCube]
+ * All rights reserved.
+ * You may not use or redistribute this software or any associated files without permission.
+ * The above copyright notice shall be included in all copies of this software.
+ */
+
 package eu.darkcube.system.impl.kyori.wrapper;
 
 import static eu.darkcube.system.impl.kyori.wrapper.Fields.*;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
@@ -15,12 +23,15 @@ import eu.darkcube.system.libs.net.kyori.adventure.chat.SignedMessage;
 import eu.darkcube.system.libs.net.kyori.adventure.identity.Identity;
 import eu.darkcube.system.libs.net.kyori.adventure.inventory.Book;
 import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
+import eu.darkcube.system.libs.net.kyori.adventure.nbt.CompoundBinaryTag;
+import eu.darkcube.system.libs.net.kyori.adventure.nbt.TagStringIO;
 import eu.darkcube.system.libs.net.kyori.adventure.sound.Sound;
 import eu.darkcube.system.libs.net.kyori.adventure.sound.SoundStop;
 import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
 import eu.darkcube.system.libs.net.kyori.adventure.text.format.TextColor;
 import eu.darkcube.system.libs.net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import eu.darkcube.system.libs.net.kyori.adventure.title.Title;
+import eu.darkcube.system.libs.net.kyori.adventure.util.RGBLike;
 import eu.darkcube.system.libs.org.jetbrains.annotations.ApiStatus;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
@@ -301,6 +312,49 @@ public interface DefaultKyoriAdventureSupport extends KyoriAdventureSupport {
     @NotNull
     default Component convert(net.kyori.adventure.text.@NotNull Component component) {
         return GsonComponentSerializer.gson().deserialize(net.kyori.adventure.text.serializer.gson.GsonComponentSerializer.gson().serialize(component));
+    }
+
+    @Override
+    @NotNull
+    default List<net.kyori.adventure.util.RGBLike> convertRGBLikeC2P(@NotNull List<RGBLike> rgbLikes) {
+        return rgbLikes.stream().map(this::convert).toList();
+    }
+
+    @Override
+    @NotNull
+    default List<RGBLike> convertRGBLikeP2C(@NotNull List<net.kyori.adventure.util.RGBLike> rgbLikes) {
+        return rgbLikes.stream().map(this::convert).toList();
+    }
+
+    @Override
+    @NotNull
+    default net.kyori.adventure.util.RGBLike convert(@NotNull RGBLike rgbLike) {
+        return net.kyori.adventure.text.format.TextColor.color(rgbLike.red(), rgbLike.green(), rgbLike.blue());
+    }
+
+    @Override
+    @NotNull
+    default RGBLike convert(net.kyori.adventure.util.@NotNull RGBLike rgbLike) {
+        return TextColor.color(rgbLike.red(), rgbLike.green(), rgbLike.blue());
+    }
+
+    @Override
+    @NotNull
+    default CompoundBinaryTag convert(@NotNull net.kyori.adventure.nbt.CompoundBinaryTag tag) {
+        try {
+            return TagStringIO.get().asCompound(net.kyori.adventure.nbt.TagStringIO.get().asString(tag));
+        } catch (IOException e) {
+            throw new Error(e);
+        }
+    }
+
+    @Override
+    default @NotNull net.kyori.adventure.nbt.CompoundBinaryTag convert(@NotNull CompoundBinaryTag tag) {
+        try {
+            return net.kyori.adventure.nbt.TagStringIO.get().asCompound(TagStringIO.get().asString(tag));
+        } catch (IOException e) {
+            throw new Error(e);
+        }
     }
 }
 

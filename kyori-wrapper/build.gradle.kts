@@ -13,6 +13,7 @@ plugins {
 dependencies {
     api(projects.darkcubesystemApi)
     compileOnly(libs.adventure.api)
+    compileOnly(libs.adventure.nbt)
 }
 
 publishing {
