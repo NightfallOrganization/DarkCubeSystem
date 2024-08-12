@@ -7,6 +7,12 @@
 
 package eu.darkcube.system.bukkit.commandapi;
 
+import static eu.darkcube.system.libs.net.kyori.adventure.text.Component.newline;
+import static eu.darkcube.system.libs.net.kyori.adventure.text.Component.text;
+import static eu.darkcube.system.libs.net.kyori.adventure.text.event.ClickEvent.Action.SUGGEST_COMMAND;
+import static eu.darkcube.system.libs.net.kyori.adventure.text.event.ClickEvent.clickEvent;
+import static eu.darkcube.system.libs.net.kyori.adventure.text.format.NamedTextColor.*;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -33,7 +39,6 @@ import eu.darkcube.system.libs.com.mojang.brigadier.tree.LiteralCommandNode;
 import eu.darkcube.system.libs.net.kyori.adventure.audience.Audience;
 import eu.darkcube.system.libs.net.kyori.adventure.audience.ForwardingAudience;
 import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
-import eu.darkcube.system.libs.net.kyori.adventure.text.event.ClickEvent;
 import eu.darkcube.system.libs.net.kyori.adventure.text.event.HoverEvent;
 import eu.darkcube.system.libs.net.kyori.adventure.text.format.NamedTextColor;
 import eu.darkcube.system.libs.net.kyori.adventure.text.format.TextColor;
@@ -95,7 +100,7 @@ public class CommandSource implements ISuggestionProvider, ForwardingAudience.Si
         Vector3d pos = null;
         World world = null;
         var name = sender.getName();
-        var displayName = Component.text(name);
+        var displayName = text(name);
         Entity entity = null;
         Vector2f rotation = null;
         if (sender instanceof Entity) {
@@ -116,7 +121,7 @@ public class CommandSource implements ISuggestionProvider, ForwardingAudience.Si
         if (message instanceof MessageWrapper(var message1, var components)) {
             sendMessage(message1.getMessage(source, components));
         } else {
-            sendMessage(Component.text(message.getString()).color(NamedTextColor.RED));
+            sendMessage(text(message.getString()).color(NamedTextColor.RED));
         }
     }
 
@@ -252,22 +257,22 @@ public class CommandSource implements ISuggestionProvider, ForwardingAudience.Si
                 var usage = usageMap.remove(text);
                 display2 = usage.substring(text.length());
             }
-            Component clickable = Component.text(text, NamedTextColor.AQUA);
+            Component clickable = text(text, AQUA);
             if (display2 != null) {
-                clickable = clickable.append(Component.text(display2, DARKER_AQUA_VALUE));
+                clickable = clickable.append(text(display2, DARKER_AQUA_VALUE));
             }
 
-            clickable = clickable.clickEvent(ClickEvent.clickEvent(ClickEvent.Action.SUGGEST_COMMAND, cmd));
+            clickable = clickable.clickEvent(clickEvent(SUGGEST_COMMAND, cmd));
 
             Component hover = Component.empty();
 
-            if (completion.getTooltip() != null && completion.getTooltip().getString() != null) hover = hover.append(Component.text(completion.getTooltip().getString())).append(Component.newline());
+            if (completion.getTooltip() != null && completion.getTooltip().getString() != null) hover = hover.append(text(completion.getTooltip().getString())).append(newline());
 
-            hover = hover.append(Component.text("Click to insert command", NamedTextColor.GRAY).append(Component.newline()).append(Component.text(cmd, NamedTextColor.GRAY)));
+            hover = hover.append(text("Click to insert command", GRAY).append(newline()).append(text(cmd, GRAY)));
 
             clickable = clickable.hoverEvent(HoverEvent.showText(hover));
 
-            Component c = Component.text(" - ", NamedTextColor.GREEN).append(clickable);
+            Component c = text(" - ", GREEN).append(clickable);
             components.put(text, c);
         }
 
@@ -282,7 +287,7 @@ public class CommandSource implements ISuggestionProvider, ForwardingAudience.Si
             } else {
                 e = e.substring(lastWord.length());
             }
-            Component c = Component.text(" - ", NamedTextColor.GREEN).append(Component.text(e, DARKER_AQUA_VALUE));
+            Component c = text(" - ", GREEN).append(text(e, DARKER_AQUA_VALUE));
             components.put(entry.getKey(), c);
         }
         for (var possibility : possibilities) {
