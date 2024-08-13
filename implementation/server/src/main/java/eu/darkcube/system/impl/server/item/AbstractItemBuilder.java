@@ -206,7 +206,7 @@ public abstract class AbstractItemBuilder implements ItemBuilder {
     @Override
     public @NotNull AbstractItemBuilder lore(@NotNull Component line) {
         if (line.decoration(TextDecoration.ITALIC) == TextDecoration.State.NOT_SET) {
-            lore.add(Component.empty().decoration(TextDecoration.ITALIC, false).append(line));
+            lore.add(line.decoration(TextDecoration.ITALIC, TextDecoration.State.FALSE));
         } else {
             lore.add(line);
         }
