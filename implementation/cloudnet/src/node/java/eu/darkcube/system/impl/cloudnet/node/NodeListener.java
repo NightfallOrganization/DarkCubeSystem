@@ -58,7 +58,7 @@ public class NodeListener {
     public NodeListener(@Name("pluginName") String pluginName) {
         this.pluginName = pluginName;
         try {
-            var path = Path.of(getClass().getProtectionDomain().getCodeSource().getLocation().toURI());
+            var path = Path.of(getClass().getProtectionDomain().getCodeSource().getLocation().toURI()).toAbsolutePath();
             var watchService = path.getFileSystem().newWatchService();
             var key = path.getParent().register(watchService, ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE);
             Thread.startVirtualThread(() -> {
@@ -106,11 +106,18 @@ public class NodeListener {
                         }
                         var events = key.pollEvents();
                         if (!events.isEmpty()) {
-                            lastUpdate.set(System.nanoTime());
-                            newContent.set(true);
-                            lock.lock();
-                            condition.signal();
-                            lock.unlock();
+                            for (var event : events) {
+                                var ctx = event.context();
+                                if (!(ctx instanceof Path p)) continue;
+                                var updated = path.getParent().resolve(p);
+                                if (!path.equals(updated)) continue;
+                                lastUpdate.set(System.nanoTime());
+                                newContent.set(true);
+                                lock.lock();
+                                condition.signal();
+                                lock.unlock();
+                                break;
+                            }
                         }
                         key.reset();
                     } catch (ClosedWatchServiceException e) {

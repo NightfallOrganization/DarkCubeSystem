@@ -171,22 +171,22 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
             {
                 var persistentData = meta.getPersistentDataContainer();
 
-                if (meta.getPersistentDataContainer().has(PERSISTENT_DATA_KEY_LEGACY)) {
-                    var data = meta.getPersistentDataContainer().get(PERSISTENT_DATA_KEY_LEGACY, PersistentDataType.STRING);
+                if (persistentData.has(PERSISTENT_DATA_KEY_LEGACY)) {
+                    var data = persistentData.get(PERSISTENT_DATA_KEY_LEGACY, PersistentDataType.STRING);
                     if (data != null) {
                         var json = new Gson().fromJson(data, JsonObject.class);
                         LegacyDataTransformer.transformLegacyPersistentData(json);
                         storage.loadFromJsonObject(json);
                     }
                     ignoreCloneFailure = true;
-                    meta.getPersistentDataContainer().remove(PERSISTENT_DATA_KEY_LEGACY);
-                } else if (meta.getPersistentDataContainer().has(PERSISTENT_DATA_KEY)) {
-                    var data = meta.getPersistentDataContainer().get(PERSISTENT_DATA_KEY, PersistentDataType.STRING);
+                    persistentData.remove(PERSISTENT_DATA_KEY_LEGACY);
+                } else if (persistentData.has(PERSISTENT_DATA_KEY)) {
+                    var data = persistentData.get(PERSISTENT_DATA_KEY, PersistentDataType.STRING);
                     if (data != null) {
                         var json = new Gson().fromJson(data, JsonObject.class);
                         storage.loadFromJsonObject(json);
                     }
-                    meta.getPersistentDataContainer().remove(PERSISTENT_DATA_KEY);
+                    persistentData.remove(PERSISTENT_DATA_KEY);
                 }
 
                 var customData = get(CUSTOM_DATA);
