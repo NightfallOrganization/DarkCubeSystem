@@ -205,7 +205,11 @@ public abstract class AbstractItemBuilder implements ItemBuilder {
 
     @Override
     public @NotNull AbstractItemBuilder lore(@NotNull Component line) {
-        lore.add(Component.empty().decoration(TextDecoration.ITALIC, false).append(line));
+        if (line.decoration(TextDecoration.ITALIC) == TextDecoration.State.NOT_SET) {
+            lore.add(Component.empty().decoration(TextDecoration.ITALIC, false).append(line));
+        } else {
+            lore.add(line);
+        }
         return this;
     }
 
