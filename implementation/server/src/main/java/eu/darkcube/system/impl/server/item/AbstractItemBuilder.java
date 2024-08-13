@@ -262,7 +262,11 @@ public abstract class AbstractItemBuilder implements ItemBuilder {
     public @NotNull AbstractItemBuilder lore(@NotNull Collection<Component> lore) {
         var l = new ArrayList<>(lore());
         for (var component : lore) {
-            l.add(Component.empty().decoration(TextDecoration.ITALIC, false).append(component));
+            if (component.decoration(TextDecoration.ITALIC) != TextDecoration.State.NOT_SET) {
+                l.add(component.decoration(TextDecoration.ITALIC, TextDecoration.State.TRUE));
+            } else {
+                l.add(component);
+            }
         }
         return set(LORE, l);
     }
