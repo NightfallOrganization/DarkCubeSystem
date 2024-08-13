@@ -36,7 +36,7 @@ tasks.jar.configure {
 }
 val cloudnetJar = tasks.register<Jar>("cloudnetJar") {
     dependsOn(merge)
-    include(merge.get(), this, "versions")
+    includeVersions(this)
     from(cloudnetSource.output)
     from(sourceSets.main.map { it.output })
     destinationDirectory = temporaryDir
@@ -69,6 +69,19 @@ configurations.consumable("cloudnetInject") {
 configurations.consumable("cloudnetPluginRaw") {
     outgoing.artifact(cloudnetJarRaw)
 }
+val versions = ArrayList<String>()
+// KEEP THESE VERSIONS IN CORRECT ORDER!!!
+registerVersion("1_8_R3", projects.darkcubesystemImplementationBukkit188)
+registerVersion("1_21", projects.darkcubesystemImplementationBukkitLatest)
+val generateVersionsMeta = tasks.register("generateVersionsMeta") {
+    inputs.property("versions", versions.toString())
+    val file = temporaryDir.resolve("versions")
+    val v = versions
+    doLast {
+        file.writeText(v.joinToString("\n"))
+    }
+    outputs.file(file)
+}
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21-R0.1-20240701.082534-43")
@@ -92,6 +105,18 @@ dependencies {
     inject(projects.darkcubesystemImplementationKyoriWrapper)
     inject(projects.darkcubesystemServerCloudnet)
     inject(projects.darkcubesystemImplementationServer)
+}
+
+fun includeVersions(task: AbstractCopyTask) {
+    include(merge.get(), task, "versions")
+    task.from(generateVersionsMeta) { into("versions") }
+}
+
+fun registerVersion(name: String, dependency: ProjectDependency) {
+    versions.add(name)
+    dependencies {
+        merge(dependency) { targetConfiguration = "version" }
+    }
 }
 
 fun include(configuration: Configuration, task: AbstractCopyTask, directory: String) {
