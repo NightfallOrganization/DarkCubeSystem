@@ -9,8 +9,19 @@ package eu.darkcube.system.impl.bukkit.version.latest.item.mappings;
 
 import java.util.List;
 
-import eu.darkcube.system.impl.bukkit.version.latest.item.Mapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.DirectMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.util.MapperUtil;
 import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
+import net.minecraft.world.item.component.ItemLore;
 
-public record LoreMapper() implements Mapper<List<Component>> {
+public record LoreMapper() implements DirectMapper<List<Component>, ItemLore> {
+    @Override
+    public ItemLore apply(List<Component> mapping) {
+        return new ItemLore(mapping.stream().map(MapperUtil::convert).toList());
+    }
+
+    @Override
+    public List<Component> load(ItemLore mapping) {
+        return mapping.lines().stream().map(MapperUtil::convert).toList();
+    }
 }

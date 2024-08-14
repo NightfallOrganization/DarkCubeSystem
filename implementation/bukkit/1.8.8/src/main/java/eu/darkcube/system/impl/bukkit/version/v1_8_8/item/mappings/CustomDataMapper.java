@@ -14,6 +14,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Map;
 
 import eu.darkcube.system.bukkit.util.ReflectionUtils;
@@ -27,6 +28,7 @@ import eu.darkcube.system.libs.net.kyori.adventure.nbt.EndBinaryTag;
 import eu.darkcube.system.libs.net.kyori.adventure.nbt.FloatBinaryTag;
 import eu.darkcube.system.libs.net.kyori.adventure.nbt.IntArrayBinaryTag;
 import eu.darkcube.system.libs.net.kyori.adventure.nbt.IntBinaryTag;
+import eu.darkcube.system.libs.net.kyori.adventure.nbt.ListBinaryTag;
 import eu.darkcube.system.libs.net.kyori.adventure.nbt.LongBinaryTag;
 import eu.darkcube.system.libs.net.kyori.adventure.nbt.ShortBinaryTag;
 import eu.darkcube.system.libs.net.kyori.adventure.nbt.StringBinaryTag;
@@ -100,10 +102,28 @@ public final class CustomDataMapper implements Mapper<CompoundBinaryTag> {
             case IntArrayBinaryTag i -> new NBTTagIntArray(i.value());
             case DoubleBinaryTag d -> new NBTTagDouble(d.value());
             case FloatBinaryTag f -> new NBTTagFloat(f.value());
+            case ListBinaryTag l -> convert(l);
             case EndBinaryTag _ -> createEnd();
             case null -> throw new NullPointerException("Can't use null as input");
             default -> throw new IllegalArgumentException("Tag type " + tag.type() + " is not supported");
         };
+    }
+
+    private NBTTagList convert(ListBinaryTag tag) {
+        var list = new NBTTagList();
+        for (var binaryTag : tag) {
+            list.add(convert(binaryTag));
+        }
+        return list;
+    }
+
+    private ListBinaryTag convert(NBTTagList l) {
+        var tags = new ArrayList<BinaryTag>();
+        for (var i = 0; i < l.size(); i++) {
+            var tag = l.g(i);
+            tags.add(convert(tag));
+        }
+        return ListBinaryTag.from(tags);
     }
 
     private CompoundBinaryTag convert(NBTTagCompound compound) {

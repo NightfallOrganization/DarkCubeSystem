@@ -10,12 +10,13 @@ package eu.darkcube.system.server.item.component.components;
 import java.util.List;
 
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
+import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 import eu.darkcube.system.server.item.ItemBuilder;
 import eu.darkcube.system.server.item.component.components.util.CustomPotionEffect;
 
-public record Food(int nutrition, float saturationModifier, boolean canAlwaysEat, float eatSeconds, @NotNull ItemBuilder usingConvertsTo, @NotNull List<EffectChance> effects) {
+public record Food(int nutrition, float saturationModifier, boolean canAlwaysEat, float eatSeconds, @Nullable ItemBuilder usingConvertsTo, @NotNull List<EffectChance> effects) {
     public Food {
-        usingConvertsTo = usingConvertsTo.clone();
+        usingConvertsTo = usingConvertsTo == null ? null : usingConvertsTo.clone();
         effects = List.copyOf(effects);
     }
 

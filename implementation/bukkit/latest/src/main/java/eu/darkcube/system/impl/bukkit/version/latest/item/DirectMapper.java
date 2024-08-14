@@ -5,9 +5,10 @@
  * The above copyright notice shall be included in all copies of this software.
  */
 
-package eu.darkcube.system.impl.bukkit.version.latest.item.mappings;
+package eu.darkcube.system.impl.bukkit.version.latest.item;
 
-import eu.darkcube.system.impl.bukkit.version.latest.item.Mapper;
+public interface DirectMapper<T, V> {
+    V apply(T mapping);
 
-public record MaxDamageMapper() implements Mapper<Integer> {
+    T load(V mapping);
 }

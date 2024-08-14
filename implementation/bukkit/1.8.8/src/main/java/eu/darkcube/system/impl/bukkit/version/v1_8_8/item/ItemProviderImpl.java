@@ -16,15 +16,18 @@ import eu.darkcube.system.server.item.material.Material;
 import org.bukkit.inventory.ItemStack;
 
 public class ItemProviderImpl implements BukkitItemProvider {
-    @Override public @NotNull ItemBuilder item(@NotNull ItemStack item) {
+    @Override
+    public @NotNull ItemBuilder item(@NotNull ItemStack item) {
         return new ItemBuilderImpl(item);
     }
 
-    @Override public @NotNull ItemBuilder item(@Nullable Material material) {
+    @Override
+    public @NotNull ItemBuilder item(@Nullable Material material) {
         return new ItemBuilderImpl().material(Material.ofNullable(material));
     }
 
-    @Override public @NotNull ItemBuilder item(@NotNull JsonElement json) {
+    @Override
+    public @NotNull ItemBuilder item(@NotNull JsonElement json) {
         return ItemBuilderImpl.deserialize(json);
     }
 }

@@ -7,13 +7,28 @@
 
 package eu.darkcube.system.server.item.material;
 
+import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 
 public interface Material {
 
+    @NotNull
+    Key key();
+
+    boolean isBlock();
+
     /**
      * Converts the material type of the platform to this material type.
+     * <p>
+     * Accepted types are
+     * <ul>
+     *     <li>A {@link Material}</li>
+     *     <li>A platform Material</li>
+     *     <li>A {@link Key}</li>
+     *     <li>A platform Key</li>
+     *     <li>A {@link String} capable of representing a {@link Key}</li>
+     * </ul>
      *
      * @param platformMaterial the platform material type
      * @return the ItemBuilder material type

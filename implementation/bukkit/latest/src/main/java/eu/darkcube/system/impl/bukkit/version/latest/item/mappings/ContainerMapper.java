@@ -9,8 +9,19 @@ package eu.darkcube.system.impl.bukkit.version.latest.item.mappings;
 
 import java.util.List;
 
-import eu.darkcube.system.impl.bukkit.version.latest.item.Mapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.DirectMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.util.MapperUtil;
 import eu.darkcube.system.server.item.ItemBuilder;
+import net.minecraft.world.item.component.ItemContainerContents;
 
-public record ContainerMapper() implements Mapper<List<ItemBuilder>> {
+public record ContainerMapper() implements DirectMapper<List<ItemBuilder>, ItemContainerContents> {
+    @Override
+    public ItemContainerContents apply(List<ItemBuilder> mapping) {
+        return ItemContainerContents.fromItems(MapperUtil.convertItemsToMinecraft(mapping));
+    }
+
+    @Override
+    public List<ItemBuilder> load(ItemContainerContents mapping) {
+        return MapperUtil.convertItemsToBuilder(mapping.stream().toList());
+    }
 }

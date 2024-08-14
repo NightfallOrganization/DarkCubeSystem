@@ -11,6 +11,6 @@ import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 
 public record CustomPotionEffect(@NotNull Key id, @NotNull Settings settings) {
-    public record Settings(byte amplifier, int duration, boolean isAmbient, boolean showParticles, boolean showIcon) {
+    public record Settings(int amplifier, int duration, boolean isAmbient, boolean showParticles, boolean showIcon) {
     }
 }

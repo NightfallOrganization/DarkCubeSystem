@@ -7,7 +7,17 @@
 
 package eu.darkcube.system.impl.bukkit.version.latest.item.mappings;
 
-import eu.darkcube.system.impl.bukkit.version.latest.item.Mapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.DirectMapper;
+import net.minecraft.world.item.component.CustomModelData;
 
-public record CustomModelDataMapper() implements Mapper<Integer> {
+public record CustomModelDataMapper() implements DirectMapper<Integer, CustomModelData> {
+    @Override
+    public CustomModelData apply(Integer mapping) {
+        return new CustomModelData(mapping);
+    }
+
+    @Override
+    public Integer load(CustomModelData mapping) {
+        return mapping.value();
+    }
 }

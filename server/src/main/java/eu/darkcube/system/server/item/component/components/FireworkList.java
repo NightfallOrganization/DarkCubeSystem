@@ -11,7 +11,7 @@ import java.util.List;
 
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 
-public record FireworkList(byte flightDuration, @NotNull List<FireworkExplosion> explosions) {
+public record FireworkList(int flightDuration, @NotNull List<FireworkExplosion> explosions) {
     public FireworkList {
         explosions = List.copyOf(explosions);
     }

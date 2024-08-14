@@ -9,5 +9,5 @@ package eu.darkcube.system.server.item.component.components.util;
 
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 
-public record WorldPos(@NotNull String dimension, double x, double y, double z) {
+public record WorldPos(@NotNull String dimension, int x, int y, int z) {
 }

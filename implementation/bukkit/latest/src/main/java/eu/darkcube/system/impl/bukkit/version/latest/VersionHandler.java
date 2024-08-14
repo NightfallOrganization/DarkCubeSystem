@@ -17,25 +17,30 @@ import eu.darkcube.system.impl.bukkit.version.latest.item.KeyProviderImpl;
 import eu.darkcube.system.impl.bukkit.version.latest.item.attribute.BukkitAttributeModifierOperationProvider;
 import eu.darkcube.system.impl.bukkit.version.latest.item.attribute.BukkitAttributeModifierProvider;
 import eu.darkcube.system.impl.bukkit.version.latest.item.attribute.BukkitAttributeProvider;
+import eu.darkcube.system.impl.bukkit.version.latest.item.enchant.BukkitEnchantmentProvider;
+import eu.darkcube.system.impl.bukkit.version.latest.item.material.BukkitMaterialProvider;
 import eu.darkcube.system.impl.server.item.KeyProvider;
-import eu.darkcube.system.provider.InternalProvider;
 import eu.darkcube.system.server.inventory.DarkCubeInventoryTemplates;
 import eu.darkcube.system.server.inventory.DarkCubeItemTemplates;
 import eu.darkcube.system.server.item.ItemProvider;
 import eu.darkcube.system.server.item.attribute.AttributeModifierOperationProvider;
 import eu.darkcube.system.server.item.attribute.AttributeModifierProvider;
 import eu.darkcube.system.server.item.attribute.AttributeProvider;
+import eu.darkcube.system.server.item.enchant.EnchantmentProvider;
+import eu.darkcube.system.server.item.material.MaterialProvider;
 
 public class VersionHandler extends AbstractVersionHandler {
     public VersionHandler() {
-        InternalProvider.instance().register(KeyProvider.class, new KeyProviderImpl());
-        InternalProvider.instance().register(ItemProvider.class, new ItemProviderImpl());
-        InternalProvider.instance().register(AttributeProvider.class, new BukkitAttributeProvider());
-        InternalProvider.instance().register(AttributeModifierProvider.class, new BukkitAttributeModifierProvider());
-        InternalProvider.instance().register(AttributeModifierOperationProvider.class, new BukkitAttributeModifierOperationProvider());
-        InternalProvider.instance().register(InventoryVersionProvider.class, new InventoryVersionProviderImpl());
-        InternalProvider.instance().register(DarkCubeItemTemplates.ItemProvider.class, new BukkitItemTemplateItemProvider());
-        InternalProvider.instance().register(DarkCubeInventoryTemplates.PlatformProvider.class, new BukkitInventoryTemplatePlatformProvider());
+        install(KeyProvider.class, new KeyProviderImpl());
+        install(MaterialProvider.class, new BukkitMaterialProvider());
+        install(ItemProvider.class, new ItemProviderImpl());
+        install(AttributeProvider.class, new BukkitAttributeProvider());
+        install(EnchantmentProvider.class, new BukkitEnchantmentProvider());
+        install(AttributeModifierProvider.class, new BukkitAttributeModifierProvider());
+        install(AttributeModifierOperationProvider.class, new BukkitAttributeModifierOperationProvider());
+        install(InventoryVersionProvider.class, new InventoryVersionProviderImpl());
+        install(DarkCubeItemTemplates.ItemProvider.class, new BukkitItemTemplateItemProvider());
+        install(DarkCubeInventoryTemplates.PlatformProvider.class, new BukkitInventoryTemplatePlatformProvider());
     }
 
     @Override

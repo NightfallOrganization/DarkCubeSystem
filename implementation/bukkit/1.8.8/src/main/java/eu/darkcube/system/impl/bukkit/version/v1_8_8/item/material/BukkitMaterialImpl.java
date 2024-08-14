@@ -5,10 +5,15 @@
  * The above copyright notice shall be included in all copies of this software.
  */
 
-package eu.darkcube.system.impl.bukkit.item.material;
+package eu.darkcube.system.impl.bukkit.version.v1_8_8.item.material;
 
 import eu.darkcube.system.bukkit.item.material.BukkitMaterial;
+import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import org.bukkit.Material;
 
-public record BukkitMaterialImpl(Material bukkitType) implements BukkitMaterial {
+public record BukkitMaterialImpl(Material bukkitType, Key key) implements BukkitMaterial {
+    @Override
+    public boolean isBlock() {
+        return bukkitType.isBlock();
+    }
 }

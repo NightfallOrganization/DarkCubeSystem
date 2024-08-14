@@ -129,7 +129,7 @@ public class MinestomItemBuilderImpl extends AbstractItemBuilder implements Mine
     public MinestomItemBuilderImpl() {
     }
 
-    public MinestomItemBuilderImpl(ItemStack item) {
+    public MinestomItemBuilderImpl(@NotNull ItemStack item) {
         material(item.material());
         amount(item.amount());
         for (var i = 0; i < MAPPINGS.size(); i++) {
@@ -328,7 +328,7 @@ public class MinestomItemBuilderImpl extends AbstractItemBuilder implements Mine
     }
 
     private static LodestoneTracker convert(net.minestom.server.item.component.LodestoneTracker t) {
-        return new LodestoneTracker(t.target() == null ? null : new WorldPos(t.target().dimension(), t.target().blockPosition().x(), t.target().blockPosition().y(), t.target().blockPosition().z()), t.tracked());
+        return new LodestoneTracker(t.target() == null ? null : new WorldPos(t.target().dimension(), t.target().blockPosition().blockX(), t.target().blockPosition().blockY(), t.target().blockPosition().blockZ()), t.tracked());
     }
 
     private static net.minestom.server.item.component.JukeboxPlayable convert(JukeboxPlayable p) {
@@ -340,7 +340,7 @@ public class MinestomItemBuilderImpl extends AbstractItemBuilder implements Mine
     }
 
     private static net.minestom.server.item.component.Food convert(Food f) {
-        return new net.minestom.server.item.component.Food(f.nutrition(), f.saturationModifier(), f.canAlwaysEat(), f.eatSeconds(), f.usingConvertsTo().build(), f.effects().stream().map(MinestomItemBuilderImpl::convert).toList());
+        return new net.minestom.server.item.component.Food(f.nutrition(), f.saturationModifier(), f.canAlwaysEat(), f.eatSeconds(), f.usingConvertsTo() == null ? ItemStack.AIR : f.usingConvertsTo().build(), f.effects().stream().map(MinestomItemBuilderImpl::convert).toList());
     }
 
     private static Food convert(net.minestom.server.item.component.Food f) {
@@ -357,7 +357,7 @@ public class MinestomItemBuilderImpl extends AbstractItemBuilder implements Mine
 
     private static net.minestom.server.potion.CustomPotionEffect convert(CustomPotionEffect e) {
         var s = e.settings();
-        return new net.minestom.server.potion.CustomPotionEffect(Objects.requireNonNull(PotionEffect.fromNamespaceId(e.id().asString())), new net.minestom.server.potion.CustomPotionEffect.Settings(s.amplifier(), s.duration(), s.isAmbient(), s.showParticles(), s.showIcon(), null));
+        return new net.minestom.server.potion.CustomPotionEffect(Objects.requireNonNull(PotionEffect.fromNamespaceId(e.id().asString())), new net.minestom.server.potion.CustomPotionEffect.Settings((byte) s.amplifier(), s.duration(), s.isAmbient(), s.showParticles(), s.showIcon(), null));
     }
 
     private static CustomPotionEffect convert(net.minestom.server.potion.CustomPotionEffect e) {
@@ -366,7 +366,7 @@ public class MinestomItemBuilderImpl extends AbstractItemBuilder implements Mine
     }
 
     private static net.minestom.server.item.component.FireworkList convert(FireworkList l) {
-        return new net.minestom.server.item.component.FireworkList(l.flightDuration(), l.explosions().stream().map(MinestomItemBuilderImpl::convert).toList());
+        return new net.minestom.server.item.component.FireworkList((byte) l.flightDuration(), l.explosions().stream().map(MinestomItemBuilderImpl::convert).toList());
     }
 
     private static FireworkList convert(net.minestom.server.item.component.FireworkList l) {
@@ -456,14 +456,14 @@ public class MinestomItemBuilderImpl extends AbstractItemBuilder implements Mine
     private static net.minestom.server.instance.block.predicate.BlockTypeFilter convert(BlockTypeFilter f) {
         return switch (f) {
             case BlockTypeFilter.Blocks(var blocks) -> new net.minestom.server.instance.block.predicate.BlockTypeFilter.Blocks(blocks.stream().map(b -> Block.fromNamespaceId(((MinestomMaterial) b).minestomType().key().asString())).toList());
-            case BlockTypeFilter.Tags(var tag) -> new net.minestom.server.instance.block.predicate.BlockTypeFilter.Tag(tag.asString());
+            case BlockTypeFilter.Tag(var tag) -> new net.minestom.server.instance.block.predicate.BlockTypeFilter.Tag(tag.asString());
         };
     }
 
     private static BlockTypeFilter convert(net.minestom.server.instance.block.predicate.BlockTypeFilter f) {
         return switch (f) {
             case net.minestom.server.instance.block.predicate.BlockTypeFilter.Blocks(var blocks) -> new BlockTypeFilter.Blocks(blocks.stream().map(b -> Material.of(Objects.requireNonNull(b.registry().material()))).toList());
-            case net.minestom.server.instance.block.predicate.BlockTypeFilter.Tag(var tag) -> new BlockTypeFilter.Tags(adventureSupport().convert(tag.key()));
+            case net.minestom.server.instance.block.predicate.BlockTypeFilter.Tag(var tag) -> new BlockTypeFilter.Tag(adventureSupport().convert(tag.key()));
         };
     }
 

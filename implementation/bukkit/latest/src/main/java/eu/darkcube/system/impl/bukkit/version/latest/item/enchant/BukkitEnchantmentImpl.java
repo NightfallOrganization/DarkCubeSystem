@@ -5,13 +5,15 @@
  * The above copyright notice shall be included in all copies of this software.
  */
 
-package eu.darkcube.system.impl.bukkit.item.enchant;
+package eu.darkcube.system.impl.bukkit.version.latest.item.enchant;
 
 import eu.darkcube.system.bukkit.item.enchantment.BukkitEnchantment;
+import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import org.bukkit.enchantments.Enchantment;
 
-public record BukkitEnchantmentImpl(Enchantment bukkitType) implements BukkitEnchantment {
-    @Override public int maxLevel() {
+public record BukkitEnchantmentImpl(Enchantment bukkitType, Key key) implements BukkitEnchantment {
+    @Override
+    public int maxLevel() {
         return bukkitType.getMaxLevel();
     }
 }

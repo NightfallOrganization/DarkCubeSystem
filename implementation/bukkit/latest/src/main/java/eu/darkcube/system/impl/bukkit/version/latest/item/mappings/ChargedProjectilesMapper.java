@@ -9,8 +9,19 @@ package eu.darkcube.system.impl.bukkit.version.latest.item.mappings;
 
 import java.util.List;
 
-import eu.darkcube.system.impl.bukkit.version.latest.item.Mapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.DirectMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.util.MapperUtil;
 import eu.darkcube.system.server.item.ItemBuilder;
+import net.minecraft.world.item.component.ChargedProjectiles;
 
-public record ChargedProjectilesMapper() implements Mapper<List<ItemBuilder>> {
+public record ChargedProjectilesMapper() implements DirectMapper<List<ItemBuilder>, ChargedProjectiles> {
+    @Override
+    public ChargedProjectiles apply(List<ItemBuilder> mapping) {
+        return ChargedProjectiles.of(MapperUtil.convertItemsToMinecraft(mapping));
+    }
+
+    @Override
+    public List<ItemBuilder> load(ChargedProjectiles mapping) {
+        return MapperUtil.convertItemsToBuilder(mapping.getItems());
+    }
 }
