@@ -10,7 +10,7 @@ package eu.darkcube.system.impl.bukkit.version.latest.item.mappings;
 import java.util.ArrayList;
 import java.util.Optional;
 
-import eu.darkcube.system.impl.bukkit.version.latest.item.DirectMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.Mapper;
 import eu.darkcube.system.server.item.component.components.Tool;
 import eu.darkcube.system.server.item.component.components.util.BlockTypeFilter;
 import eu.darkcube.system.server.item.material.Material;
@@ -22,7 +22,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
 
-public record ToolMapper() implements DirectMapper<Tool, net.minecraft.world.item.component.Tool> {
+public record ToolMapper() implements Mapper<Tool, net.minecraft.world.item.component.Tool> {
     @Override
     public net.minecraft.world.item.component.Tool apply(Tool mapping) {
         return new net.minecraft.world.item.component.Tool(mapping.rules().stream().map(r -> new net.minecraft.world.item.component.Tool.Rule(get(r.blocks()), Optional.ofNullable(r.speed()), Optional.ofNullable(r.correctForDrops()))).toList(), mapping.defaultMiningSpeed(), mapping.damagePerBlock());

@@ -9,7 +9,7 @@ package eu.darkcube.system.impl.bukkit.version.latest.item.mappings;
 
 import java.util.HashMap;
 
-import eu.darkcube.system.impl.bukkit.version.latest.item.DirectMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.Mapper;
 import eu.darkcube.system.server.item.component.components.DebugStickState;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -19,7 +19,7 @@ import net.minecraft.world.level.block.state.properties.Property;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public record DebugStickStateMapper() implements DirectMapper<DebugStickState, net.minecraft.world.item.component.DebugStickState> {
+public record DebugStickStateMapper() implements Mapper<DebugStickState, net.minecraft.world.item.component.DebugStickState> {
     private static final Logger LOGGER = LoggerFactory.getLogger(DebugStickStateMapper.class);
 
     @Override

@@ -13,6 +13,5 @@ plugins {
 dependencies {
     api(projects.darkcubesystemKyoriWrapper)
     compileOnly(libs.adventure.api)
-    compileOnly(libs.adventure.nbt)
     compileOnly(libs.adventure.text.serializer.gson)
 }

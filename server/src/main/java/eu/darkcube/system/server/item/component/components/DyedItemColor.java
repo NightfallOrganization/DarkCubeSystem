@@ -11,4 +11,7 @@ import eu.darkcube.system.libs.net.kyori.adventure.util.RGBLike;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 
 public record DyedItemColor(@NotNull RGBLike color, boolean showInTooltip) {
+    public @NotNull DyedItemColor withTooltip(boolean showInTooltip) {
+        return new DyedItemColor(color, showInTooltip);
+    }
 }

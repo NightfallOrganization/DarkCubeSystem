@@ -7,10 +7,10 @@
 
 package eu.darkcube.system.impl.bukkit.version.latest.item.mappings;
 
-import eu.darkcube.system.impl.bukkit.version.latest.item.DirectMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.Mapper;
 import net.minecraft.resources.ResourceLocation;
 
-public record NoteBlockSoundMapper() implements DirectMapper<String, ResourceLocation> {
+public record NoteBlockSoundMapper() implements Mapper<String, ResourceLocation> {
     @Override
     public ResourceLocation apply(String mapping) {
         return ResourceLocation.parse(mapping);

@@ -14,34 +14,47 @@ import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.server.item.material.Material;
 import eu.darkcube.system.server.item.material.MaterialProvider;
+import net.minecraft.server.v1_8_R3.Block;
 import net.minecraft.server.v1_8_R3.Item;
 import net.minecraft.server.v1_8_R3.MinecraftKey;
 import org.bukkit.craftbukkit.v1_8_R3.util.CraftMagicNumbers;
 
 public class BukkitMaterialProvider implements MaterialProvider {
     // use an array instead of Map or something else for optimal performance
-    private final Material[] registry;
+    private Material[] registry;
     // we have to use a map here
-    private final Map<String, Material> registryByKey;
+    private Map<String, Material> registryByKey;
 
-    public BukkitMaterialProvider() {
-        var materials = org.bukkit.Material.values();
-        this.registry = new Material[materials.length];
-        var byKey = new HashMap<String, Material>();
-        for (var i = 0; i < materials.length; i++) {
-            var material = materials[i];
-            var item = CraftMagicNumbers.getItem(material);
-            var mcKey = Item.REGISTRY.c(item);
-            var key = Key.key(mcKey.toString());
-            var m = new BukkitMaterialImpl(material, key);
-            this.registry[i] = m;
-            byKey.put(key.asString(), m);
+    private void tryLoad() {
+        if (registry != null) return;
+        synchronized (this) {
+            if (registry != null) return;
+            var materials = org.bukkit.Material.values();
+            this.registry = new Material[materials.length];
+            var byKey = new HashMap<String, Material>();
+            // Make sure Items is initialized
+            for (var i = 0; i < materials.length; i++) {
+                var material = materials[i];
+                String name;
+                if (material.isBlock()) {
+                    var block = CraftMagicNumbers.getBlock(material);
+                    name = Block.REGISTRY.c(block).toString();
+                } else {
+                    var item = CraftMagicNumbers.getItem(material);
+                    name = Item.REGISTRY.c(item).toString();
+                }
+                var key = Key.key(name);
+                var m = new BukkitMaterialImpl(material, key);
+                this.registry[i] = m;
+                byKey.put(key.asString(), m);
+            }
+            this.registryByKey = Map.copyOf(byKey);
         }
-        this.registryByKey = Map.copyOf(byKey);
     }
 
     @Override
     public @NotNull Material of(@NotNull Object platformMaterial) {
+        tryLoad();
         return switch (platformMaterial) {
             case org.bukkit.Material material -> this.registry[material.ordinal()];
             case Material material -> material;

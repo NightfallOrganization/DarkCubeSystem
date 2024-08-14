@@ -12,6 +12,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
 
 import eu.darkcube.system.impl.server.item.storage.BasicItemPersistentDataStorage;
 import eu.darkcube.system.libs.com.google.gson.Gson;
@@ -33,13 +35,13 @@ import eu.darkcube.system.server.item.ItemRarity;
 import eu.darkcube.system.server.item.attribute.Attribute;
 import eu.darkcube.system.server.item.attribute.AttributeModifier;
 import eu.darkcube.system.server.item.attribute.AttributeModifierOperation;
-import eu.darkcube.system.server.item.component.ItemComponent;
 import eu.darkcube.system.server.item.component.components.AttributeList;
 import eu.darkcube.system.server.item.component.components.EnchantmentList;
 import eu.darkcube.system.server.item.component.components.Unbreakable;
 import eu.darkcube.system.server.item.enchant.Enchantment;
 import eu.darkcube.system.server.item.flag.ItemFlag;
 import eu.darkcube.system.server.item.material.Material;
+import eu.darkcube.system.util.Unit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +56,7 @@ public abstract class AbstractItemBuilder implements ItemBuilder {
     protected BasicItemPersistentDataStorage storage = new BasicItemPersistentDataStorage(this);
 
     protected void loadPersistentDataStorage() {
-        var customData = get(ItemComponent.CUSTOM_DATA);
+        var customData = get(CUSTOM_DATA);
         if (customData == null) return;
         var tag = (StringBinaryTag) customData.get(KEY_DOCUMENT);
         if (tag == null) return;
@@ -95,6 +97,20 @@ public abstract class AbstractItemBuilder implements ItemBuilder {
     @Override
     public @NotNull <T> AbstractItemBuilder remove(@NotNull DataComponent<T> component) {
         components.remove(component);
+        return this;
+    }
+
+    @Override
+    public @NotNull <T> AbstractItemBuilder map(@NotNull DataComponent<T> component, @NotNull Function<T, T> mapper) {
+        var data = get(component);
+        if (data != null) set(component, mapper.apply(data));
+        return this;
+    }
+
+    @Override
+    public @NotNull <T> AbstractItemBuilder mapNotNull(@NotNull DataComponent<T> component, @NotNull Function<T, T> mapper) {
+        var data = Objects.requireNonNull(get(component), "Item doesn't have the component " + component.key().asMinimalString());
+        set(component, mapper.apply(data));
         return this;
     }
 
@@ -147,7 +163,7 @@ public abstract class AbstractItemBuilder implements ItemBuilder {
     @Override
     public @NotNull AbstractItemBuilder attributeModifiers(@NotNull Collection<@NotNull AttributeModifier> attributeModifiers) {
         var modifiers = get(ATTRIBUTE_MODIFIERS);
-        return set(ItemComponent.ATTRIBUTE_MODIFIERS, new AttributeList(List.copyOf(attributeModifiers), modifiers == null || modifiers.showInTooltip()));
+        return set(ATTRIBUTE_MODIFIERS, new AttributeList(List.copyOf(attributeModifiers), modifiers == null || modifiers.showInTooltip()));
     }
 
     @Override
@@ -262,13 +278,17 @@ public abstract class AbstractItemBuilder implements ItemBuilder {
     public @NotNull AbstractItemBuilder lore(@NotNull Collection<Component> lore) {
         var l = new ArrayList<>(lore());
         for (var component : lore) {
-            if (component.decoration(TextDecoration.ITALIC) != TextDecoration.State.NOT_SET) {
-                l.add(component.decoration(TextDecoration.ITALIC, TextDecoration.State.TRUE));
-            } else {
-                l.add(component);
-            }
+            l.add(mapLore(component));
         }
         return set(LORE, l);
+    }
+
+    private Component mapLore(Component component) {
+        if (component.decoration(TextDecoration.ITALIC) == TextDecoration.State.NOT_SET) {
+            return component.decoration(TextDecoration.ITALIC, TextDecoration.State.FALSE);
+        } else {
+            return component;
+        }
     }
 
     @Override
@@ -279,7 +299,7 @@ public abstract class AbstractItemBuilder implements ItemBuilder {
     @Override
     public @NotNull AbstractItemBuilder lore(@NotNull Component line, int index) {
         var l = new ArrayList<>(lore());
-        l.add(index, Component.empty().decoration(TextDecoration.ITALIC, false).append(line));
+        l.add(index, mapLore(line));
         return set(LORE, l);
     }
 
@@ -336,6 +356,11 @@ public abstract class AbstractItemBuilder implements ItemBuilder {
     }
 
     @Override
+    public @NotNull AbstractItemBuilder hideJukeboxPlayableTooltip() {
+        return map(JUKEBOX_PLAYABLE, p -> p.withTooltip(false));
+    }
+
+    @Override
     public @NotNull AbstractItemBuilder unbreakable(boolean unbreakable) {
         if (!unbreakable) {
             return remove(UNBREAKABLE);
@@ -345,8 +370,31 @@ public abstract class AbstractItemBuilder implements ItemBuilder {
     }
 
     @Override
+    public @NotNull ItemBuilder hiddenUnbreakable() {
+        return set(UNBREAKABLE, new Unbreakable(false));
+    }
+
+    @Override
     public boolean unbreakable() {
         return has(UNBREAKABLE);
+    }
+
+    @Override
+    public @NotNull AbstractItemBuilder hideAdditionalTooltip() {
+        set(HIDE_ADDITIONAL_TOOLTIP, Unit.INSTANCE);
+        return this;
+    }
+
+    @Override
+    public @NotNull AbstractItemBuilder hideTooltip() {
+        set(HIDE_TOOLTIP, Unit.INSTANCE);
+        return this;
+    }
+
+    @Override
+    public @NotNull AbstractItemBuilder intangibleProjectile() {
+        set(INTANGIBLE_PROJECTILE, Unit.INSTANCE);
+        return this;
     }
 
     @Override

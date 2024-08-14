@@ -11,4 +11,7 @@ import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 
 public record JukeboxPlayable(@NotNull Key song, boolean showInTooltip) {
+    public @NotNull JukeboxPlayable withTooltip(boolean showInTooltip) {
+        return new JukeboxPlayable(song, showInTooltip);
+    }
 }

@@ -9,7 +9,7 @@ package eu.darkcube.system.impl.bukkit.version.latest.item.mappings;
 
 import java.util.Optional;
 
-import eu.darkcube.system.impl.bukkit.version.latest.item.DirectMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.Mapper;
 import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.util.MapperUtil;
 import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.libs.net.kyori.adventure.text.format.TextColor;
@@ -19,11 +19,12 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FastColor;
+import net.minecraft.world.item.alchemy.Potion;
 
-public record PotionContentsMapper() implements DirectMapper<PotionContents, net.minecraft.world.item.alchemy.PotionContents> {
+public record PotionContentsMapper() implements Mapper<PotionContents, net.minecraft.world.item.alchemy.PotionContents> {
     @Override
     public net.minecraft.world.item.alchemy.PotionContents apply(PotionContents mapping) {
-        var potion = Optional.ofNullable(mapping.potion()).map(k -> ResourceLocation.parse(k.toString())).map(BuiltInRegistries.POTION::getHolder);
+        var potion = Optional.ofNullable(mapping.potion()).map(k -> ResourceLocation.parse(k.toString())).<Holder<Potion>>flatMap(BuiltInRegistries.POTION::getHolder);
         var color = Optional.ofNullable(mapping.customColor()).map(c -> FastColor.ARGB32.color(0, c.red(), c.green(), c.blue()));
 
         return new net.minecraft.world.item.alchemy.PotionContents(potion, color, mapping.customEffects().stream().map(MapperUtil::convert).toList());

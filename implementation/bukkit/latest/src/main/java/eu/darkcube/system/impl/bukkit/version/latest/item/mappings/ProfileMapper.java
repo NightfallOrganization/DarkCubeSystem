@@ -11,11 +11,11 @@ import java.util.Optional;
 
 import com.mojang.authlib.properties.Property;
 import com.mojang.authlib.properties.PropertyMap;
-import eu.darkcube.system.impl.bukkit.version.latest.item.DirectMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.Mapper;
 import eu.darkcube.system.server.item.component.components.HeadProfile;
 import net.minecraft.world.item.component.ResolvableProfile;
 
-public record ProfileMapper() implements DirectMapper<HeadProfile, ResolvableProfile> {
+public record ProfileMapper() implements Mapper<HeadProfile, ResolvableProfile> {
     @Override
     public ResolvableProfile apply(HeadProfile mapping) {
         var name = mapping.name();

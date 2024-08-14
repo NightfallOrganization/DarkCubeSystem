@@ -18,7 +18,6 @@ import eu.darkcube.system.libs.net.kyori.adventure.chat.SignedMessage;
 import eu.darkcube.system.libs.net.kyori.adventure.identity.Identity;
 import eu.darkcube.system.libs.net.kyori.adventure.inventory.Book;
 import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
-import eu.darkcube.system.libs.net.kyori.adventure.nbt.CompoundBinaryTag;
 import eu.darkcube.system.libs.net.kyori.adventure.sound.Sound;
 import eu.darkcube.system.libs.net.kyori.adventure.sound.SoundStop;
 import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
@@ -150,12 +149,6 @@ public interface KyoriAdventureSupport extends AdventureSupport {
 
     @NotNull
     net.kyori.adventure.util.RGBLike convert(@NotNull RGBLike rgbLike);
-
-    @NotNull
-    CompoundBinaryTag convert(@NotNull net.kyori.adventure.nbt.CompoundBinaryTag tag);
-
-    @NotNull
-    net.kyori.adventure.nbt.CompoundBinaryTag convert(@NotNull CompoundBinaryTag tag);
 
     @NotNull
     SignedMessage.Signature convert(@NotNull net.kyori.adventure.chat.SignedMessage.Signature signature);

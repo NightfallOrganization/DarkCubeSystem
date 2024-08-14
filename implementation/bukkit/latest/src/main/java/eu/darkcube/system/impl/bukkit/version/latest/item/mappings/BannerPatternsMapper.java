@@ -7,7 +7,7 @@
 
 package eu.darkcube.system.impl.bukkit.version.latest.item.mappings;
 
-import eu.darkcube.system.impl.bukkit.version.latest.item.DirectMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.Mapper;
 import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.util.MapperUtil;
 import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.server.item.component.components.BannerPatterns;
@@ -18,7 +18,7 @@ import net.minecraft.world.level.block.entity.BannerPattern;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import org.bukkit.craftbukkit.CraftRegistry;
 
-public record BannerPatternsMapper() implements DirectMapper<BannerPatterns, BannerPatternLayers> {
+public record BannerPatternsMapper() implements Mapper<BannerPatterns, BannerPatternLayers> {
     private static final Registry<BannerPattern> REGISTRY = CraftRegistry.getMinecraftRegistry(Registries.BANNER_PATTERN);
 
     @Override

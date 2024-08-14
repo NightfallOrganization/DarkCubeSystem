@@ -18,6 +18,7 @@ import eu.darkcube.system.impl.bukkit.version.latest.item.attribute.BukkitAttrib
 import eu.darkcube.system.impl.bukkit.version.latest.item.attribute.BukkitAttributeModifierProvider;
 import eu.darkcube.system.impl.bukkit.version.latest.item.attribute.BukkitAttributeProvider;
 import eu.darkcube.system.impl.bukkit.version.latest.item.enchant.BukkitEnchantmentProvider;
+import eu.darkcube.system.impl.bukkit.version.latest.item.flag.BukkitItemFlagProvider;
 import eu.darkcube.system.impl.bukkit.version.latest.item.material.BukkitMaterialProvider;
 import eu.darkcube.system.impl.server.item.KeyProvider;
 import eu.darkcube.system.server.inventory.DarkCubeInventoryTemplates;
@@ -27,6 +28,7 @@ import eu.darkcube.system.server.item.attribute.AttributeModifierOperationProvid
 import eu.darkcube.system.server.item.attribute.AttributeModifierProvider;
 import eu.darkcube.system.server.item.attribute.AttributeProvider;
 import eu.darkcube.system.server.item.enchant.EnchantmentProvider;
+import eu.darkcube.system.server.item.flag.ItemFlagProvider;
 import eu.darkcube.system.server.item.material.MaterialProvider;
 
 public class VersionHandler extends AbstractVersionHandler {
@@ -36,6 +38,7 @@ public class VersionHandler extends AbstractVersionHandler {
         install(ItemProvider.class, new ItemProviderImpl());
         install(AttributeProvider.class, new BukkitAttributeProvider());
         install(EnchantmentProvider.class, new BukkitEnchantmentProvider());
+        install(ItemFlagProvider.class, new BukkitItemFlagProvider());
         install(AttributeModifierProvider.class, new BukkitAttributeModifierProvider());
         install(AttributeModifierOperationProvider.class, new BukkitAttributeModifierOperationProvider());
         install(InventoryVersionProvider.class, new InventoryVersionProviderImpl());

@@ -7,11 +7,11 @@
 
 package eu.darkcube.system.impl.bukkit.version.latest.item.mappings;
 
-import eu.darkcube.system.impl.bukkit.version.latest.item.DirectMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.Mapper;
 import eu.darkcube.system.server.item.ItemRarity;
 import net.minecraft.world.item.Rarity;
 
-public record RarityMapper() implements DirectMapper<ItemRarity, Rarity> {
+public record RarityMapper() implements Mapper<ItemRarity, Rarity> {
     @Override
     public Rarity apply(ItemRarity mapping) {
         return switch (mapping) {

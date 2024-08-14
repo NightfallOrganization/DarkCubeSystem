@@ -12,13 +12,12 @@ import eu.darkcube.system.impl.bukkit.inventory.BukkitInventoryProvider;
 import eu.darkcube.system.impl.bukkit.inventory.BukkitInventoryTypeProvider;
 import eu.darkcube.system.impl.bukkit.item.BukkitEquipmentSlotGroupProvider;
 import eu.darkcube.system.impl.bukkit.item.BukkitEquipmentSlotProvider;
-import eu.darkcube.system.impl.bukkit.item.enchant.BukkitEnchantmentProvider;
 import eu.darkcube.system.impl.bukkit.item.firework.BukkitFireworkEffectProvider;
-import eu.darkcube.system.impl.bukkit.item.flag.BukkitItemFlagProvider;
 import eu.darkcube.system.impl.bukkit.util.BukkitColorProvider;
 import eu.darkcube.system.impl.server.inventory.item.ItemReferenceProviderImpl;
 import eu.darkcube.system.impl.server.inventory.item.ItemTemplateProviderImpl;
 import eu.darkcube.system.impl.server.inventory.listener.InventoryListenerProviderImpl;
+import eu.darkcube.system.impl.server.item.component.ItemComponentProviderImpl;
 import eu.darkcube.system.provider.InternalProvider;
 import eu.darkcube.system.server.inventory.InventoryProvider;
 import eu.darkcube.system.server.inventory.InventoryTypeProvider;
@@ -27,9 +26,8 @@ import eu.darkcube.system.server.inventory.item.ItemTemplateProvider;
 import eu.darkcube.system.server.inventory.listener.InventoryListenerProvider;
 import eu.darkcube.system.server.item.EquipmentSlotGroupProvider;
 import eu.darkcube.system.server.item.EquipmentSlotProvider;
-import eu.darkcube.system.server.item.enchant.EnchantmentProvider;
+import eu.darkcube.system.server.item.component.ItemComponentProvider;
 import eu.darkcube.system.server.item.firework.FireworkEffectProvider;
-import eu.darkcube.system.server.item.flag.ItemFlagProvider;
 import eu.darkcube.system.util.ColorProvider;
 import eu.darkcube.system.version.Version;
 
@@ -39,9 +37,8 @@ public abstract class AbstractVersionHandler implements BukkitVersionHandler {
     public AbstractVersionHandler() {
         version = createVersion();
         install(Version.class, version);
-        install(ItemFlagProvider.class, new BukkitItemFlagProvider());
+        install(ItemComponentProvider.class, new ItemComponentProviderImpl());
         install(FireworkEffectProvider.class, new BukkitFireworkEffectProvider());
-        install(EnchantmentProvider.class, new BukkitEnchantmentProvider());
         install(EquipmentSlotProvider.class, new BukkitEquipmentSlotProvider());
         install(EquipmentSlotGroupProvider.class, new BukkitEquipmentSlotGroupProvider());
         install(ColorProvider.class, new BukkitColorProvider());

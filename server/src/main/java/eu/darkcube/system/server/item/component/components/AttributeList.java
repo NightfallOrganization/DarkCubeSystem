@@ -13,7 +13,13 @@ import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.server.item.attribute.AttributeModifier;
 
 public record AttributeList(@NotNull List<AttributeModifier> modifiers, boolean showInTooltip) {
+    public static final AttributeList EMPTY = new AttributeList(List.of(), true);
+
     public AttributeList {
         modifiers = List.copyOf(modifiers);
+    }
+
+    public AttributeList withTooltip(boolean showInTooltip) {
+        return new AttributeList(modifiers, showInTooltip);
     }
 }

@@ -11,4 +11,7 @@ import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 
 public record ArmorTrim(@NotNull Key material, @NotNull Key pattern, boolean showInTooltip) {
+    public @NotNull ArmorTrim withTooltip(boolean showInTooltip) {
+        return new ArmorTrim(material, pattern, showInTooltip);
+    }
 }

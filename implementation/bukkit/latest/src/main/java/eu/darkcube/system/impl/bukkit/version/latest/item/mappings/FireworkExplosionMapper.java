@@ -13,14 +13,14 @@ import static net.minecraft.util.FastColor.ARGB32.red;
 
 import java.util.ArrayList;
 
-import eu.darkcube.system.impl.bukkit.version.latest.item.DirectMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.Mapper;
 import eu.darkcube.system.libs.net.kyori.adventure.text.format.TextColor;
 import eu.darkcube.system.libs.net.kyori.adventure.util.RGBLike;
 import eu.darkcube.system.server.item.component.components.FireworkExplosion;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.minecraft.util.FastColor;
 
-public record FireworkExplosionMapper() implements DirectMapper<FireworkExplosion, net.minecraft.world.item.component.FireworkExplosion> {
+public record FireworkExplosionMapper() implements Mapper<FireworkExplosion, net.minecraft.world.item.component.FireworkExplosion> {
     private FireworkExplosion.Shape convert(net.minecraft.world.item.component.FireworkExplosion.Shape type) {
         return switch (type) {
             case SMALL_BALL -> FireworkExplosion.Shape.SMALL_BALL;

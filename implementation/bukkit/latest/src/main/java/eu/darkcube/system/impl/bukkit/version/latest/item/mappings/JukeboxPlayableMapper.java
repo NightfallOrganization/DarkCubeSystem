@@ -8,7 +8,7 @@
 package eu.darkcube.system.impl.bukkit.version.latest.item.mappings;
 
 import com.mojang.datafixers.util.Either;
-import eu.darkcube.system.impl.bukkit.version.latest.item.DirectMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.Mapper;
 import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.server.item.component.components.JukeboxPlayable;
 import net.minecraft.core.registries.Registries;
@@ -16,7 +16,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.EitherHolder;
 
-public record JukeboxPlayableMapper() implements DirectMapper<JukeboxPlayable, net.minecraft.world.item.JukeboxPlayable> {
+public record JukeboxPlayableMapper() implements Mapper<JukeboxPlayable, net.minecraft.world.item.JukeboxPlayable> {
     @Override
     public net.minecraft.world.item.JukeboxPlayable apply(JukeboxPlayable mapping) {
         var id = ResourceLocation.parse(mapping.song().asString());

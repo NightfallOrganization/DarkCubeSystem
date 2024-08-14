@@ -104,6 +104,7 @@ public class MapperUtil {
         var result = AdventureModePredicate.CODEC.encodeStart(NbtOps.INSTANCE, predicate);
         if (result.isSuccess()) return BlockPredicates.SERIALIZER.read(convert(result.getOrThrow()));
         LOGGER.error("Error converting BlockPredicates for ItemBuilder: {}", result.error().orElseThrow().message());
+        // LOGGER.error(TagStringIOExt.writeTag(convert(result)));
         return BlockPredicates.NEVER;
     }
 

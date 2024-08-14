@@ -31,7 +31,6 @@ import eu.darkcube.system.server.item.flag.ItemFlag;
 import eu.darkcube.system.server.item.material.Material;
 import eu.darkcube.system.server.item.storage.ItemPersistentDataStorage;
 
-@SuppressWarnings("removal")
 @Api
 public interface ItemBuilder extends DataComponent.Holder, ItemComponent {
     @Api
@@ -104,6 +103,20 @@ public interface ItemBuilder extends DataComponent.Holder, ItemComponent {
     @Api
     @NotNull
     <T> ItemBuilder remove(@NotNull DataComponent<T> component);
+
+    /**
+     * Maps a component to another version of the same type. Will do nothing if the component doesn't exist on the item
+     */
+    @Api
+    @NotNull
+    <T> ItemBuilder map(@NotNull DataComponent<T> component, @NotNull Function<T, T> mapper);
+
+    /**
+     * Maps a component to another version of the same type. The component must exist in the item - it must not be null
+     */
+    @Api
+    @NotNull
+    <T> ItemBuilder mapNotNull(@NotNull DataComponent<T> component, @NotNull Function<T, T> mapper);
 
     @Api
     int amount();
@@ -316,7 +329,27 @@ public interface ItemBuilder extends DataComponent.Holder, ItemComponent {
     ItemBuilder unbreakable(boolean unbreakable);
 
     @Api
+    @NotNull
+    ItemBuilder hiddenUnbreakable();
+
+    @Api
+    @NotNull
+    ItemBuilder hideJukeboxPlayableTooltip();
+
+    @Api
     boolean unbreakable();
+
+    @Api
+    @NotNull
+    ItemBuilder hideAdditionalTooltip();
+
+    @Api
+    @NotNull
+    ItemBuilder hideTooltip();
+
+    @Api
+    @NotNull
+    ItemBuilder intangibleProjectile();
 
     @Api
     @NotNull

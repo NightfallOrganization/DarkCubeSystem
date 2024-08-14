@@ -7,10 +7,10 @@
 
 package eu.darkcube.system.impl.bukkit.version.latest.item.mappings;
 
-import eu.darkcube.system.impl.bukkit.version.latest.item.DirectMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.Mapper;
 import net.minecraft.world.level.saveddata.maps.MapId;
 
-public record MapIdMapper() implements DirectMapper<Integer, MapId> {
+public record MapIdMapper() implements Mapper<Integer, MapId> {
     @Override
     public MapId apply(Integer mapping) {
         return new MapId(mapping);

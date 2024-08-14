@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import eu.darkcube.system.bukkit.item.BukkitItemBuilder;
-import eu.darkcube.system.impl.bukkit.item.material.BukkitMaterialImpl;
 import eu.darkcube.system.impl.bukkit.version.v1_8_8.item.mappings.CustomDataMapper;
 import eu.darkcube.system.impl.bukkit.version.v1_8_8.item.mappings.CustomNameMapper;
 import eu.darkcube.system.impl.bukkit.version.v1_8_8.item.mappings.DamageMapper;
@@ -20,10 +19,12 @@ import eu.darkcube.system.impl.bukkit.version.v1_8_8.item.mappings.DyedColorMapp
 import eu.darkcube.system.impl.bukkit.version.v1_8_8.item.mappings.EnchantmentGlintOverrideMapper;
 import eu.darkcube.system.impl.bukkit.version.v1_8_8.item.mappings.EnchantmentsMapper;
 import eu.darkcube.system.impl.bukkit.version.v1_8_8.item.mappings.FireworkExplosionMapper;
+import eu.darkcube.system.impl.bukkit.version.v1_8_8.item.mappings.HideAdditionalTooltipMapper;
 import eu.darkcube.system.impl.bukkit.version.v1_8_8.item.mappings.LoreMapper;
 import eu.darkcube.system.impl.bukkit.version.v1_8_8.item.mappings.ProfileMapper;
 import eu.darkcube.system.impl.bukkit.version.v1_8_8.item.mappings.SpawnerEntityDataMapper;
 import eu.darkcube.system.impl.bukkit.version.v1_8_8.item.mappings.UnbreakableMapper;
+import eu.darkcube.system.impl.bukkit.version.v1_8_8.item.material.BukkitMaterialImpl;
 import eu.darkcube.system.impl.server.item.AbstractItemBuilder;
 import eu.darkcube.system.libs.com.google.gson.Gson;
 import eu.darkcube.system.libs.com.google.gson.GsonBuilder;
@@ -189,6 +190,7 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
         m.add(new Mapping<>(PROFILE, new ProfileMapper()));
         m.add(new Mapping<>(LegacyItemComponent.SPAWNER_ENTITY_DATA, new SpawnerEntityDataMapper()));
         m.add(new Mapping<>(UNBREAKABLE, new UnbreakableMapper()));
+        m.add(new Mapping<>(HIDE_ADDITIONAL_TOOLTIP, new HideAdditionalTooltipMapper()));
         MAPPINGS = List.copyOf(m);
         MAPPINGS_PURE = List.copyOf(p);
     }

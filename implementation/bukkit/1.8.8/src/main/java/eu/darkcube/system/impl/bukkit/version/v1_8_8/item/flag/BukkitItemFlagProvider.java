@@ -5,7 +5,7 @@
  * The above copyright notice shall be included in all copies of this software.
  */
 
-package eu.darkcube.system.impl.bukkit.item.flag;
+package eu.darkcube.system.impl.bukkit.version.v1_8_8.item.flag;
 
 import eu.darkcube.system.impl.common.EnumConverter;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;

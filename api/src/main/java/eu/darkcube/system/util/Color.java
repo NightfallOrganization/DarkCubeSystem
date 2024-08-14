@@ -7,10 +7,11 @@
 
 package eu.darkcube.system.util;
 
+import eu.darkcube.system.libs.net.kyori.adventure.util.RGBLike;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.provider.InternalProvider;
 
-public record Color(int rgb) {
+public record Color(int rgb) implements RGBLike {
     private static final ColorProvider PROVIDER = InternalProvider.instance().instance(ColorProvider.class);
 
     public Color(int rgb, boolean hasAlpha) {
@@ -36,6 +37,7 @@ public record Color(int rgb) {
      * @return the red component.
      * @see #rgb()
      */
+    @Override
     public int red() {
         return (rgb() >> 16) & 0xFF;
     }
@@ -47,6 +49,7 @@ public record Color(int rgb) {
      * @return the green component.
      * @see #rgb()
      */
+    @Override
     public int green() {
         return (rgb() >> 8) & 0xFF;
     }
@@ -58,6 +61,7 @@ public record Color(int rgb) {
      * @return the blue component.
      * @see #rgb()
      */
+    @Override
     public int blue() {
         return (rgb()) & 0xFF;
     }

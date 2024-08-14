@@ -21,23 +21,30 @@ import io.papermc.paper.registry.RegistryKey;
 import org.bukkit.Registry;
 
 public class BukkitEnchantmentProvider implements EnchantmentProvider {
-    private static final Registry<org.bukkit.enchantments.Enchantment> REGISTRY = RegistryAccess.registryAccess().getRegistry(RegistryKey.ENCHANTMENT);
-    private final Map<org.bukkit.enchantments.Enchantment, Enchantment> enchantments = new HashMap<>();
+    private Registry<org.bukkit.enchantments.Enchantment> registry;
+    private Map<org.bukkit.enchantments.Enchantment, Enchantment> enchantments;
 
-    public BukkitEnchantmentProvider() {
-        for (var enchantment : REGISTRY) {
-            enchantments.put(enchantment, new BukkitEnchantmentImpl(enchantment, adventureSupport().convert(enchantment.key())));
+    private void tryLoad() {
+        if (enchantments != null) return;
+        synchronized (this) {
+            if (enchantments != null) return;
+            enchantments = new HashMap<>();
+            registry = RegistryAccess.registryAccess().getRegistry(RegistryKey.ENCHANTMENT);
+            for (var enchantment : registry) {
+                enchantments.put(enchantment, new BukkitEnchantmentImpl(enchantment, adventureSupport().convert(enchantment.key())));
+            }
         }
     }
 
     @NotNull
     @Override
     public Enchantment of(@NotNull Object platformObject) {
+        tryLoad();
         return switch (platformObject) {
             case Enchantment enchantment -> enchantment;
             case org.bukkit.enchantments.Enchantment enchantment -> enchantments.get(enchantment);
             case Key key -> of(net.kyori.adventure.key.Key.key(key.namespace(), key.value()));
-            case net.kyori.adventure.key.Key key -> of(REGISTRY.getOrThrow(key));
+            case net.kyori.adventure.key.Key key -> of(registry.getOrThrow(key));
             default -> throw new IllegalArgumentException("Not a valid enchantment: " + platformObject);
         };
     }

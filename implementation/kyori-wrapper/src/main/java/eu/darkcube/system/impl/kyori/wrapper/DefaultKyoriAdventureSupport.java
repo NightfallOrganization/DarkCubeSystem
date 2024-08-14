@@ -9,7 +9,6 @@ package eu.darkcube.system.impl.kyori.wrapper;
 
 import static eu.darkcube.system.impl.kyori.wrapper.Fields.*;
 
-import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
@@ -23,8 +22,6 @@ import eu.darkcube.system.libs.net.kyori.adventure.chat.SignedMessage;
 import eu.darkcube.system.libs.net.kyori.adventure.identity.Identity;
 import eu.darkcube.system.libs.net.kyori.adventure.inventory.Book;
 import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
-import eu.darkcube.system.libs.net.kyori.adventure.nbt.CompoundBinaryTag;
-import eu.darkcube.system.libs.net.kyori.adventure.nbt.TagStringIO;
 import eu.darkcube.system.libs.net.kyori.adventure.sound.Sound;
 import eu.darkcube.system.libs.net.kyori.adventure.sound.SoundStop;
 import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
@@ -336,25 +333,6 @@ public interface DefaultKyoriAdventureSupport extends KyoriAdventureSupport {
     @NotNull
     default RGBLike convert(net.kyori.adventure.util.@NotNull RGBLike rgbLike) {
         return TextColor.color(rgbLike.red(), rgbLike.green(), rgbLike.blue());
-    }
-
-    @Override
-    @NotNull
-    default CompoundBinaryTag convert(@NotNull net.kyori.adventure.nbt.CompoundBinaryTag tag) {
-        try {
-            return TagStringIO.get().asCompound(net.kyori.adventure.nbt.TagStringIO.get().asString(tag));
-        } catch (IOException e) {
-            throw new Error(e);
-        }
-    }
-
-    @Override
-    default @NotNull net.kyori.adventure.nbt.CompoundBinaryTag convert(@NotNull CompoundBinaryTag tag) {
-        try {
-            return net.kyori.adventure.nbt.TagStringIO.get().asCompound(TagStringIO.get().asString(tag));
-        } catch (IOException e) {
-            throw new Error(e);
-        }
     }
 }
 

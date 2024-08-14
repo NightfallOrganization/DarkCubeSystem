@@ -7,13 +7,13 @@
 
 package eu.darkcube.system.impl.bukkit.version.latest.item.mappings;
 
-import eu.darkcube.system.impl.bukkit.version.latest.item.DirectMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.Mapper;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Instrument;
 
-public record InstrumentMapper() implements DirectMapper<String, Holder<Instrument>> {
+public record InstrumentMapper() implements Mapper<String, Holder<Instrument>> {
     @Override
     public Holder<Instrument> apply(String mapping) {
         return BuiltInRegistries.INSTRUMENT.getHolder(ResourceLocation.parse(mapping)).orElseThrow();

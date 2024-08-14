@@ -9,12 +9,12 @@ package eu.darkcube.system.impl.bukkit.version.latest.item.mappings;
 
 import java.util.Optional;
 
-import eu.darkcube.system.impl.bukkit.version.latest.item.DirectMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.Mapper;
 import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.util.MapperUtil;
 import eu.darkcube.system.server.item.component.components.Food;
 import net.minecraft.world.food.FoodProperties;
 
-public record FoodMapper() implements DirectMapper<Food, FoodProperties> {
+public record FoodMapper() implements Mapper<Food, FoodProperties> {
     @Override
     public FoodProperties apply(Food mapping) {
         return new FoodProperties(mapping.nutrition(), mapping.saturationModifier(), mapping.canAlwaysEat(), mapping.eatSeconds(), Optional.ofNullable(mapping.usingConvertsTo()).map(MapperUtil::convert), mapping.effects().stream().map(e -> new FoodProperties.PossibleEffect(MapperUtil.convert(e.effect()), e.probability())).toList());

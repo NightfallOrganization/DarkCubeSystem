@@ -7,11 +7,11 @@
 
 package eu.darkcube.system.impl.bukkit.version.latest.item.mappings;
 
-import eu.darkcube.system.impl.bukkit.version.latest.item.DirectMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.Mapper;
 import eu.darkcube.system.server.item.component.components.FireworkList;
 import net.minecraft.world.item.component.Fireworks;
 
-public record FireworksMapper() implements DirectMapper<FireworkList, Fireworks> {
+public record FireworksMapper() implements Mapper<FireworkList, Fireworks> {
     private static final FireworkExplosionMapper m = new FireworkExplosionMapper();
 
     @Override

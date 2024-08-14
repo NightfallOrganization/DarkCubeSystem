@@ -51,6 +51,10 @@ public record BlockPredicates(@NotNull List<BlockPredicate> predicates, boolean 
         predicates = List.copyOf(predicates);
     }
 
+    public BlockPredicates withTooltip(boolean showInTooltip) {
+        return new BlockPredicates(predicates, showInTooltip);
+    }
+
     public record BlockPredicate(@Nullable BlockTypeFilter blocks, @Nullable PropertiesPredicate state, @Nullable CompoundBinaryTag nbt) {
         public static final BlockPredicate ALL = new BlockPredicate(null, null, null);
         public static final BinaryTagSerializer<BlockPredicate> SERIALIZER = new BinaryTagSerializer<>() {

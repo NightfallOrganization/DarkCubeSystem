@@ -152,7 +152,7 @@ public final class CustomDataMapper implements Mapper<CompoundBinaryTag> {
 
     static {
         try {
-            var lookup = MethodHandles.lookup();
+            var lookup = MethodHandles.privateLookupIn(NBTBase.class, MethodHandles.lookup());
             NBTBase$createTag = lookup.findStatic(NBTBase.class, "createTag", MethodType.methodType(NBTBase.class, byte.class));
         } catch (ReflectiveOperationException e) {
             throw new ExceptionInInitializerError(e);

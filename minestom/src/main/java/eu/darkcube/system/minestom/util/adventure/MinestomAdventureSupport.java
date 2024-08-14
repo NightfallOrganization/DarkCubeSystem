@@ -8,6 +8,8 @@
 package eu.darkcube.system.minestom.util.adventure;
 
 import eu.darkcube.system.kyori.wrapper.KyoriAdventureSupport;
+import eu.darkcube.system.libs.net.kyori.adventure.nbt.CompoundBinaryTag;
+import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.util.AdventureSupport;
 
 public interface MinestomAdventureSupport extends KyoriAdventureSupport {
@@ -18,5 +20,11 @@ public interface MinestomAdventureSupport extends KyoriAdventureSupport {
 
     @Override
     MinestomAudienceProvider audienceProvider();
+
+    @NotNull
+    CompoundBinaryTag convert(@NotNull net.kyori.adventure.nbt.CompoundBinaryTag tag);
+
+    @NotNull
+    net.kyori.adventure.nbt.CompoundBinaryTag convert(@NotNull CompoundBinaryTag tag);
 
 }

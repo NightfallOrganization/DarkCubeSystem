@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 import eu.darkcube.system.impl.bukkit.item.BukkitEquipmentSlotGroupImpl;
-import eu.darkcube.system.impl.bukkit.version.latest.item.DirectMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.Mapper;
 import eu.darkcube.system.impl.bukkit.version.latest.item.attribute.BukkitAttribute;
 import eu.darkcube.system.impl.bukkit.version.latest.item.attribute.BukkitAttributeModifierOperationImpl;
 import eu.darkcube.system.server.item.attribute.Attribute;
@@ -28,7 +28,7 @@ import net.minecraft.world.item.component.ItemAttributeModifiers;
 import org.bukkit.Registry;
 
 @SuppressWarnings("UnstableApiUsage")
-public record AttributeModifiersMapper() implements DirectMapper<AttributeList, ItemAttributeModifiers> {
+public record AttributeModifiersMapper() implements Mapper<AttributeList, ItemAttributeModifiers> {
     @Override
     public ItemAttributeModifiers apply(AttributeList mapping) {
         var list = new ArrayList<ItemAttributeModifiers.Entry>();

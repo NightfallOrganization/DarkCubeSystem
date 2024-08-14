@@ -9,7 +9,7 @@ package eu.darkcube.system.impl.bukkit.version.latest.item.mappings;
 
 import java.util.HashMap;
 
-import eu.darkcube.system.impl.bukkit.version.latest.item.DirectMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.Mapper;
 import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.server.item.component.components.EnchantmentList;
 import net.minecraft.core.registries.Registries;
@@ -23,7 +23,7 @@ import net.minecraft.world.item.enchantment.ItemEnchantments;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public record EnchantmentsMapper() implements DirectMapper<EnchantmentList, ItemEnchantments> {
+public record EnchantmentsMapper() implements Mapper<EnchantmentList, ItemEnchantments> {
     private static final RegistryOps<Tag> OPS = RegistryOps.create(NbtOps.INSTANCE, MinecraftServer.getServer().registryAccess());
     private static final Logger LOGGER = LoggerFactory.getLogger(EnchantmentsMapper.class);
 
