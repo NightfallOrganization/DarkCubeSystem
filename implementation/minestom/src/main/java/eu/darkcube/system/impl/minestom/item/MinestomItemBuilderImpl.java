@@ -126,9 +126,6 @@ public class MinestomItemBuilderImpl extends AbstractItemBuilder implements Mine
     }
 
     // region constructor
-    public MinestomItemBuilderImpl() {
-    }
-
     public MinestomItemBuilderImpl(@NotNull ItemStack item) {
         material(item.material());
         amount(item.amount());
@@ -272,7 +269,7 @@ public class MinestomItemBuilderImpl extends AbstractItemBuilder implements Mine
     }
 
     private static net.minestom.server.item.component.PotionContents convert(PotionContents c) {
-        return new net.minestom.server.item.component.PotionContents(Objects.requireNonNull(c.potion() == null ? null : PotionType.fromNamespaceId(c.potion().asString())), c.customColor() == null ? null : adventureSupport().convert(c.customColor()), c.customEffects().stream().map(MinestomItemBuilderImpl::convert).toList());
+        return new net.minestom.server.item.component.PotionContents(c.potion() == null ? null : PotionType.fromNamespaceId(c.potion().asString()), c.customColor() == null ? null : adventureSupport().convert(c.customColor()), c.customEffects().stream().map(MinestomItemBuilderImpl::convert).toList());
     }
 
     private static PotionContents convert(net.minestom.server.item.component.PotionContents c) {

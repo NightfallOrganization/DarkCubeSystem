@@ -10,6 +10,7 @@ package eu.darkcube.system.impl.minestom.item;
 import eu.darkcube.system.libs.com.google.gson.JsonElement;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
+import eu.darkcube.system.minestom.item.material.MinestomMaterial;
 import eu.darkcube.system.server.item.ItemBuilder;
 import eu.darkcube.system.server.item.ItemProvider;
 import eu.darkcube.system.server.item.material.Material;
@@ -18,7 +19,7 @@ import net.minestom.server.item.ItemStack;
 public class MinestomItemProvider implements ItemProvider {
     @Override
     public @NotNull ItemBuilder item(@Nullable Material material) {
-        return new MinestomItemBuilderImpl().material(material == null ? Material.air() : material);
+        return new MinestomItemBuilderImpl(ItemStack.of(((MinestomMaterial) (material == null ? Material.air() : material)).minestomType()));
     }
 
     @Override
