@@ -63,7 +63,11 @@ public class BukkitInventory extends AbstractInventory<ItemStack> {
         }
         inventory.setItem(slot, item);
         for (var i = 0; i < listeners.size(); i++) {
-            listeners.get(i).onSlotUpdate(this, slot);
+            try {
+                listeners.get(i).onSlotUpdate(this, slot);
+            } catch (Throwable t) {
+                LOGGER.error("Error during #onSlotUpdate of {}", listeners.get(i).getClass().getName(), t);
+            }
         }
         modified = true;
     }
@@ -106,12 +110,20 @@ public class BukkitInventory extends AbstractInventory<ItemStack> {
     protected void doOpen(@NotNull Player player) {
         var user = UserAPI.instance().user(player.getUniqueId());
         for (var i = 0; i < listeners.size(); i++) {
-            listeners.get(i).onPreOpen(this, user);
+            try {
+                listeners.get(i).onPreOpen(this, user);
+            } catch (Throwable t) {
+                LOGGER.error("Error during #onPreOpen of {}", listeners.get(i).getClass().getName(), t);
+            }
         }
         opened.add(user);
         player.openInventory(inventory);
         for (var i = 0; i < listeners.size(); i++) {
-            listeners.get(i).onOpen(this, user);
+            try {
+                listeners.get(i).onOpen(this, user);
+            } catch (Throwable t) {
+                LOGGER.error("Error during #onOpen of {}", listeners.get(i).getClass().getName(), t);
+            }
         }
     }
 
@@ -180,7 +192,11 @@ public class BukkitInventory extends AbstractInventory<ItemStack> {
         var item = itemStack == null || itemStack.getType().isAir() ? ItemBuilder.item() : ItemBuilder.item(itemStack);
         handleClick(slot, itemStack == null ? new ItemStack(Material.AIR) : itemStack, item);
         for (var i = 0; i < listeners.size(); i++) {
-            listeners.get(i).onClick(this, user, slot, item);
+            try {
+                listeners.get(i).onClick(this, user, slot, item);
+            } catch (Throwable t) {
+                LOGGER.error("Error during #onClick of {}", listeners.get(i).getClass().getName(), t);
+            }
         }
     }
 
@@ -204,7 +220,11 @@ public class BukkitInventory extends AbstractInventory<ItemStack> {
         if (holder != this.holder) return;
         var user = UserAPI.instance().user(event.getPlayer().getUniqueId());
         for (var i = 0; i < listeners.size(); i++) {
-            listeners.get(i).onClose(this, user);
+            try {
+                listeners.get(i).onClose(this, user);
+            } catch (Throwable t) {
+                LOGGER.error("Error during #onClose of {}", listeners.get(i).getClass().getName(), t);
+            }
         }
         if (openCount.decrementAndGet() == 0) {
             unregister();

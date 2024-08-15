@@ -1,4 +1,13 @@
+/*
+ * Copyright (c) 2024. [DarkCube]
+ * All rights reserved.
+ * You may not use or redistribute this software or any associated files without permission.
+ * The above copyright notice shall be included in all copies of this software.
+ */
+
 package eu.darkcube.system.impl.bukkit.inventory;
+
+import static eu.darkcube.system.impl.server.inventory.InventoryAPIUtils.LOGGER;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -49,13 +58,21 @@ public class BukkitTemplateInventory extends BukkitInventory implements Template
         }
         this.itemHandler.doOpen();
         for (var i = 0; i < listeners.size(); i++) {
-            listeners.get(i).onPreOpen(this, user);
+            try {
+                listeners.get(i).onPreOpen(this, user);
+            } catch (Throwable t) {
+                LOGGER.error("Error during #onPreOpen of {}", listeners.get(i).getClass().getName(), t);
+            }
         }
         opened.add(user);
         onMainThread(() -> {
             player.openInventory(inventory);
             for (var i = 0; i < listeners.size(); i++) {
-                listeners.get(i).onOpen(this, user);
+                try {
+                    listeners.get(i).onOpen(this, user);
+                } catch (Throwable t) {
+                    LOGGER.error("Error during #onOpen of {}", listeners.get(i).getClass().getName(), t);
+                }
             }
         });
     }
@@ -87,7 +104,11 @@ public class BukkitTemplateInventory extends BukkitInventory implements Template
                 setItem(slot, item);
                 if (animationsStarted.decrementAndGet() == 0) {
                     for (var i = 0; i < listeners.size(); i++) {
-                        listeners.get(i).onOpenAnimationFinished(this);
+                        try {
+                            listeners.get(i).onOpenAnimationFinished(this);
+                        } catch (Throwable t) {
+                            LOGGER.error("Error during #onOpenAnimationFinished of {}", listeners.get(i).getClass().getName(), t);
+                        }
                     }
                 }
             }, millis / 50L);
