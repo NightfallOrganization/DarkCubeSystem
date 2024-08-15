@@ -9,7 +9,6 @@ package eu.darkcube.system.link;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 
 import eu.darkcube.system.annotations.Api;
 import org.slf4j.Logger;
@@ -34,30 +33,22 @@ public class LinkManager {
 
     @Api
     public void enableLinks() {
-        links.forEach(link -> {
-            try {
-                link.link();
-            } catch (Throwable e) {
-                LOGGER.warn(e.getLocalizedMessage());
-            }
-        });
-        links.forEach(Link::enable);
+        links.forEach(Link::tryLinkAndEnable);
     }
 
     @Api
     public Collection<Link> links() {
-        return Collections.unmodifiableCollection(links);
+        return links.stream().filter(Link::isLinked).toList();
     }
 
     @Api
     public void unregisterLinks() {
-        new ArrayList<>(this.links).forEach(this::unregisterLink);
+        this.links.forEach(this::unregisterLink);
     }
 
     @Api
     public void unregisterLink(Link link) {
-        link.disable();
-        link.unlink();
+        link.disableAndUnlink();
         links.remove(link);
     }
 

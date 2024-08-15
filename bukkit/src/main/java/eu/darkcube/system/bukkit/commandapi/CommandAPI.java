@@ -49,7 +49,9 @@ public class CommandAPI {
 
     public void unregister(Command command) {
         var entry = commands.unregister(command);
-        BukkitVersion.version().commandApiUtils().unregister(entry);
+        if (entry != null) {
+            BukkitVersion.version().commandApiUtils().unregister(entry);
+        }
     }
 
     public void unregisterByPrefix(String prefix) {

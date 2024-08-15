@@ -18,19 +18,28 @@ public class LuckPermsLink extends PluginLink {
         super(source, "LuckPerms");
     }
 
-    @Override protected void link() {
+    @Override
+    protected void link() {
         calculator = new LinkContextCalculator();
     }
 
-    @Override protected void onEnable() {
+    @Override
+    protected void onEnable() {
         LuckPermsProvider.get().getContextManager().registerCalculator(calculator);
     }
 
-    @Override protected void onDisable() {
+    @Override
+    protected void onDisable() {
+        try {
+            LuckPermsProvider.get(); // LuckPerms may be unloaded at this point, we can safely ignore any errors
+        } catch (Throwable _) {
+            return;
+        }
         LuckPermsProvider.get().getContextManager().unregisterCalculator(calculator);
     }
 
-    @Override protected void unlink() {
+    @Override
+    protected void unlink() {
         calculator = null;
     }
 }

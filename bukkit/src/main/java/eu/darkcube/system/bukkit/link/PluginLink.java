@@ -51,14 +51,14 @@ public abstract class PluginLink extends Link {
         @EventHandler
         public void handle(PluginDisableEvent event) {
             if (event.getPlugin().getName().equals(pluginName)) {
-                disable();
+                disableAndUnlink();
             }
         }
 
         @EventHandler
         public void handle(PluginEnableEvent event) {
             if (event.getPlugin().getName().equals(pluginName)) {
-                enable();
+                tryLinkAndEnable();
             }
         }
     }

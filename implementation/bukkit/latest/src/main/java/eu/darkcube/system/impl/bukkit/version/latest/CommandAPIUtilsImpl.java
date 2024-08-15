@@ -97,6 +97,7 @@ public class CommandAPIUtilsImpl extends BukkitCommandAPIUtils implements Listen
     private class PluginListener implements Listener {
         @EventHandler
         public void handle(PluginDisableEvent event) {
+            if (!MinecraftServer.getServer().isRunning()) return; // Server shutting down
             var plugin = event.getPlugin().getPluginMeta();
 
             var entries = CommandAPI.instance().getCommands().commandEntries().stream().filter(e -> {

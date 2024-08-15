@@ -109,6 +109,7 @@ public class Commands {
         }
     }
 
+    @ApiStatus.Internal
     public CommandEntry unregister(Command command) {
         for (var entry : new ArrayList<>(commandEntries)) {
             if (entry.executor().equals(command)) {
@@ -119,7 +120,7 @@ public class Commands {
                 return entry;
             }
         }
-        throw new IllegalStateException("Command " + command.name() + " was not found");
+        return null;
     }
 
     private boolean unregister(CommandNode<CommandSource> parent, CommandEntry.OriginalCommandTree original) {
