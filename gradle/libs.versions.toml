@@ -20,6 +20,9 @@ shadow = "8.1.8"
 paperweight-userdev = "1.7.2"
 idea-ext = "1.1.8"
 
+paper-legacy = "1.8.8-R0.1-SNAPSHOT"
+paper-latest = "1.21-R0.1-20240810.100446-132"
+
 velocity = "3.1.1"
 
 [libraries]
@@ -29,6 +32,7 @@ viaversion-common = { group = "com.viaversion", name = "viaversion-common", vers
 viaversion-velocity = { group = "com.viaversion", name = "viaversion-velocity", version.ref = "viaversion" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 adventure-api = { group = "net.kyori", name = "adventure-api", version.ref = "adventure" }
+adventure-nbt = { group = "net.kyori", name = "adventure-nbt", version.ref = "adventure" }
 adventure-text-serializer-plain = { group = "net.kyori", name = "adventure-text-serializer-plain", version.ref = "adventure" }
 adventure-text-serializer-gson = { group = "net.kyori", name = "adventure-text-serializer-gson", version.ref = "adventure" }
 adventure-text-serializer-gson-legacy-impl = { group = "net.kyori", name = "adventure-text-serializer-gson-legacy-impl", version.ref = "adventure" }
@@ -47,6 +51,10 @@ cloudnet-driver = { group = "eu.darkcube.cloudnetservice.cloudnet", name = "driv
 cloudnet-bridge = { group = "eu.darkcube.cloudnetservice.cloudnet", name = "bridge", version.ref = "cloudnet" }
 cloudnet-node = { group = "eu.darkcube.cloudnetservice.cloudnet", name = "node", version.ref = "cloudnet" }
 cloudnet-wrapper = { group = "eu.darkcube.cloudnetservice.cloudnet", name = "wrapper-jvm", version.ref = "cloudnet" }
+
+paper-legacy = { group = "io.papermc.paper", name = "paper", version.ref = "paper-legacy" }
+paper-latest = { group = "io.papermc.paper", name = "paper-api", version.ref = "paper-latest" }
+paper-latest-bundle = { group = "io.papermc.paper", name = "dev-bundle", version.ref = "paper-latest" }
 
 velocity = { group = "com.velocitypowered", name = "velocity-api", version.ref = "velocity" }
 

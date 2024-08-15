@@ -1,13 +1,20 @@
+/*
+ * Copyright (c) 2024. [DarkCube]
+ * All rights reserved.
+ * You may not use or redistribute this software or any associated files without permission.
+ * The above copyright notice shall be included in all copies of this software.
+ */
+
 package eu.darkcube.system.impl.bukkit.inventory;
 
 import static eu.darkcube.system.impl.server.inventory.InventoryAPIUtils.LOGGER;
+import static eu.darkcube.system.kyori.wrapper.KyoriAdventureSupport.adventureSupport;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 import eu.darkcube.system.bukkit.inventory.BukkitInventoryType;
 import eu.darkcube.system.impl.bukkit.DarkCubeSystemBukkit;
 import eu.darkcube.system.impl.server.inventory.AbstractInventory;
-import eu.darkcube.system.kyori.wrapper.KyoriAdventureSupport;
 import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
@@ -43,9 +50,9 @@ public class BukkitInventory extends AbstractInventory<ItemStack> {
 
     private Inventory createInventory(BukkitInventoryType type, Component title) {
         if (type instanceof ChestInventoryType(var size)) {
-            return Bukkit.createInventory(holder, size, KyoriAdventureSupport.adventureSupport().convert(title));
+            return Bukkit.createInventory(holder, size, adventureSupport().convert(title));
         }
-        return Bukkit.createInventory(holder, type.bukkitType(), KyoriAdventureSupport.adventureSupport().convert(title));
+        return Bukkit.createInventory(holder, type.bukkitType(), adventureSupport().convert(title));
     }
 
     @Override

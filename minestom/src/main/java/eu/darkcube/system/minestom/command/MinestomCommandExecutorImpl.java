@@ -37,7 +37,7 @@ class MinestomCommandExecutorImpl implements MinestomCommandExecutor {
     }
 
     @Override
-    public CommandSender sender() {
+    public @NotNull CommandSender sender() {
         return sender;
     }
 

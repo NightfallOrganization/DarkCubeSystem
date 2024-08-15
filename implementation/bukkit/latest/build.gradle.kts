@@ -18,7 +18,7 @@ configurations.named(cloudnetSource.compileClasspathConfigurationName).configure
 }
 
 dependencies {
-    paperweightDevelopmentBundle("io.papermc.paper:dev-bundle:1.21-R0.1-20240701.082534-43")
+    paperweightDevelopmentBundle(libs.paper.latest.bundle)
     implementation(projects.darkcubesystemImplementationBukkit)
     compileOnly(libs.cloudnet.driver)
     api(libs.viaversion.common)

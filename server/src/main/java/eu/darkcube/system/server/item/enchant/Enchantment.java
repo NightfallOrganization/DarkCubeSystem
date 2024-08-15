@@ -7,14 +7,16 @@
 
 package eu.darkcube.system.server.item.enchant;
 
+import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.UnknownNullability;
 
 public interface Enchantment {
-
     static @UnknownNullability Enchantment of(@NotNull Object platformEnchantment) {
         return EnchantmentProviderImpl.of(platformEnchantment);
     }
+
+    Key key();
 
     int maxLevel();
 

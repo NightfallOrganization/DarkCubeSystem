@@ -7,6 +7,12 @@
 
 package eu.darkcube.system.bukkit.commandapi;
 
+import static eu.darkcube.system.libs.net.kyori.adventure.text.Component.newline;
+import static eu.darkcube.system.libs.net.kyori.adventure.text.Component.text;
+import static eu.darkcube.system.libs.net.kyori.adventure.text.event.ClickEvent.Action.SUGGEST_COMMAND;
+import static eu.darkcube.system.libs.net.kyori.adventure.text.event.ClickEvent.clickEvent;
+import static eu.darkcube.system.libs.net.kyori.adventure.text.format.NamedTextColor.*;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -17,7 +23,6 @@ import java.util.stream.Collectors;
 
 import eu.darkcube.system.BaseMessage;
 import eu.darkcube.system.bukkit.commandapi.argument.EntityAnchorArgument;
-import eu.darkcube.system.commandapi.CommandExecutor;
 import eu.darkcube.system.commandapi.ISuggestionProvider;
 import eu.darkcube.system.commandapi.util.MathHelper;
 import eu.darkcube.system.commandapi.util.Messages.MessageWrapper;
@@ -34,7 +39,6 @@ import eu.darkcube.system.libs.com.mojang.brigadier.tree.LiteralCommandNode;
 import eu.darkcube.system.libs.net.kyori.adventure.audience.Audience;
 import eu.darkcube.system.libs.net.kyori.adventure.audience.ForwardingAudience;
 import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
-import eu.darkcube.system.libs.net.kyori.adventure.text.event.ClickEvent;
 import eu.darkcube.system.libs.net.kyori.adventure.text.event.HoverEvent;
 import eu.darkcube.system.libs.net.kyori.adventure.text.format.NamedTextColor;
 import eu.darkcube.system.libs.net.kyori.adventure.text.format.TextColor;
@@ -53,8 +57,8 @@ public class CommandSource implements ISuggestionProvider, ForwardingAudience.Si
 
     public static final SimpleCommandExceptionType REQUIRES_ENTITY_EXCEPTION_TYPE = new SimpleCommandExceptionType(new LiteralMessage("You need to be an entity!"));
 
-    private final CommandExecutor source;
-    private final CommandExecutor originalSource;
+    private final BukkitCommandExecutor source;
+    private final BukkitCommandExecutor originalSource;
     private final Vector3d pos;
     private final World world;
     private final String name;
@@ -66,12 +70,12 @@ public class CommandSource implements ISuggestionProvider, ForwardingAudience.Si
     private final Vector2f rotation;
     private final Map<String, Object> extra;
 
-    public CommandSource(CommandExecutor source, CommandExecutor originalSource, Vector3d pos, World world, String name, Component displayName, Entity entity, Vector2f rotation, Map<String, Object> extra) {
+    public CommandSource(BukkitCommandExecutor source, BukkitCommandExecutor originalSource, Vector3d pos, World world, String name, Component displayName, Entity entity, Vector2f rotation, Map<String, Object> extra) {
         this(source, originalSource, pos, world, name, displayName, false, entity, (context, success, result) -> {
         }, EntityAnchorArgument.Type.FEET, rotation, extra);
     }
 
-    public CommandSource(CommandExecutor source, CommandExecutor originalSource, Vector3d pos, World world, String name, Component displayName, boolean feedbackDisabled, Entity entity, ResultConsumer<CommandSource> resultConsumer, EntityAnchorArgument.Type entityAnchorType, Vector2f rotation, Map<String, Object> extra) {
+    public CommandSource(BukkitCommandExecutor source, BukkitCommandExecutor originalSource, Vector3d pos, World world, String name, Component displayName, boolean feedbackDisabled, Entity entity, ResultConsumer<CommandSource> resultConsumer, EntityAnchorArgument.Type entityAnchorType, Vector2f rotation, Map<String, Object> extra) {
         super();
         this.source = source;
         this.originalSource = originalSource;
@@ -96,7 +100,7 @@ public class CommandSource implements ISuggestionProvider, ForwardingAudience.Si
         Vector3d pos = null;
         World world = null;
         var name = sender.getName();
-        var displayName = Component.text(name);
+        var displayName = text(name);
         Entity entity = null;
         Vector2f rotation = null;
         if (sender instanceof Entity) {
@@ -117,7 +121,7 @@ public class CommandSource implements ISuggestionProvider, ForwardingAudience.Si
         if (message instanceof MessageWrapper(var message1, var components)) {
             sendMessage(message1.getMessage(source, components));
         } else {
-            sendMessage(Component.text(message.getString()).color(NamedTextColor.RED));
+            sendMessage(text(message.getString()).color(NamedTextColor.RED));
         }
     }
 
@@ -253,22 +257,22 @@ public class CommandSource implements ISuggestionProvider, ForwardingAudience.Si
                 var usage = usageMap.remove(text);
                 display2 = usage.substring(text.length());
             }
-            Component clickable = Component.text(text, NamedTextColor.AQUA);
+            Component clickable = text(text, AQUA);
             if (display2 != null) {
-                clickable = clickable.append(Component.text(display2, DARKER_AQUA_VALUE));
+                clickable = clickable.append(text(display2, DARKER_AQUA_VALUE));
             }
 
-            clickable = clickable.clickEvent(ClickEvent.clickEvent(ClickEvent.Action.SUGGEST_COMMAND, cmd));
+            clickable = clickable.clickEvent(clickEvent(SUGGEST_COMMAND, cmd));
 
             Component hover = Component.empty();
 
-            if (completion.getTooltip() != null && completion.getTooltip().getString() != null) hover = hover.append(Component.text(completion.getTooltip().getString())).append(Component.newline());
+            if (completion.getTooltip() != null && completion.getTooltip().getString() != null) hover = hover.append(text(completion.getTooltip().getString())).append(newline());
 
-            hover = hover.append(Component.text("Click to insert command", NamedTextColor.GRAY).append(Component.newline()).append(Component.text(cmd, NamedTextColor.GRAY)));
+            hover = hover.append(text("Click to insert command", GRAY).append(newline()).append(text(cmd, GRAY)));
 
             clickable = clickable.hoverEvent(HoverEvent.showText(hover));
 
-            Component c = Component.text(" - ", NamedTextColor.GREEN).append(clickable);
+            Component c = text(" - ", GREEN).append(clickable);
             components.put(text, c);
         }
 
@@ -283,7 +287,7 @@ public class CommandSource implements ISuggestionProvider, ForwardingAudience.Si
             } else {
                 e = e.substring(lastWord.length());
             }
-            Component c = Component.text(" - ", NamedTextColor.GREEN).append(Component.text(e, DARKER_AQUA_VALUE));
+            Component c = text(" - ", GREEN).append(text(e, DARKER_AQUA_VALUE));
             components.put(entry.getKey(), c);
         }
         for (var possibility : possibilities) {
@@ -302,7 +306,7 @@ public class CommandSource implements ISuggestionProvider, ForwardingAudience.Si
         return this.name;
     }
 
-    public CommandExecutor originalSource() {
+    public BukkitCommandExecutor originalSource() {
         return originalSource;
     }
 
@@ -314,7 +318,7 @@ public class CommandSource implements ISuggestionProvider, ForwardingAudience.Si
         return this.rotation;
     }
 
-    public CommandExecutor getSource() {
+    public BukkitCommandExecutor getSource() {
         return this.source;
     }
 

@@ -37,7 +37,7 @@ public class PacketWrapperNodeDataRemove extends Packet {
     public static class Result extends Packet {
         private final JsonElement removed;
 
-        public Result(boolean confirmed, JsonElement removed) {
+        public Result(JsonElement removed) {
             this.removed = removed;
         }
 

@@ -9,6 +9,7 @@ package eu.darkcube.system.server.item.firework;
 
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 
+@Deprecated(forRemoval = true)
 public interface FireworkEffect {
     static @NotNull FireworkEffect of(@NotNull Object platformFireworkEffect) {
         return FireworkEffectProviderImpl.of(platformFireworkEffect);

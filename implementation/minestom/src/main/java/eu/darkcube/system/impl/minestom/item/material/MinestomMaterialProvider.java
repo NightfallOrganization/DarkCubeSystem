@@ -32,11 +32,17 @@ public class MinestomMaterialProvider implements MaterialProvider {
     @Override
     public @NotNull Material of(@NotNull Object platformMaterial) throws IllegalArgumentException {
         switch (platformMaterial) {
+            case net.minestom.server.item.Material material -> {
+                return registry.get(material);
+            }
             case Material material -> {
                 return material;
             }
-            case net.minestom.server.item.Material material -> {
-                return registry.get(material);
+            case String string -> {
+                return of(Key.key(string));
+            }
+            case net.kyori.adventure.key.Key key -> {
+                return of(Key.key(key.namespace(), key.value()));
             }
             case Key key -> {
                 var material = net.minestom.server.item.Material.fromNamespaceId(key.toString());

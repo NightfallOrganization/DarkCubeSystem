@@ -17,7 +17,7 @@ configurations.consumable("version") {
 }
 
 dependencies {
-    api("io.papermc.paper:paper:1.8.8-R0.1-SNAPSHOT")
+    api(libs.paper.legacy)
     api(projects.darkcubesystemImplementationBukkit)
     api(libs.viaversion.common)
 }

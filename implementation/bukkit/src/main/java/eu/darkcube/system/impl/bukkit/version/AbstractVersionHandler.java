@@ -12,14 +12,12 @@ import eu.darkcube.system.impl.bukkit.inventory.BukkitInventoryProvider;
 import eu.darkcube.system.impl.bukkit.inventory.BukkitInventoryTypeProvider;
 import eu.darkcube.system.impl.bukkit.item.BukkitEquipmentSlotGroupProvider;
 import eu.darkcube.system.impl.bukkit.item.BukkitEquipmentSlotProvider;
-import eu.darkcube.system.impl.bukkit.item.enchant.BukkitEnchantmentProvider;
 import eu.darkcube.system.impl.bukkit.item.firework.BukkitFireworkEffectProvider;
-import eu.darkcube.system.impl.bukkit.item.flag.BukkitItemFlagProvider;
-import eu.darkcube.system.impl.bukkit.item.material.BukkitMaterialProvider;
 import eu.darkcube.system.impl.bukkit.util.BukkitColorProvider;
 import eu.darkcube.system.impl.server.inventory.item.ItemReferenceProviderImpl;
 import eu.darkcube.system.impl.server.inventory.item.ItemTemplateProviderImpl;
 import eu.darkcube.system.impl.server.inventory.listener.InventoryListenerProviderImpl;
+import eu.darkcube.system.impl.server.item.component.ItemComponentProviderImpl;
 import eu.darkcube.system.provider.InternalProvider;
 import eu.darkcube.system.server.inventory.InventoryProvider;
 import eu.darkcube.system.server.inventory.InventoryTypeProvider;
@@ -28,10 +26,8 @@ import eu.darkcube.system.server.inventory.item.ItemTemplateProvider;
 import eu.darkcube.system.server.inventory.listener.InventoryListenerProvider;
 import eu.darkcube.system.server.item.EquipmentSlotGroupProvider;
 import eu.darkcube.system.server.item.EquipmentSlotProvider;
-import eu.darkcube.system.server.item.enchant.EnchantmentProvider;
+import eu.darkcube.system.server.item.component.ItemComponentProvider;
 import eu.darkcube.system.server.item.firework.FireworkEffectProvider;
-import eu.darkcube.system.server.item.flag.ItemFlagProvider;
-import eu.darkcube.system.server.item.material.MaterialProvider;
 import eu.darkcube.system.util.ColorProvider;
 import eu.darkcube.system.version.Version;
 
@@ -40,20 +36,21 @@ public abstract class AbstractVersionHandler implements BukkitVersionHandler {
 
     public AbstractVersionHandler() {
         version = createVersion();
-        var ext = InternalProvider.instance();
-        ext.register(Version.class, version);
-        ext.register(ItemFlagProvider.class, new BukkitItemFlagProvider());
-        ext.register(FireworkEffectProvider.class, new BukkitFireworkEffectProvider());
-        ext.register(EnchantmentProvider.class, new BukkitEnchantmentProvider());
-        ext.register(MaterialProvider.class, new BukkitMaterialProvider());
-        ext.register(EquipmentSlotProvider.class, new BukkitEquipmentSlotProvider());
-        ext.register(EquipmentSlotGroupProvider.class, new BukkitEquipmentSlotGroupProvider());
-        ext.register(ColorProvider.class, new BukkitColorProvider());
-        ext.register(InventoryTypeProvider.class, new BukkitInventoryTypeProvider());
-        ext.register(InventoryProvider.class, new BukkitInventoryProvider());
-        ext.register(ItemReferenceProvider.class, new ItemReferenceProviderImpl());
-        ext.register(InventoryListenerProvider.class, new InventoryListenerProviderImpl());
-        ext.register(ItemTemplateProvider.class, new ItemTemplateProviderImpl());
+        install(Version.class, version);
+        install(ItemComponentProvider.class, new ItemComponentProviderImpl());
+        install(FireworkEffectProvider.class, new BukkitFireworkEffectProvider());
+        install(EquipmentSlotProvider.class, new BukkitEquipmentSlotProvider());
+        install(EquipmentSlotGroupProvider.class, new BukkitEquipmentSlotGroupProvider());
+        install(ColorProvider.class, new BukkitColorProvider());
+        install(InventoryTypeProvider.class, new BukkitInventoryTypeProvider());
+        install(InventoryProvider.class, new BukkitInventoryProvider());
+        install(ItemReferenceProvider.class, new ItemReferenceProviderImpl());
+        install(InventoryListenerProvider.class, new InventoryListenerProviderImpl());
+        install(ItemTemplateProvider.class, new ItemTemplateProviderImpl());
+    }
+
+    protected final <T> void install(Class<T> cls, T instance) {
+        InternalProvider.instance().register(cls, instance);
     }
 
     @Override

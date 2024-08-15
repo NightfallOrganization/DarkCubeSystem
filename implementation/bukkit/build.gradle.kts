@@ -52,7 +52,7 @@ tasks.jar.configure {
 }
 val cloudnetJar = tasks.register<Jar>("cloudnetJar") {
     dependsOn(mergeCloudNet)
-    include(mergeCloudNet.get(), this, "versions")
+    includeVersions(mergeCloudNet.get(), this)
     from(cloudnetSource.output)
     from(sourceSets.main.map { it.output })
     destinationDirectory = temporaryDir
@@ -70,7 +70,7 @@ val cloudnetInjectJar = tasks.register<Jar>("cloudnetInjectJar") {
 val standaloneJar = tasks.register<Jar>("standaloneJar") {
     dependsOn(mergeStandalone)
     dependsOn(injectStandalone)
-    include(mergeStandalone.get(), this, "versions")
+    includeVersions(mergeStandalone.get(), this)
     injectStandalone.get().forEach { from(zipTree(it)) }
     from(standaloneSource.output)
     from(sourceSets.main.map { it.output })
@@ -97,9 +97,22 @@ configurations.consumable("cloudnetPluginRaw") {
 configurations.consumable("standalone") {
     outgoing.artifact(standaloneJar)
 }
+val versions = ArrayList<String>()
+// KEEP THESE VERSIONS IN CORRECT ORDER!!!
+registerVersion("1_8_R3")
+registerVersion("1_21")
+val generateVersionsMeta = tasks.register("generateVersionsMeta") {
+    inputs.property("versions", versions.toString())
+    val file = temporaryDir.resolve("versions")
+    val v = versions
+    doLast {
+        file.writeText(v.joinToString("\n"))
+    }
+    outputs.file(file)
+}
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.21-R0.1-20240701.082534-43")
+    compileOnly(libs.paper.latest)
     compileOnly(libs.viaversion)
     api(projects.darkcubesystemBukkit)
     api(projects.darkcubesystemImplementationKyoriWrapper)
@@ -123,6 +136,15 @@ dependencies {
     inject(projects.darkcubesystemImplementationServer)
 
     injectCloudNet(projects.darkcubesystemServerCloudnet)
+}
+
+fun includeVersions(configuration: Configuration, task: AbstractCopyTask) {
+    include(configuration, task, "versions")
+    task.from(generateVersionsMeta) { into("versions") }
+}
+
+fun registerVersion(name: String) {
+    versions.add(name)
 }
 
 fun include(configuration: Configuration, task: AbstractCopyTask, directory: String) {

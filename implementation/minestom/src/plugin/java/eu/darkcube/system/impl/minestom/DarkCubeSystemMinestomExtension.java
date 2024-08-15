@@ -9,6 +9,7 @@ package eu.darkcube.system.impl.minestom;
 
 import eu.darkcube.system.impl.minestom.adventure.MinestomAdventureSupportImpl;
 import eu.darkcube.system.impl.minestom.inventory.MinestomInventoryProvider;
+import eu.darkcube.system.impl.minestom.inventory.MinestomInventoryTemplatePlatformProvider;
 import eu.darkcube.system.impl.minestom.inventory.MinestomInventoryTypeProvider;
 import eu.darkcube.system.impl.minestom.inventory.MinestomItemTemplateItemProvider;
 import eu.darkcube.system.impl.minestom.item.MinestomEquipmentSlotGroupProvider;
@@ -19,13 +20,14 @@ import eu.darkcube.system.impl.minestom.item.attribute.MinestomAttributeOperatio
 import eu.darkcube.system.impl.minestom.item.attribute.MinestomAttributeProvider;
 import eu.darkcube.system.impl.minestom.item.enchant.MinestomEnchantmentProvider;
 import eu.darkcube.system.impl.minestom.item.firework.MinestomFireworkEffectProvider;
-import eu.darkcube.system.impl.minestom.item.flag.MinestomItemFlagProviderImpl;
 import eu.darkcube.system.impl.minestom.item.material.MinestomMaterialProvider;
 import eu.darkcube.system.impl.minestom.util.MinestomColorProvider;
 import eu.darkcube.system.impl.server.inventory.item.ItemReferenceProviderImpl;
 import eu.darkcube.system.impl.server.inventory.item.ItemTemplateProviderImpl;
 import eu.darkcube.system.impl.server.inventory.listener.InventoryListenerProviderImpl;
+import eu.darkcube.system.impl.server.item.component.ItemComponentProviderImpl;
 import eu.darkcube.system.provider.InternalProvider;
+import eu.darkcube.system.server.inventory.DarkCubeInventoryTemplates;
 import eu.darkcube.system.server.inventory.DarkCubeItemTemplates;
 import eu.darkcube.system.server.inventory.InventoryProvider;
 import eu.darkcube.system.server.inventory.InventoryTypeProvider;
@@ -38,9 +40,9 @@ import eu.darkcube.system.server.item.ItemProvider;
 import eu.darkcube.system.server.item.attribute.AttributeModifierOperationProvider;
 import eu.darkcube.system.server.item.attribute.AttributeModifierProvider;
 import eu.darkcube.system.server.item.attribute.AttributeProvider;
+import eu.darkcube.system.server.item.component.ItemComponentProvider;
 import eu.darkcube.system.server.item.enchant.EnchantmentProvider;
 import eu.darkcube.system.server.item.firework.FireworkEffectProvider;
-import eu.darkcube.system.server.item.flag.ItemFlagProvider;
 import eu.darkcube.system.server.item.material.MaterialProvider;
 import eu.darkcube.system.util.AdventureSupport;
 import eu.darkcube.system.util.ColorProvider;
@@ -58,7 +60,6 @@ public class DarkCubeSystemMinestomExtension extends Extension {
         install(AttributeModifierOperationProvider.class, new MinestomAttributeOperationProviderImpl());
         install(ItemProvider.class, new MinestomItemProvider());
         install(MaterialProvider.class, new MinestomMaterialProvider());
-        install(ItemFlagProvider.class, new MinestomItemFlagProviderImpl());
         install(FireworkEffectProvider.class, new MinestomFireworkEffectProvider());
         install(EnchantmentProvider.class, new MinestomEnchantmentProvider());
         install(AttributeProvider.class, new MinestomAttributeProvider());
@@ -68,8 +69,10 @@ public class DarkCubeSystemMinestomExtension extends Extension {
         install(ItemTemplateProvider.class, new ItemTemplateProviderImpl());
         install(ItemReferenceProvider.class, new ItemReferenceProviderImpl());
         install(InventoryListenerProvider.class, new InventoryListenerProviderImpl());
+        install(ItemComponentProvider.class, new ItemComponentProviderImpl());
         install(ColorProvider.class, new MinestomColorProvider());
         install(DarkCubeItemTemplates.ItemProvider.class, new MinestomItemTemplateItemProvider());
+        install(DarkCubeInventoryTemplates.PlatformProvider.class, new MinestomInventoryTemplatePlatformProvider());
     }
 
     private <T> void install(Class<T> type, T instance) {

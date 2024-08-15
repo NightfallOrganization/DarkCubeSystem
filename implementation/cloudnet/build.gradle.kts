@@ -60,7 +60,7 @@ tasks {
         dependsOn(nodeJar)
         dependsOn(wrapperJar)
     }
-    processResources.configure {
+    named<ProcessResources>(bootstrap.get().processResourcesTaskName).configure {
         expand(mapOf("version" to version))
         inputs.property("version", version)
     }

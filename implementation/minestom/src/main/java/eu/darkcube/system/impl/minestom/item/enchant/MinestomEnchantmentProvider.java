@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
+import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.server.item.enchant.Enchantment;
 import eu.darkcube.system.server.item.enchant.EnchantmentProvider;
@@ -25,6 +26,8 @@ public class MinestomEnchantmentProvider implements EnchantmentProvider {
         return switch (platformObject) {
             case Enchantment enchantment -> enchantment;
             case net.minestom.server.item.enchant.Enchantment enchantment -> enchantments.computeIfAbsent(enchantment, MinestomEnchantmentImpl::new);
+            case Key key -> of(DynamicRegistry.Key.of(key.asString()));
+            case net.kyori.adventure.key.Key key -> of(Key.key(key.namespace(), key.value()));
             case DynamicRegistry.Key<?> unsafeKey -> {
                 var key = (DynamicRegistry.Key<net.minestom.server.item.enchant.Enchantment>) unsafeKey;
                 var enchantment = MinecraftServer.getEnchantmentRegistry().get(key);

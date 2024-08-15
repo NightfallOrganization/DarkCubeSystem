@@ -29,19 +29,21 @@ import net.minestom.server.timer.ExecutionType;
 import net.minestom.server.timer.TaskSchedule;
 
 public class MinestomTemplateInventory extends MinestomInventory implements TemplateInventoryImpl<ItemStack> {
-    private final @Nullable Player player;
+    private final @NotNull Player player;
+    private final @NotNull User user;
     private final @NotNull InventoryItemHandler<ItemStack, Player> itemHandler;
     private final @NotNull AtomicInteger animationsStarted = new AtomicInteger();
     private final @NotNull Instant openInstant;
     private final @NotNull PagedInventoryControllerImpl pagedController;
 
-    public MinestomTemplateInventory(@NotNull Component title, @NotNull MinestomInventoryType type, @NotNull MinestomInventoryTemplate template, @Nullable Player player) {
+    public MinestomTemplateInventory(@NotNull Component title, @NotNull MinestomInventoryType type, @NotNull MinestomInventoryTemplate template, @NotNull Player player) {
         super(title, type);
         this.player = player;
         for (var listener : template.listeners()) {
             this.addListener(listener);
         }
-        this.itemHandler = InventoryItemHandler.simple(this, template);
+        this.user = UserAPI.instance().user(player.getUuid());
+        this.itemHandler = InventoryItemHandler.simple(user, player, this, template);
         this.openInstant = Instant.now(); // This inventory gets opened right after creation
         this.pagedController = new PagedInventoryControllerImpl(this.itemHandler);
     }
@@ -52,8 +54,7 @@ public class MinestomTemplateInventory extends MinestomInventory implements Temp
             // Can't open the inventory for someone else than the original player
             return;
         }
-        var user = UserAPI.instance().user(player.getUuid());
-        this.itemHandler.doOpen(player, user);
+        this.itemHandler.doOpen();
         for (var i = 0; i < listeners.size(); i++) {
             listeners.get(i).onPreOpen(this, user);
         }
@@ -69,12 +70,7 @@ public class MinestomTemplateInventory extends MinestomInventory implements Temp
     @Override
     protected void unregister() {
         super.unregister();
-        if (this.player == null) {
-            // What the heck?
-            return;
-        }
-        var user = UserAPI.instance().user(player.getUuid());
-        this.itemHandler.doClose(player, user);
+        this.itemHandler.doClose();
     }
 
     @Override

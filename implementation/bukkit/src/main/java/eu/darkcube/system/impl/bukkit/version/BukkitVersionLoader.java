@@ -10,8 +10,10 @@ package eu.darkcube.system.impl.bukkit.version;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.Objects;
 import java.util.ServiceLoader;
 
 import io.papermc.paper.ServerBuildInfo;
@@ -33,17 +35,7 @@ public class BukkitVersionLoader {
     private void init() {
         try {
             if (classLoader != null) throw new IllegalStateException();
-            String path;
-            // noinspection ConstantValue
-            if (Bukkit.getServer() == null) {
-                // modern minecraft
-                var version = ServerBuildInfo.buildInfo().minecraftVersionId().replace('.', '_');
-                path = "versions/v" + version + ".jar";
-            } else {
-                path = "versions/v1_8_R3.jar";
-            }
-            var url = getClass().getClassLoader().getResource(path);
-            if (url == null) throw new IllegalStateException("Corrupt DarkCubeSystem Jar: " + path + " not found!");
+            var url = loadVersionFile();
             var tempFile = Files.createTempFile("darkcubesystem", "version");
             var in = url.openStream();
             Files.copy(in, tempFile, StandardCopyOption.REPLACE_EXISTING);
@@ -53,6 +45,23 @@ public class BukkitVersionLoader {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @SuppressWarnings("ConstantValue")
+    private URL loadVersionFile() throws IOException {
+        var loader = getClass().getClassLoader();
+        if (Bukkit.getServer() == null) {
+            // modern minecraft with paper loader
+            var version = ServerBuildInfo.buildInfo().minecraftVersionId().replace('.', '_');
+            var url = loader.getResource("versions/v" + version + ".jar");
+            if (url != null) return url;
+        } else {
+            // legacy minecraft
+            var url = loader.getResource("versions/v1_8_R3.jar");
+            if (url != null) return url;
+        }
+        var versions = new String(Objects.requireNonNull(loader.getResourceAsStream("versions/versions")).readAllBytes(), StandardCharsets.UTF_8).split("\n");
+        return loader.getResource("versions/v" + versions[versions.length - 1] + ".jar");
     }
 
     public ModernMinecraft loadModernMinecraft() {

@@ -14,6 +14,23 @@ import eu.darkcube.system.server.inventory.InventoryTemplateSettings;
 
 public interface AnimatedTemplateSettings extends InventoryTemplateSettings {
     /**
+     * @return whether the template should ignore the user's animation settings
+     */
+    boolean ignoreUserSettings();
+
+    /**
+     * Sets whether the template should ignore the user's animation settings
+     *
+     * @param ignore the ignore value
+     */
+    void ignoreUserSettings(boolean ignore);
+
+    /**
+     * Clears all animations
+     */
+    void clear();
+
+    /**
      * Whether any animation is configured in these settings
      *
      * @return if animations are configured

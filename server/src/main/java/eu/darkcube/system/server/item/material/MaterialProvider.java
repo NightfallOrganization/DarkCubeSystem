@@ -14,7 +14,7 @@ public interface MaterialProvider {
     Material of(@NotNull Object platformMaterial) throws IllegalArgumentException;
 
     @NotNull
-    Material spawner() throws UnsupportedOperationException;
+    Material spawner();
 
     @NotNull
     Material air();

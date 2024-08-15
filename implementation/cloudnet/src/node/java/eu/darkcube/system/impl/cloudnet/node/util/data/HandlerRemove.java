@@ -15,6 +15,6 @@ class HandlerRemove implements PacketHandler<PacketWrapperNodeDataRemove> {
     @Override
     public Packet handle(PacketWrapperNodeDataRemove packet) {
         var removed = SynchronizedPersistentDataStorages.storage(packet.table(), packet.storageKey()).remove(packet.entryKey());
-        return new PacketWrapperNodeDataRemove.Result(true, removed);
+        return new PacketWrapperNodeDataRemove.Result(removed);
     }
 }

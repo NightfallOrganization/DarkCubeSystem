@@ -9,20 +9,48 @@ package eu.darkcube.system.impl.bukkit.version.latest.item;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.List;
+import java.util.function.Function;
 
-import com.destroystokyo.paper.profile.ProfileProperty;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import eu.darkcube.system.bukkit.DarkCubePlugin;
 import eu.darkcube.system.bukkit.item.BukkitItemBuilder;
-import eu.darkcube.system.impl.bukkit.item.enchant.BukkitEnchantmentImpl;
-import eu.darkcube.system.impl.bukkit.item.firework.BukkitFireworkEffectImpl;
-import eu.darkcube.system.impl.bukkit.item.flag.BukkitItemFlagImpl;
-import eu.darkcube.system.impl.bukkit.item.material.BukkitMaterialImpl;
-import eu.darkcube.system.impl.bukkit.version.latest.AdventureUtils;
-import eu.darkcube.system.impl.bukkit.version.latest.item.attribute.BukkitAttribute;
-import eu.darkcube.system.impl.bukkit.version.latest.item.attribute.BukkitAttributeModifierImpl;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.AttributeModifiersMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.BannerPatternsMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.BeesMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.BlockStateMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.BundleContentsMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.ChargedProjectilesMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.ContainerLootMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.ContainerMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.CustomModelDataMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.DebugStickStateMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.DyedColorMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.EnchantmentsMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.FireworkExplosionMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.FireworksMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.FoodMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.InstrumentMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.JukeboxPlayableMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.LodestoneTrackerMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.LoreMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.MapColorMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.MapDecorationsMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.MapIdMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.MapPostProcessingMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.NoteBlockSoundMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.PotDecorationsMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.PotionContentsMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.ProfileMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.RarityMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.RecipesMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.SuspiciousStewEffectsMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.ToolMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.TrimMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.UnbreakableMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.WritableBookContentMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.WrittenBookContentMapper;
+import eu.darkcube.system.impl.bukkit.version.latest.item.mappings.util.MapperUtil;
+import eu.darkcube.system.impl.bukkit.version.latest.item.material.BukkitMaterialImpl;
 import eu.darkcube.system.impl.common.data.LegacyDataTransformer;
 import eu.darkcube.system.impl.server.item.AbstractItemBuilder;
 import eu.darkcube.system.libs.com.google.gson.Gson;
@@ -33,36 +61,23 @@ import eu.darkcube.system.libs.com.google.gson.TypeAdapter;
 import eu.darkcube.system.libs.com.google.gson.stream.JsonReader;
 import eu.darkcube.system.libs.com.google.gson.stream.JsonToken;
 import eu.darkcube.system.libs.com.google.gson.stream.JsonWriter;
-import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
+import eu.darkcube.system.libs.net.kyori.adventure.nbt.CompoundBinaryTag;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
+import eu.darkcube.system.server.data.component.DataComponent;
 import eu.darkcube.system.server.item.ItemBuilder;
-import eu.darkcube.system.server.item.ItemRarity;
-import eu.darkcube.system.server.item.meta.EnchantmentStorageBuilderMeta;
-import eu.darkcube.system.server.item.meta.FireworkBuilderMeta;
-import eu.darkcube.system.server.item.meta.LeatherArmorBuilderMeta;
-import eu.darkcube.system.server.item.meta.SkullBuilderMeta;
-import eu.darkcube.system.util.Color;
+import eu.darkcube.system.util.Unit;
+import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.server.MinecraftServer;
-import org.bukkit.Bukkit;
+import net.minecraft.world.LockCode;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
-import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.Damageable;
-import org.bukkit.inventory.meta.EnchantmentStorageMeta;
-import org.bukkit.inventory.meta.FireworkEffectMeta;
-import org.bukkit.inventory.meta.LeatherArmorMeta;
-import org.bukkit.inventory.meta.Repairable;
-import org.bukkit.inventory.meta.SkullMeta;
-import org.bukkit.persistence.PersistentDataType;
 
 public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBuilder {
-    private static final NamespacedKey PERSISTENT_DATA_KEY = new NamespacedKey(DarkCubePlugin.systemPlugin(), "persistentdatastorage");
-    private static final NamespacedKey PERSISTENT_DATA_KEY_LEGACY = new NamespacedKey("system", "persistentdatastorage");
-    private static final Gson gson = new GsonBuilder().registerTypeAdapter(ItemStack.class, new TypeAdapter<ItemStack>() {
+    private static final Gson GSON = new GsonBuilder().registerTypeAdapter(ItemStack.class, new TypeAdapter<ItemStack>() {
         @Override
         public void write(JsonWriter writer, ItemStack value) throws IOException {
             if (value == null) {
@@ -92,121 +107,72 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
             return CraftItemStack.asBukkitCopy(nbtItem);
         }
     }).create();
-    private final ItemStack item;
-
-    public ItemBuilderImpl() {
-        this.item = null;
-    }
+    private static final List<Mapping<?, ?>> MAPPINGS;
 
     public ItemBuilderImpl(ItemStack item) {
         var ignoreCloneFailure = false;
-        this.item = item.clone();
-        item = item.clone();
-        item.setItemMeta(item.getItemMeta());
-        this.item.setAmount(1);
         material(item.getType());
         amount(item.getAmount());
 
-        var meta = this.item.getItemMeta();
+        var nms = CraftItemStack.unwrap(item);
+        for (var i = 0; i < MAPPINGS.size(); i++) {
+            MAPPINGS.get(i).load(this, nms);
+        }
 
+        var meta = item.getItemMeta();
         if (meta != null) {
-            if (meta.hasCustomModelData()) {
-                customModelData(meta.getCustomModelData());
-            }
-            unbreakable(meta.isUnbreakable());
-            meta.setUnbreakable(false);
-            if (meta.hasRarity()) {
-                var rarity = ItemRarity.values()[meta.getRarity().ordinal()];
-                rarity(rarity);
-                meta.setRarity(null);
-            }
-            if (meta.hasDisplayName()) {
-                displayname = AdventureUtils.convert(meta.displayName());
-                meta.displayName(null);
-            }
-            for (var e : new ArrayList<>(meta.getEnchants().entrySet())) {
-                enchant(e.getKey(), e.getValue());
-                meta.removeEnchant(e.getKey());
-            }
-
-            if (meta.getAttributeModifiers() != null) {
-                meta.getAttributeModifiers().forEach((attribute, m) -> this.attributeModifier(attribute, m.key(), m.getSlotGroup(), m.getAmount(), m.getOperation()));
-                meta.setAttributeModifiers(null);
-            }
-
-            setFlags(meta.getItemFlags());
-            meta.removeItemFlags(ItemFlag.values());
-            if (meta.lore() != null) {
-                lore.addAll(AdventureUtils.convert2(Objects.requireNonNull(meta.lore())));
-                meta.lore(null);
-            }
-            if (meta instanceof Damageable damageable && damageable.hasDamageValue()) {
-                damage(damageable.getDamage());
-                damageable.resetDamage();
-            }
-            if (meta instanceof Repairable repairable && repairable.hasRepairCost()) {
-                repairCost(repairable.getRepairCost());
-            }
-            if (meta instanceof FireworkEffectMeta fireworkEffectMeta) {
-                meta(FireworkBuilderMeta.class).fireworkEffect(fireworkEffectMeta.getEffect());
-                fireworkEffectMeta.setEffect(null);
-            }
-            if (meta instanceof EnchantmentStorageMeta enchantmentStorageMeta) {
-                meta(EnchantmentStorageBuilderMeta.class).enchantments(enchantmentStorageMeta.getStoredEnchants());
-                for (var enchantment : enchantmentStorageMeta.getStoredEnchants().keySet()) {
-                    enchantmentStorageMeta.removeStoredEnchant(enchantment);
-                }
-            }
-            if (meta instanceof SkullMeta skullMeta) {
-                if (skullMeta.hasOwner()) {
-                    var pp = skullMeta.getPlayerProfile();
-                    if (pp != null) {
-                        var prop = pp.getProperties().stream().filter(p -> p.getName().equals("textures")).findFirst().orElse(null);
-                        var texture = prop == null ? null : new SkullBuilderMeta.UserProfile.Texture(prop.getValue(), prop.getSignature());
-                        var up = new SkullBuilderMeta.UserProfile(pp.getName(), pp.getId(), texture);
-                        meta(SkullBuilderMeta.class).owningPlayer(up);
-                    }
-                    skullMeta.setOwningPlayer(null);
-                }
-            }
-            if (meta instanceof LeatherArmorMeta leatherArmorMeta) {
-                if (leatherArmorMeta.isDyed()) {
-                    meta(LeatherArmorBuilderMeta.class).color(new Color(leatherArmorMeta.getColor().asRGB()));
-                    leatherArmorMeta.setColor(null);
-                }
-            }
-            if (meta.getPersistentDataContainer().has(PERSISTENT_DATA_KEY_LEGACY)) {
-                var data = meta.getPersistentDataContainer().get(PERSISTENT_DATA_KEY_LEGACY, PersistentDataType.STRING);
-                if (data != null) {
+            // region persistent data migration
+            migration:
+            {
+                var customData = get(CUSTOM_DATA);
+                var originalCustomData = customData;
+                if (customData == null) break migration;
+                var bukkitValues = (CompoundBinaryTag) customData.get("PublicBukkitValues");
+                var originalBukkitValues = bukkitValues;
+                if (bukkitValues == null) break migration;
+                if (bukkitValues.keySet().contains("system:persistentdatastorage")) {
+                    var data = bukkitValues.getString("system:persistentdatastorage");
                     var json = new Gson().fromJson(data, JsonObject.class);
                     LegacyDataTransformer.transformLegacyPersistentData(json);
-                    storage.loadFromJsonObject(json);
+                    data = new Gson().toJson(json);
+                    bukkitValues = bukkitValues.remove("system:persistentdatastorage");
+                    bukkitValues = bukkitValues.putString("darkcubesystem:persistentdatastorage", data);
                 }
-                ignoreCloneFailure = true;
-                meta.getPersistentDataContainer().remove(PERSISTENT_DATA_KEY_LEGACY);
-            } else if (meta.getPersistentDataContainer().has(PERSISTENT_DATA_KEY)) {
-                var data = meta.getPersistentDataContainer().get(PERSISTENT_DATA_KEY, PersistentDataType.STRING);
-                if (data != null) {
-                    var json = new Gson().fromJson(data, JsonObject.class);
-                    storage.loadFromJsonObject(json);
+                if (bukkitValues.keySet().contains("darkcubesystem:persistentdatastorage")) {
+                    var data = bukkitValues.getString("darkcubesystem:persistentdatastorage");
+                    customData = customData.putString(KEY_DOCUMENT, data);
+                    bukkitValues = bukkitValues.remove("darkcubesystem:persistentdatastorage");
                 }
-                meta.getPersistentDataContainer().remove(PERSISTENT_DATA_KEY);
+                if (originalBukkitValues != bukkitValues) {
+                    if (bukkitValues.keySet().isEmpty()) {
+                        customData = customData.remove("PublicBukkitValues");
+                    } else {
+                        customData = customData.put("PublicBukkitValues", bukkitValues);
+                    }
+                }
+                if (originalCustomData != customData) {
+                    ignoreCloneFailure = true;
+                    set(CUSTOM_DATA, customData);
+                }
             }
-            this.item.setItemMeta(meta);
+            // endregion
         }
+
+        loadPersistentDataStorage();
+
         if (!ignoreCloneFailure) {
             var b = build();
-            if (!item.equals(b) && !(item.getType() == b.getType() && item.getType() == Material.AIR)) {
+            var b1 = CraftItemStack.unwrap(b);
+            if (!net.minecraft.world.item.ItemStack.isSameItem(b1, nms) && !(item.getType() == b.getType() && item.getType() == Material.AIR)) {
                 LOGGER.error("Failed to clone item correctly: ");
-                LOGGER.error(" - {}", CraftItemStack.asNMSCopy(item).save(MinecraftServer.getServer().registryAccess()));
-                LOGGER.error(" - {}", net.minecraft.world.item.ItemStack.parse(MinecraftServer.getServer().registryAccess(), CraftItemStack.asNMSCopy(item).save(MinecraftServer.getServer().registryAccess())).orElseThrow().save(MinecraftServer.getServer().registryAccess()));
-                LOGGER.error(" - {}", CraftItemStack.asNMSCopy(b).save(MinecraftServer.getServer().registryAccess()));
+                LOGGER.error(" - {}", nms.save(MinecraftServer.getServer().registryAccess()));
+                LOGGER.error(" - {}", b1.save(MinecraftServer.getServer().registryAccess()));
             }
         }
     }
 
     public static ItemBuilderImpl deserialize(JsonElement json) {
-        return new ItemBuilderImpl(gson.fromJson(json, ItemStack.class));
+        return new ItemBuilderImpl(GSON.fromJson(json, ItemStack.class));
     }
 
     @Override
@@ -217,78 +183,18 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
 
     @Override
     public @NotNull ItemStack build() {
-        // ItemStack item = new ItemStack(material);
-        var material = ((BukkitMaterialImpl) this.material).bukkitType();
-        var item = this.item == null ? new ItemStack(material) : this.item.clone();
+        return super.build();
+    }
 
-        if (material != item.getType()) item = item.withType(material);
+    @Override
+    protected @NotNull ItemStack build0() {
+        var bukkitMaterial = ((BukkitMaterialImpl) this.material).bukkitType();
+        var item = ItemStack.of(bukkitMaterial);
 
         item.setAmount(amount);
-        var meta = item.getItemMeta();
-        if (meta != null) {
-            if (unbreakable.isPresent()) {
-                meta.setUnbreakable(unbreakable.get());
-            }
-            if (customModelData.isPresent()) {
-                meta.setCustomModelData(customModelData.getAsInt());
-            }
-            if (rarity != null) {
-                meta.setRarity(org.bukkit.inventory.ItemRarity.values()[rarity.ordinal()]);
-            }
-            if (displayname != Component.empty()) {
-                meta.displayName(AdventureUtils.convert(displayname));
-            }
-            for (var e : enchantments.entrySet()) {
-                meta.addEnchant(((BukkitEnchantmentImpl) e.getKey()).bukkitType(), e.getValue(), true);
-            }
-
-            meta.addItemFlags(flags.stream().map(flag -> ((BukkitItemFlagImpl) flag).bukkitType()).toArray(ItemFlag[]::new));
-            if (!lore.isEmpty()) meta.lore(lore.stream().map(AdventureUtils::convert).toList());
-            if (glow.isPresent()) {
-                meta.setEnchantmentGlintOverride(glow.get());
-            }
-            attributeModifiers.forEach((modifier) -> meta.addAttributeModifier(((BukkitAttribute) modifier.attribute()).bukkitType(), ((BukkitAttributeModifierImpl) modifier).bukkitType()));
-            if (meta instanceof Damageable damageable) {
-                if (damage.isPresent()) {
-                    damageable.setDamage(damage.getAsInt());
-                }
-            }
-            if (meta instanceof Repairable repairable) {
-                if (repairCost.isPresent()) {
-                    repairable.setRepairCost(repairCost.getAsInt());
-                }
-            }
-            for (var builderMeta : metas) {
-                switch (builderMeta) {
-                    case FireworkBuilderMeta fireworkBuilderMeta -> {
-                        var fireworkEffect = (BukkitFireworkEffectImpl) fireworkBuilderMeta.fireworkEffect();
-                        ((FireworkEffectMeta) meta).setEffect(fireworkEffect == null ? null : fireworkEffect.bukkitType());
-                    }
-                    case SkullBuilderMeta skullBuilderMeta -> {
-                        var skullMeta = (SkullMeta) meta;
-                        var owner = skullBuilderMeta.owningPlayer();
-                        var texture = owner.texture();
-                        var profile = Bukkit.getServer().createProfileExact(owner.uniqueId() == null ? UUID.randomUUID() : owner.uniqueId(), owner.name());
-                        if (texture != null) {
-                            profile.clearProperties();
-                            profile.setProperty(new ProfileProperty("textures", texture.value(), texture.signature()));
-                        }
-                        skullMeta.setPlayerProfile(profile);
-                    }
-                    case LeatherArmorBuilderMeta leatherArmorBuilderMeta -> ((LeatherArmorMeta) meta).setColor(org.bukkit.Color.fromARGB(leatherArmorBuilderMeta.color().rgb()));
-                    case EnchantmentStorageBuilderMeta enchantmentStorageBuilderMeta -> {
-                        for (var entry : enchantmentStorageBuilderMeta.enchantments().entrySet()) {
-                            ((EnchantmentStorageMeta) meta).addStoredEnchant(((BukkitEnchantmentImpl) entry.getKey()).bukkitType(), entry.getValue(), true);
-                        }
-                    }
-                    case null, default -> throw new UnsupportedOperationException("Meta not supported for this mc version: " + builderMeta);
-                }
-            }
-            var json = storage.storeToJsonObject();
-            if (!json.isEmpty()) {
-                meta.getPersistentDataContainer().set(PERSISTENT_DATA_KEY, PersistentDataType.STRING, json.toString());
-            }
-            item.setItemMeta(meta);
+        var nms = CraftItemStack.unwrap(item);
+        for (var i = 0; i < MAPPINGS.size(); i++) {
+            MAPPINGS.get(i).apply(this, nms);
         }
         return item;
     }
@@ -300,6 +206,99 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
 
     @Override
     public @NotNull JsonElement serialize() {
-        return gson.toJsonTree(build());
+        return GSON.toJsonTree(build());
+    }
+
+    static {
+        var directMappings = new ArrayList<Mapping<?, ?>>();
+        var gen = new MappingsGenerator(directMappings);
+
+        gen.add(ATTRIBUTE_MODIFIERS, DataComponents.ATTRIBUTE_MODIFIERS, new AttributeModifiersMapper());
+        gen.add(BANNER_PATTERNS, DataComponents.BANNER_PATTERNS, new BannerPatternsMapper());
+        gen.add(BASE_COLOR, DataComponents.BASE_COLOR, MapperUtil::convert, MapperUtil::convert);
+        gen.add(BEES, DataComponents.BEES, new BeesMapper());
+        gen.add(BLOCK_ENTITY_DATA, DataComponents.BLOCK_ENTITY_DATA, MapperUtil::convertData, MapperUtil::convertData);
+        gen.add(BLOCK_STATE, DataComponents.BLOCK_STATE, new BlockStateMapper());
+        gen.add(BUCKET_ENTITY_DATA, DataComponents.BUCKET_ENTITY_DATA, MapperUtil::convertData, MapperUtil::convertData);
+        gen.add(BUNDLE_CONTENTS, DataComponents.BUNDLE_CONTENTS, new BundleContentsMapper());
+        gen.add(CAN_BREAK, DataComponents.CAN_BREAK, MapperUtil::convert, MapperUtil::convert);
+        gen.add(CAN_PLACE_ON, DataComponents.CAN_PLACE_ON, MapperUtil::convert, MapperUtil::convert);
+        gen.add(CHARGED_PROJECTILES, DataComponents.CHARGED_PROJECTILES, new ChargedProjectilesMapper());
+        gen.add(CONTAINER_LOOT, DataComponents.CONTAINER_LOOT, new ContainerLootMapper());
+        gen.add(CONTAINER, DataComponents.CONTAINER, new ContainerMapper());
+        gen.addUnit(CREATIVE_SLOT_LOCK, DataComponents.CREATIVE_SLOT_LOCK);
+        gen.add(CUSTOM_DATA, DataComponents.CUSTOM_DATA, MapperUtil::convertData, MapperUtil::convertData);
+        gen.add(CUSTOM_MODEL_DATA, DataComponents.CUSTOM_MODEL_DATA, new CustomModelDataMapper());
+        gen.add(CUSTOM_NAME, DataComponents.CUSTOM_NAME, MapperUtil::convert, MapperUtil::convert);
+        gen.add(DAMAGE, DataComponents.DAMAGE);
+        gen.add(DEBUG_STICK_STATE, DataComponents.DEBUG_STICK_STATE, new DebugStickStateMapper());
+        gen.add(DYED_COLOR, DataComponents.DYED_COLOR, new DyedColorMapper());
+        gen.add(ENCHANTMENT_GLINT_OVERRIDE, DataComponents.ENCHANTMENT_GLINT_OVERRIDE);
+        gen.add(ENCHANTMENTS, DataComponents.ENCHANTMENTS, new EnchantmentsMapper());
+        gen.add(ENTITY_DATA, DataComponents.ENTITY_DATA, MapperUtil::convertData, MapperUtil::convertData);
+        gen.addUnit(FIRE_RESISTANT, DataComponents.FIRE_RESISTANT);
+        gen.add(FIREWORK_EXPLOSION, DataComponents.FIREWORK_EXPLOSION, new FireworkExplosionMapper());
+        gen.add(FIREWORKS, DataComponents.FIREWORKS, new FireworksMapper());
+        gen.add(FOOD, DataComponents.FOOD, new FoodMapper());
+        gen.addUnit(HIDE_ADDITIONAL_TOOLTIP, DataComponents.HIDE_ADDITIONAL_TOOLTIP);
+        gen.addUnit(HIDE_TOOLTIP, DataComponents.HIDE_TOOLTIP);
+        gen.add(INSTRUMENT, DataComponents.INSTRUMENT, new InstrumentMapper());
+        gen.addUnit(INTANGIBLE_PROJECTILE, DataComponents.INTANGIBLE_PROJECTILE);
+        gen.add(ITEM_NAME, DataComponents.ITEM_NAME, MapperUtil::convert, MapperUtil::convert);
+        gen.add(JUKEBOX_PLAYABLE, DataComponents.JUKEBOX_PLAYABLE, new JukeboxPlayableMapper());
+        gen.add(LOCK, DataComponents.LOCK, LockCode::new, LockCode::key);
+        gen.add(LODESTONE_TRACKER, DataComponents.LODESTONE_TRACKER, new LodestoneTrackerMapper());
+        gen.add(LORE, DataComponents.LORE, new LoreMapper());
+        gen.add(MAP_COLOR, DataComponents.MAP_COLOR, new MapColorMapper());
+        gen.add(MAP_DECORATIONS, DataComponents.MAP_DECORATIONS, new MapDecorationsMapper());
+        gen.add(MAP_ID, DataComponents.MAP_ID, new MapIdMapper());
+        gen.add(MAP_POST_PROCESSING, DataComponents.MAP_POST_PROCESSING, new MapPostProcessingMapper());
+        gen.add(MAX_DAMAGE, DataComponents.MAX_DAMAGE);
+        gen.add(MAX_STACK_SIZE, DataComponents.MAX_STACK_SIZE);
+        gen.add(NOTE_BLOCK_SOUND, DataComponents.NOTE_BLOCK_SOUND, new NoteBlockSoundMapper());
+        gen.add(OMINOUS_BOTTLE_AMPLIFIER, DataComponents.OMINOUS_BOTTLE_AMPLIFIER);
+        gen.add(POT_DECORATIONS, DataComponents.POT_DECORATIONS, new PotDecorationsMapper());
+        gen.add(POTION_CONTENTS, DataComponents.POTION_CONTENTS, new PotionContentsMapper());
+        gen.add(PROFILE, DataComponents.PROFILE, new ProfileMapper());
+        gen.add(RARITY, DataComponents.RARITY, new RarityMapper());
+        gen.add(RECIPES, DataComponents.RECIPES, new RecipesMapper());
+        gen.add(REPAIR_COST, DataComponents.REPAIR_COST);
+        gen.add(STORED_ENCHANTMENTS, DataComponents.STORED_ENCHANTMENTS, new EnchantmentsMapper());
+        gen.add(SUSPICIOUS_STEW_EFFECTS, DataComponents.SUSPICIOUS_STEW_EFFECTS, new SuspiciousStewEffectsMapper());
+        gen.add(TOOL, DataComponents.TOOL, new ToolMapper());
+        gen.add(TRIM, DataComponents.TRIM, new TrimMapper());
+        gen.add(UNBREAKABLE, DataComponents.UNBREAKABLE, new UnbreakableMapper());
+        gen.add(WRITABLE_BOOK_CONTENT, DataComponents.WRITABLE_BOOK_CONTENT, new WritableBookContentMapper());
+        gen.add(WRITTEN_BOOK_CONTENT, DataComponents.WRITTEN_BOOK_CONTENT, new WrittenBookContentMapper());
+
+        MAPPINGS = List.copyOf(directMappings);
+    }
+
+    private record MappingsGenerator(List<Mapping<?, ?>> mappings) {
+        <T, V> void add(DataComponent<T> component, DataComponentType<V> minecraft, Mapper<T, V> mapper) {
+            mappings.add(new Mapping<>(component, minecraft, mapper));
+        }
+
+        <T> void add(DataComponent<T> component, DataComponentType<T> minecraft) {
+            mappings.add(new Mapping<>(component, minecraft));
+        }
+
+        void addUnit(DataComponent<Unit> component, DataComponentType<net.minecraft.util.Unit> minecraft) {
+            add(component, minecraft, _ -> net.minecraft.util.Unit.INSTANCE, _ -> Unit.INSTANCE);
+        }
+
+        <T, V> void add(DataComponent<T> component, DataComponentType<V> minecraft, Function<T, V> toTheirType, Function<V, T> toOurType) {
+            mappings.add(new Mapping<>(component, minecraft, new Mapper<>() {
+                @Override
+                public V apply(T mapping) {
+                    return toTheirType.apply(mapping);
+                }
+
+                @Override
+                public T load(V mapping) {
+                    return toOurType.apply(mapping);
+                }
+            }));
+        }
     }
 }
