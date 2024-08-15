@@ -132,7 +132,7 @@ public class MinestomInventory extends AbstractInventory<ItemStack> {
         var clickType = event.getClickType();
         LOGGER.debug("Clicked inventory with info: {}", clickType);
         var slot = switch (clickType) {
-            case LEFT_CLICK, RIGHT_CLICK, START_DOUBLE_CLICK, START_SHIFT_CLICK, DROP -> event.getSlot();
+            case LEFT_CLICK, RIGHT_CLICK, START_DOUBLE_CLICK, START_SHIFT_CLICK, DROP, CHANGE_HELD -> event.getSlot();
             // case Left left -> left.slot();
             // case Right right -> right.slot();
             // case LeftShift(var s) -> s;
