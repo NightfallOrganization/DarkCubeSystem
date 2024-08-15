@@ -272,8 +272,8 @@ public class DarkCubeInventoryTemplates {
         static {
             var loader = Messages.class.getClassLoader();
             try {
-                Language.ENGLISH.registerLookup(loader, "items_en.properties", MODIFIER);
-                Language.GERMAN.registerLookup(loader, "items_de.properties", MODIFIER);
+                Language.ENGLISH.registerLookup(loader, "darkcubesystem/items_en.properties", MODIFIER);
+                Language.GERMAN.registerLookup(loader, "darkcubesystem/items_de.properties", MODIFIER);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
