@@ -176,6 +176,11 @@ public class SynchronizedPersistentDataStorage implements PersistentDataStorage 
     }
 
     @Override
+    public void remove(@NotNull Key key) {
+        new PacketWrapperNodeDataRemove(table, this.key, key).sendQuery(PacketWrapperNodeDataRemove.Result.class);
+    }
+
+    @Override
     public <T> T remove(@NotNull Key key, @NotNull PersistentDataType<T> type) {
         var confirmation = new PacketWrapperNodeDataRemove(table, this.key, key).sendQuery(PacketWrapperNodeDataRemove.Result.class);
         if (confirmation.removed() == null) {

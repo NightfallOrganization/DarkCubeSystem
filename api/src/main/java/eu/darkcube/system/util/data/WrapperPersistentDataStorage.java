@@ -61,6 +61,11 @@ public class WrapperPersistentDataStorage implements PersistentDataStorage {
     }
 
     @Override
+    public void remove(@NotNull Key key) {
+        handle.remove(key);
+    }
+
+    @Override
     @Api
     public <T> @Nullable T remove(@NotNull Key key, @NotNull PersistentDataType<T> type) {
         return handle.remove(key, type);

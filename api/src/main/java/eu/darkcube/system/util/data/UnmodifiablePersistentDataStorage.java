@@ -101,6 +101,11 @@ public class UnmodifiablePersistentDataStorage implements PersistentDataStorage 
     }
 
     @Override
+    public void remove(@NotNull Key key) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public @NotNull CompletableFuture<Void> loadFromJsonObjectAsync(@NotNull JsonObject object) {
         throw new UnsupportedOperationException();
     }

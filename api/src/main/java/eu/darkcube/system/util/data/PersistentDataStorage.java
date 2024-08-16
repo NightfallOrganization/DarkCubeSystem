@@ -75,6 +75,8 @@ public interface PersistentDataStorage {
         return setAsync(key.key(), key.dataType(), data);
     }
 
+    void remove(@NotNull Key key);
+
     /**
      * Removes some data
      *

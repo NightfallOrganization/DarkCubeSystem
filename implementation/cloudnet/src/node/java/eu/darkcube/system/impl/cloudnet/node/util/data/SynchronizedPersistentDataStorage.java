@@ -125,7 +125,12 @@ public class SynchronizedPersistentDataStorage implements PersistentDataStorage 
         return ret;
     }
 
-    public @Nullable JsonElement remove(@NotNull Key key) {
+    @Override
+    public void remove(@NotNull Key key) {
+        remove0(key);
+    }
+
+    public @Nullable JsonElement remove0(@NotNull Key key) {
         try {
             lock.writeLock().lock();
             if (!data.has(key.toString())) {

@@ -79,6 +79,17 @@ public class LocalPersistentDataStorage implements PersistentDataStorage {
     }
 
     @Override
+    public void remove(@NotNull Key key) {
+        try {
+            lock.writeLock().lock();
+            cache.remove(key);
+            data.remove(key.toString());
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    @Override
     public <T> T remove(@NotNull Key key, @NotNull PersistentDataType<T> type) {
         T ret;
         try {
