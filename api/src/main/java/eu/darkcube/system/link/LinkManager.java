@@ -9,6 +9,7 @@ package eu.darkcube.system.link;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import eu.darkcube.system.annotations.Api;
 import org.slf4j.Logger;
@@ -43,7 +44,7 @@ public class LinkManager {
 
     @Api
     public void unregisterLinks() {
-        this.links.forEach(this::unregisterLink);
+        List.copyOf(this.links).forEach(this::unregisterLink);
     }
 
     @Api
