@@ -10,6 +10,7 @@ package eu.darkcube.system.impl.server.inventory.animated;
 import java.time.Duration;
 import java.util.Arrays;
 
+import eu.darkcube.system.impl.server.inventory.InventoryAPIUtils;
 import eu.darkcube.system.impl.server.inventory.InventoryTemplateImpl;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.server.inventory.animated.AnimatedTemplateSettings;
@@ -62,6 +63,7 @@ public class AnimatedTemplateSettingsImpl<PlatformPlayer> implements AnimatedTem
     public void calculateManifold(int slot, float delay) {
         var startRow = slot / 9;
         var startIdx = slot % 9;
+        var defaultTick = InventoryAPIUtils.utils().defaultTickTime().toMillis();
 
         for (var i = 0; i < this.durations.length; i++) {
             var duration = this.durations[i];
@@ -69,9 +71,9 @@ public class AnimatedTemplateSettingsImpl<PlatformPlayer> implements AnimatedTem
             var row = i / 9;
             var idx = i % 9;
 
-            var manifold = Math.abs(startRow - row) + Math.abs(startIdx - idx);
-            var millis = Math.round(manifold * 50 * delay);
-            duration = Duration.ofMillis(millis);
+            var manifold = Math.abs(startRow - row) + Math.abs(startIdx - idx) + 1;
+            var millis = Math.round(manifold * defaultTick * delay);
+            duration = Duration.ofMillis(-millis);
             this.durations[i] = duration;
         }
     }

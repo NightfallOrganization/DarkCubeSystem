@@ -39,6 +39,7 @@ public interface AnimatedTemplateSettings extends InventoryTemplateSettings {
 
     /**
      * Shows a given slot after some duration.
+     * Negative durations are scaled with the tick rate, default tick duration is -50ms, with halved tick time this is converted to -100ms
      *
      * @param slot     the slot to show
      * @param duration the duration to wait until the slot is shown
