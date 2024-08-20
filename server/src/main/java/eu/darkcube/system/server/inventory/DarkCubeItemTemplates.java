@@ -1,11 +1,21 @@
+/*
+ * Copyright (c) 2024. [DarkCube]
+ * All rights reserved.
+ * You may not use or redistribute this software or any associated files without permission.
+ * The above copyright notice shall be included in all copies of this software.
+ */
+
 package eu.darkcube.system.server.inventory;
 
 import static eu.darkcube.system.server.inventory.InventoryMask.slots;
 
 import eu.darkcube.system.annotations.Api;
+import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
 import eu.darkcube.system.provider.InternalProvider;
 import eu.darkcube.system.server.inventory.item.ItemTemplate;
 import eu.darkcube.system.server.item.ItemBuilder;
+import eu.darkcube.system.server.item.component.ItemComponent;
+import eu.darkcube.system.util.Unit;
 
 public final class DarkCubeItemTemplates {
     private static final ItemProvider PROVIDER = InternalProvider.instance().instance(ItemProvider.class);
@@ -15,7 +25,7 @@ public final class DarkCubeItemTemplates {
     private static final Object m = item('m');
 
     private static Object item(char c) {
-        return PROVIDER.provide(c);
+        return PROVIDER.provide(c).set(ItemComponent.HIDE_TOOLTIP, Unit.INSTANCE).displayname(Component.empty());
     }
 
     private static ItemTemplate template(String mask) {
