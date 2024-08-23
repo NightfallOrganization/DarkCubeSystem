@@ -276,7 +276,7 @@ public class SimpleItemHandler<PlatformItem, PlatformPlayer> implements Inventor
             return inventory;
         }
 
-        public @NotNull Object item() {
+        public @Nullable Object item() {
             return item;
         }
 
