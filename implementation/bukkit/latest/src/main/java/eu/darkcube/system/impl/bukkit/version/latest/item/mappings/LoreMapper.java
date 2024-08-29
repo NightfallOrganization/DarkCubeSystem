@@ -18,7 +18,7 @@ public record LoreMapper() implements Mapper<List<Component>, ItemLore> {
     @Override
     public ItemLore apply(List<Component> mapping) {
         var lines = mapping.stream().map(MapperUtil::convert).toList();
-        return new ItemLore(lines, lines);
+        return new ItemLore(lines);
     }
 
     @Override
