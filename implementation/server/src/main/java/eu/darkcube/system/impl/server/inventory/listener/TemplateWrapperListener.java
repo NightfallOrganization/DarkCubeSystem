@@ -8,13 +8,7 @@ import eu.darkcube.system.server.inventory.listener.TemplateInventoryListener;
 import eu.darkcube.system.server.item.ItemBuilder;
 import eu.darkcube.system.userapi.User;
 
-public class TemplateWrapperListener implements InventoryListener {
-    private final TemplateInventoryListener listener;
-
-    public TemplateWrapperListener(TemplateInventoryListener listener) {
-        this.listener = listener;
-    }
-
+public record TemplateWrapperListener(TemplateInventoryListener listener) implements InventoryListener {
     @Override
     public void onPreOpen(@NotNull Inventory inventory, @NotNull User user) {
         listener.onPreOpen((TemplateInventory) inventory, user);

@@ -58,8 +58,7 @@ public class BukkitInventory extends AbstractInventory<ItemStack> {
     @Override
     protected void setItem0(int slot, @NotNull ItemStack item) {
         if (!Bukkit.isPrimaryThread()) {
-            LOGGER.error("Access to inventory from outside primary thread: {}", Thread.currentThread().getName());
-            LOGGER.error("Dump:", new Exception());
+            LOGGER.error("Access to inventory from outside primary thread: {}", Thread.currentThread().getName(), new Exception());
         }
         inventory.setItem(slot, item);
         for (var i = 0; i < listeners.size(); i++) {

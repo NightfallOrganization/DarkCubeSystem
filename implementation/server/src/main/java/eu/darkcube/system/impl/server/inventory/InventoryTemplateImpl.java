@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import eu.darkcube.system.BaseMessage;
 import eu.darkcube.system.impl.server.inventory.animated.AnimatedTemplateSettingsImpl;
@@ -28,6 +29,7 @@ import eu.darkcube.system.libs.org.jetbrains.annotations.Unmodifiable;
 import eu.darkcube.system.server.inventory.Inventory;
 import eu.darkcube.system.server.inventory.InventoryTemplate;
 import eu.darkcube.system.server.inventory.InventoryType;
+import eu.darkcube.system.server.inventory.container.ContainerViewFactory;
 import eu.darkcube.system.server.inventory.item.ItemTemplate;
 import eu.darkcube.system.server.inventory.listener.InventoryListener;
 import eu.darkcube.system.server.inventory.listener.TemplateInventoryListener;
@@ -42,7 +44,8 @@ public abstract class InventoryTemplateImpl<PlatformPlayer> implements Inventory
     protected final @NotNull PagedTemplateSettingsImpl pagination;
     protected final @NotNull List<InventoryListener> listeners;
     protected final @NotNull Map<TemplateInventoryListener, List<InventoryListener>> templateListenerMap = new HashMap<>();
-    protected final SortedMap<Integer, ItemReferenceImpl>[] contents;
+    protected final @NotNull List<ContainerViewFactory> containerFactories = new CopyOnWriteArrayList<>();
+    protected final @Nullable SortedMap<Integer, ItemReferenceImpl> @NotNull [] contents;
     protected @Nullable Object title;
 
     public InventoryTemplateImpl(@NotNull Key key, @NotNull InventoryType type, int size) {
@@ -55,7 +58,22 @@ public abstract class InventoryTemplateImpl<PlatformPlayer> implements Inventory
         this.contents = new SortedMap[size];
     }
 
-    public SortedMap<Integer, ItemReferenceImpl>[] contents() {
+    @Override
+    public void addContainerFactory(@NotNull ContainerViewFactory factory) {
+        this.containerFactories.add(factory);
+    }
+
+    @Override
+    public void removeContainerFactory(@NotNull ContainerViewFactory factory) {
+        this.containerFactories.remove(factory);
+    }
+
+    @Override
+    public @NotNull List<ContainerViewFactory> containerFactories() {
+        return List.copyOf(this.containerFactories);
+    }
+
+    public @Nullable SortedMap<Integer, ItemReferenceImpl> @NotNull [] contents() {
         return contents;
     }
 
@@ -101,7 +119,7 @@ public abstract class InventoryTemplateImpl<PlatformPlayer> implements Inventory
 
     @Override
     public void addListener(@NotNull TemplateInventoryListener listener) {
-        var list = this.templateListenerMap.computeIfAbsent(listener, _ -> new ArrayList<>());
+        var list = this.templateListenerMap.computeIfAbsent(listener, _ -> new ArrayList<>(1));
         var wrapper = new TemplateWrapperListener(listener);
         list.add(wrapper);
         addListener(wrapper);
@@ -121,8 +139,9 @@ public abstract class InventoryTemplateImpl<PlatformPlayer> implements Inventory
     @Override
     public @NotNull ItemReferenceImpl setItem(int priority, int slot, @Nullable Object item) {
         var reference = new ItemReferenceImpl(item);
-        if (contents[slot] == null) contents[slot] = new TreeMap<>();
-        contents[slot].put(priority, reference);
+        var c = contents[slot];
+        if (c == null) contents[slot] = c = new TreeMap<>();
+        c.put(priority, reference);
         return reference;
     }
 

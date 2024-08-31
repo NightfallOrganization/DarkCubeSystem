@@ -14,6 +14,7 @@ import eu.darkcube.system.impl.bukkit.item.BukkitEquipmentSlotGroupProvider;
 import eu.darkcube.system.impl.bukkit.item.BukkitEquipmentSlotProvider;
 import eu.darkcube.system.impl.bukkit.item.firework.BukkitFireworkEffectProvider;
 import eu.darkcube.system.impl.bukkit.util.BukkitColorProvider;
+import eu.darkcube.system.impl.server.inventory.container.ContainerProviderImpl;
 import eu.darkcube.system.impl.server.inventory.item.ItemReferenceProviderImpl;
 import eu.darkcube.system.impl.server.inventory.item.ItemTemplateProviderImpl;
 import eu.darkcube.system.impl.server.inventory.listener.InventoryListenerProviderImpl;
@@ -21,6 +22,7 @@ import eu.darkcube.system.impl.server.item.component.ItemComponentProviderImpl;
 import eu.darkcube.system.provider.InternalProvider;
 import eu.darkcube.system.server.inventory.InventoryProvider;
 import eu.darkcube.system.server.inventory.InventoryTypeProvider;
+import eu.darkcube.system.server.inventory.container.ContainerProvider;
 import eu.darkcube.system.server.inventory.item.ItemReferenceProvider;
 import eu.darkcube.system.server.inventory.item.ItemTemplateProvider;
 import eu.darkcube.system.server.inventory.listener.InventoryListenerProvider;
@@ -46,6 +48,7 @@ public abstract class AbstractVersionHandler implements BukkitVersionHandler {
         install(InventoryProvider.class, new BukkitInventoryProvider());
         install(ItemReferenceProvider.class, new ItemReferenceProviderImpl());
         install(InventoryListenerProvider.class, new InventoryListenerProviderImpl());
+        install(ContainerProvider.class, new ContainerProviderImpl());
         install(ItemTemplateProvider.class, new ItemTemplateProviderImpl());
     }
 

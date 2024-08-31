@@ -7,6 +7,7 @@ import java.util.function.Supplier;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.server.inventory.Inventory;
 import eu.darkcube.system.server.inventory.TemplateInventory;
+import eu.darkcube.system.server.inventory.container.ContainerView;
 import eu.darkcube.system.server.inventory.listener.InventoryListener;
 import eu.darkcube.system.server.inventory.listener.InventoryListenerProvider;
 import eu.darkcube.system.server.inventory.listener.TemplateInventoryListener;
@@ -76,9 +77,16 @@ public class InventoryListenerProviderImpl implements InventoryListenerProvider 
             private final Map<Inventory, TemplateInventoryListener> listeners = new ConcurrentHashMap<>();
 
             @Override
-            public void onPreOpen(@NotNull TemplateInventory inventory, @NotNull User user) {
+            public void onInit(@NotNull TemplateInventory inventory, @NotNull User user) {
                 var listener = supplier.get();
                 listeners.put(inventory, listener);
+                listener.onInit(inventory, user);
+            }
+
+            @Override
+            public void onPreOpen(@NotNull TemplateInventory inventory, @NotNull User user) {
+                var listener = listeners.remove(inventory);
+                if (listener == null) throw new NullPointerException("Failed to find stateful listener");
                 listener.onPreOpen(inventory, user);
             }
 
@@ -122,6 +130,20 @@ public class InventoryListenerProviderImpl implements InventoryListenerProvider 
                 var listener = listeners.get(inventory);
                 if (listener == null) throw new NullPointerException("Failed to find stateful listener");
                 listener.onClick(inventory, user, slot, item);
+            }
+
+            @Override
+            public void onContainerAdd(@NotNull TemplateInventory inventory, @NotNull User user, @NotNull ContainerView containerView) {
+                var listener = listeners.get(inventory);
+                if (listener == null) throw new NullPointerException("Failed to find stateful listener");
+                listener.onContainerAdd(inventory, user, containerView);
+            }
+
+            @Override
+            public void onContainerRemove(@NotNull TemplateInventory inventory, @NotNull User user, @NotNull ContainerView containerView) {
+                var listener = listeners.get(inventory);
+                if (listener == null) throw new NullPointerException("Failed to find stateful listener");
+                listener.onContainerRemove(inventory, user, containerView);
             }
         };
     }

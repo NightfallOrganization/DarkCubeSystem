@@ -4,12 +4,16 @@ import java.util.function.Supplier;
 
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.server.inventory.TemplateInventory;
+import eu.darkcube.system.server.inventory.container.ContainerView;
 import eu.darkcube.system.server.item.ItemBuilder;
 import eu.darkcube.system.userapi.User;
 
 public interface TemplateInventoryListener {
     static @NotNull TemplateInventoryListener ofStateful(@NotNull Supplier<@NotNull TemplateInventoryListener> listener) {
         return InventoryListenerProviderImpl.listenerProvider().ofStatefulTemplate(listener);
+    }
+
+    default void onInit(@NotNull TemplateInventory inventory, @NotNull User user) {
     }
 
     /**
@@ -78,5 +82,11 @@ public interface TemplateInventoryListener {
      * @param item      the item
      */
     default void onClick(@NotNull TemplateInventory inventory, @NotNull User user, int slot, @NotNull ItemBuilder item) {
+    }
+
+    default void onContainerAdd(@NotNull TemplateInventory inventory, @NotNull User user, @NotNull ContainerView containerView) {
+    }
+
+    default void onContainerRemove(@NotNull TemplateInventory inventory, @NotNull User user, @NotNull ContainerView containerView) {
     }
 }

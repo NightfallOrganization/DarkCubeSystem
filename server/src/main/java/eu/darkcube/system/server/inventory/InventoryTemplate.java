@@ -8,6 +8,7 @@
 package eu.darkcube.system.server.inventory;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -19,6 +20,7 @@ import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Unmodifiable;
 import eu.darkcube.system.server.inventory.animated.AnimatedTemplateSettings;
+import eu.darkcube.system.server.inventory.container.ContainerViewFactory;
 import eu.darkcube.system.server.inventory.item.ItemFactory;
 import eu.darkcube.system.server.inventory.item.ItemReference;
 import eu.darkcube.system.server.inventory.item.ItemTemplate;
@@ -45,6 +47,12 @@ import eu.darkcube.system.userapi.User;
  */
 @Api
 public interface InventoryTemplate extends Keyed {
+    @Api
+    @NotNull
+    static InventoryTemplate lazy(@NotNull Supplier<@NotNull InventoryTemplate> supplier) {
+        return InventoryProviderImpl.inventoryProvider().lazy(supplier);
+    }
+
     /**
      * Gets the {@link InventoryType} of this inventory.
      * Inventories can have different layouts, like Anvils, Chests, Furnaces, ...
@@ -58,24 +66,16 @@ public interface InventoryTemplate extends Keyed {
 
     int size();
 
-    /*
-    Normal
-    Animated
-    Paged
-    Async
-    Sounds
+    @Api
+    void addContainerFactory(@NotNull ContainerViewFactory factory);
 
-    Animations:
-    Duration to wait per slot (Duration[size])
+    @Api
+    void removeContainerFactory(@NotNull ContainerViewFactory factory);
 
-
-    setItem(slot, ItemStack);
-    setItem(slot, translatingItem);
-    setItem(slot, userToItemFunction);
-
-    Function<User, ItemStack>
-
-     */
+    @Api
+    @NotNull
+    @Unmodifiable
+    List<@NotNull ContainerViewFactory> containerFactories();
 
     /**
      * Gets the {@link AnimatedTemplateSettings} for this inventory.
@@ -221,10 +221,4 @@ public interface InventoryTemplate extends Keyed {
     @Api
     @NotNull
     Inventory open(@NotNull Object player);
-
-    @Api
-    @NotNull
-    static InventoryTemplate lazy(@NotNull Supplier<@NotNull InventoryTemplate> supplier) {
-        return InventoryProviderImpl.inventoryProvider().lazy(supplier);
-    }
 }

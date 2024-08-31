@@ -1,6 +1,7 @@
 package eu.darkcube.system.impl.server.inventory;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -13,6 +14,7 @@ import eu.darkcube.system.server.inventory.Inventory;
 import eu.darkcube.system.server.inventory.InventoryTemplate;
 import eu.darkcube.system.server.inventory.InventoryType;
 import eu.darkcube.system.server.inventory.animated.AnimatedTemplateSettings;
+import eu.darkcube.system.server.inventory.container.ContainerViewFactory;
 import eu.darkcube.system.server.inventory.item.ItemReference;
 import eu.darkcube.system.server.inventory.item.ItemTemplate;
 import eu.darkcube.system.server.inventory.listener.InventoryListener;
@@ -26,6 +28,12 @@ public class LazyInventoryTemplate implements InventoryTemplate {
 
     public LazyInventoryTemplate(@NotNull Supplier<@NotNull InventoryTemplate> supplier) {
         this.supplier = supplier;
+    }
+
+    @Api
+    @NotNull
+    public static InventoryTemplate lazy(@NotNull Supplier<@NotNull InventoryTemplate> supplier) {
+        return InventoryTemplate.lazy(supplier);
     }
 
     public InventoryTemplate handle() {
@@ -46,6 +54,21 @@ public class LazyInventoryTemplate implements InventoryTemplate {
     @Override
     public int size() {
         return handle().size();
+    }
+
+    @Override
+    public void addContainerFactory(@NotNull ContainerViewFactory factory) {
+        handle().addContainerFactory(factory);
+    }
+
+    @Override
+    public void removeContainerFactory(@NotNull ContainerViewFactory factory) {
+        handle().removeContainerFactory(factory);
+    }
+
+    @Override
+    public @NotNull @Unmodifiable List<@NotNull ContainerViewFactory> containerFactories() {
+        return handle().containerFactories();
     }
 
     @Override
@@ -125,12 +148,6 @@ public class LazyInventoryTemplate implements InventoryTemplate {
     @NotNull
     public Inventory open(@NotNull Object player) {
         return handle().open(player);
-    }
-
-    @Api
-    @NotNull
-    public static InventoryTemplate lazy(@NotNull Supplier<@NotNull InventoryTemplate> supplier) {
-        return InventoryTemplate.lazy(supplier);
     }
 
     @Override

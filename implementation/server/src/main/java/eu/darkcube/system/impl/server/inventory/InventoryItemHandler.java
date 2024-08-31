@@ -8,6 +8,9 @@
 package eu.darkcube.system.impl.server.inventory;
 
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
+import eu.darkcube.system.server.inventory.container.Container;
+import eu.darkcube.system.server.inventory.container.ContainerView;
+import eu.darkcube.system.server.inventory.container.ContainerViewConfiguration;
 import eu.darkcube.system.server.item.ItemBuilder;
 import eu.darkcube.system.userapi.User;
 
@@ -31,4 +34,9 @@ public interface InventoryItemHandler<PlatformItem, PlatformPlayer> {
     void updateSlots(int... slots);
 
     void updateSlots(int priority, int... slots);
+
+    @NotNull
+    ContainerView addContainer(int priority, @NotNull Container container, @NotNull ContainerViewConfiguration configuration);
+
+    void removeContainer(@NotNull ContainerView containerView);
 }

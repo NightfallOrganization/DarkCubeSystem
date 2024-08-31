@@ -9,16 +9,27 @@ package eu.darkcube.system.impl.minestom.inventory;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import eu.darkcube.system.impl.server.inventory.InventoryItemHandler;
 import eu.darkcube.system.impl.server.inventory.TemplateInventoryImpl;
 import eu.darkcube.system.impl.server.inventory.controller.PagedInventoryControllerImpl;
+import eu.darkcube.system.impl.server.inventory.listener.TemplateWrapperListener;
 import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 import eu.darkcube.system.minestom.inventory.MinestomInventoryType;
+import eu.darkcube.system.server.inventory.container.Container;
+import eu.darkcube.system.server.inventory.container.ContainerView;
+import eu.darkcube.system.server.inventory.container.ContainerViewConfiguration;
 import eu.darkcube.system.server.inventory.controller.PagedInventoryController;
+import eu.darkcube.system.server.inventory.listener.InventoryListener;
+import eu.darkcube.system.server.inventory.listener.TemplateInventoryListener;
 import eu.darkcube.system.server.item.ItemBuilder;
 import eu.darkcube.system.userapi.User;
 import eu.darkcube.system.userapi.UserAPI;
@@ -33,6 +44,8 @@ public class MinestomTemplateInventory extends MinestomInventory implements Temp
     private final @NotNull User user;
     private final @NotNull InventoryItemHandler<ItemStack, Player> itemHandler;
     private final @NotNull AtomicInteger animationsStarted = new AtomicInteger();
+    private final @NotNull List<@NotNull TemplateInventoryListener> templateListeners = new CopyOnWriteArrayList<>();
+    private final @NotNull Map<TemplateInventoryListener, List<InventoryListener>> templateListenerMap = new HashMap<>();
     private final @NotNull Instant openInstant;
     private final @NotNull PagedInventoryControllerImpl pagedController;
 
@@ -40,12 +53,17 @@ public class MinestomTemplateInventory extends MinestomInventory implements Temp
         super(title, type);
         this.player = player;
         for (var listener : template.listeners()) {
-            this.addListener(listener);
+            if (listener instanceof TemplateWrapperListener(var handle)) {
+                this.addListener(handle);
+            } else this.addListener(listener);
         }
         this.user = UserAPI.instance().user(player.getUuid());
         this.itemHandler = InventoryItemHandler.simple(user, player, this, template);
         this.openInstant = Instant.now(); // This inventory gets opened right after creation
         this.pagedController = new PagedInventoryControllerImpl(this.itemHandler);
+        for (var i = 0; i < this.templateListeners.size(); i++) {
+            this.templateListeners.get(i).onInit(this, user);
+        }
     }
 
     @Override
@@ -118,17 +136,67 @@ public class MinestomTemplateInventory extends MinestomInventory implements Temp
     }
 
     @Override
-    public PagedInventoryController pagedController() {
+    public @NotNull PagedInventoryController pagedController() {
         return pagedController;
     }
 
     @Override
-    public void updateSlotsAtPriority(int priority, int... slots) {
+    public void updateSlotsAtPriority(int priority, int @NotNull ... slots) {
         this.itemHandler.updateSlots(priority, slots);
     }
 
     @Override
-    public void updateSlots(int... slots) {
+    public void updateSlots(int @NotNull ... slots) {
         this.itemHandler.updateSlots(slots);
+    }
+
+    @Override
+    public @NotNull ContainerView addContainer(int priority, @NotNull Container container, @NotNull ContainerViewConfiguration configuration) {
+        return this.itemHandler.addContainer(priority, container, configuration);
+    }
+
+    @Override
+    public void removeContainer(@NotNull ContainerView view) {
+        this.itemHandler.removeContainer(view);
+    }
+
+    @Override
+    public void addListener(@NotNull InventoryListener listener) {
+        if (listener instanceof TemplateWrapperListener(var handle)) {
+            this.templateListeners.add(handle);
+        }
+        super.addListener(listener);
+    }
+
+    @Override
+    public void removeListener(@NotNull InventoryListener listener) {
+        if (listener instanceof TemplateWrapperListener(var handle)) {
+            this.templateListeners.remove(handle);
+        }
+        super.removeListener(listener);
+    }
+
+    @Override
+    public void addListener(@NotNull TemplateInventoryListener listener) {
+        var list = this.templateListenerMap.computeIfAbsent(listener, _ -> new ArrayList<>(1));
+        var wrapper = new TemplateWrapperListener(listener);
+        list.add(wrapper);
+        addListener(wrapper);
+    }
+
+    @Override
+    public void removeListener(@NotNull TemplateInventoryListener listener) {
+        var wrappers = this.templateListenerMap.get(listener);
+        if (wrappers == null) return;
+        var wrapper = wrappers.removeLast();
+        removeListener(wrapper);
+        if (wrappers.isEmpty()) {
+            this.templateListenerMap.remove(listener);
+        }
+    }
+
+    @Override
+    public @NotNull List<@NotNull TemplateInventoryListener> templateListeners() {
+        return templateListeners;
     }
 }

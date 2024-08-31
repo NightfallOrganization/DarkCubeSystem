@@ -7,9 +7,15 @@
 
 package eu.darkcube.system.impl.server.inventory;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -19,6 +25,11 @@ import eu.darkcube.system.impl.server.inventory.item.ItemReferenceImpl;
 import eu.darkcube.system.impl.server.inventory.paged.PaginationCalculator;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
+import eu.darkcube.system.server.inventory.container.Container;
+import eu.darkcube.system.server.inventory.container.ContainerListener;
+import eu.darkcube.system.server.inventory.container.ContainerProvider;
+import eu.darkcube.system.server.inventory.container.ContainerView;
+import eu.darkcube.system.server.inventory.container.ContainerViewConfiguration;
 import eu.darkcube.system.server.item.ItemBuilder;
 import eu.darkcube.system.userapi.User;
 import eu.darkcube.system.util.AsyncExecutor;
@@ -31,10 +42,14 @@ public class SimpleItemHandler<PlatformItem, PlatformPlayer> implements Inventor
     private final int size;
     private final @Nullable SortedMap<Integer, ItemReferenceImpl> @NotNull [] contents;
     private final @Nullable SortedMap<Integer, ItemComputeTask<PlatformItem>> @NotNull [] tasks;
-    private final ExecutorService service = AsyncExecutor.virtualService();
+    private final @NotNull ExecutorService service = AsyncExecutor.virtualService();
+    private final @NotNull List<ContainerView> containers = new CopyOnWriteArrayList<>();
+    private final @NotNull Map<ContainerView, ContainerListener> containerListeners = new HashMap<>();
+    private final @NotNull Map<ContainerView, List<ItemEntry>> containersRemovedItems = new HashMap<>();
     private final @NotNull PaginationCalculator<PlatformItem, PlatformPlayer> paginationCalculator;
     private final User user;
     private final PlatformPlayer player;
+    private boolean open = false;
 
     public SimpleItemHandler(@NotNull User user, @NotNull PlatformPlayer player, @NotNull TemplateInventoryImpl<PlatformItem> inventory, @NotNull InventoryTemplateImpl<PlatformPlayer> template) {
         this.user = user;
@@ -47,6 +62,9 @@ public class SimpleItemHandler<PlatformItem, PlatformPlayer> implements Inventor
         this.contents = TemplateInventoryImpl.deepCopy(template.contents());
         this.tasks = new SortedMap[size];
         this.paginationCalculator = new PaginationCalculator<>(this, this);
+        for (var containerFactory : this.template.containerFactories()) {
+            this.addContainer(containerFactory.priority(), containerFactory.container(), containerFactory);
+        }
     }
 
     private boolean useAnimations() {
@@ -101,6 +119,66 @@ public class SimpleItemHandler<PlatformItem, PlatformPlayer> implements Inventor
     }
 
     @Override
+    public @NotNull ContainerView addContainer(int priority, @NotNull Container container, @NotNull ContainerViewConfiguration configuration) {
+        var view = ContainerProvider.createView(this.inventory, container, priority);
+        configuration.configureView(this.user, view);
+        var l = this.inventory.templateListeners();
+        for (var i = 0; i < l.size(); i++) {
+            l.get(i).onContainerAdd(inventory, user, view);
+        }
+        this.containers.add(view);
+        var entries = new ArrayList<ItemEntry>();
+        var slots = view.slots();
+        for (var i = 0; i < slots.length; i++) {
+            var slot = slots[i];
+            var old = setItem(priority, slot, new ItemReferenceImpl(container.getAt(i)));
+            if (old != null) {
+                entries.add(new ItemEntry(priority, slot, old));
+            }
+        }
+        if (!entries.isEmpty()) {
+            containersRemovedItems.put(view, entries);
+        }
+        var listener = new ContainerListener() {
+            @Override
+            public void onItemAdded(int slot, @NotNull ItemBuilder item) {
+                setItem(priority, slots[slot], new ItemReferenceImpl(item));
+            }
+
+            @Override
+            public void onItemChanged(int slot, @NotNull ItemBuilder previousItem, @NotNull ItemBuilder newItem) {
+                setItem(priority, slots[slot], new ItemReferenceImpl(newItem));
+            }
+
+            @Override
+            public void onItemRemoved(int slot, @NotNull ItemBuilder previousItem) {
+                removeItem(priority, slots[slot]);
+            }
+        };
+        container.addListener(listener);
+        containerListeners.put(view, listener);
+        return view;
+    }
+
+    @Override
+    public void removeContainer(@NotNull ContainerView containerView) {
+        if (!this.containers.contains(containerView)) throw new IllegalStateException("View doesn't exist on this inventory!");
+        var l = this.inventory.templateListeners();
+        for (var i = 0; i < l.size(); i++) {
+            l.get(i).onContainerRemove(inventory, user, containerView);
+        }
+        var overwrittenEntries = containersRemovedItems.get(containerView);
+        if (overwrittenEntries != null) {
+            for (var entry : overwrittenEntries) {
+                setItem(entry.priority, entry.slot, entry.reference);
+            }
+        }
+        var listener = containerListeners.remove(containerView);
+        containerView.container().removeListener(listener);
+        this.containers.remove(containerView);
+    }
+
+    @Override
     public @NotNull TemplateInventoryImpl<PlatformItem> inventory() {
         return inventory;
     }
@@ -117,12 +195,34 @@ public class SimpleItemHandler<PlatformItem, PlatformPlayer> implements Inventor
         return contents;
     }
 
+    public ItemReferenceImpl setItem(int priority, int slot, ItemReferenceImpl reference) {
+        var c = contents[slot];
+        if (c == null) {
+            c = new TreeMap<>(Comparator.reverseOrder());
+            contents[slot] = c;
+        }
+
+        var old = c.put(priority, reference);
+        if (open) {
+            updateSlots(priority, new int[]{slot});
+        }
+        return old;
+    }
+
+    public void removeItem(int priority, int slot) {
+        var c = contents[slot];
+        if (c == null) return;
+        c.remove(priority);
+        if (c.isEmpty()) contents[slot] = null;
+    }
+
     public @NotNull PaginationCalculator<PlatformItem, PlatformPlayer> paginationCalculator() {
         return paginationCalculator;
     }
 
     @Override
     public void doOpen() {
+        open = true;
         this.paginationCalculator.onOpen(user);
         for (var slot = 0; slot < size; slot++) {
             setItem(player, user, slot);
@@ -132,6 +232,7 @@ public class SimpleItemHandler<PlatformItem, PlatformPlayer> implements Inventor
     @Override
     public void doClose() {
         this.paginationCalculator.onClose(user);
+        open = false;
     }
 
     @Override
@@ -231,6 +332,9 @@ public class SimpleItemHandler<PlatformItem, PlatformPlayer> implements Inventor
             task.run();
         }
         return true;
+    }
+
+    public record ItemEntry(int priority, int slot, ItemReferenceImpl reference) {
     }
 
     public static class ItemComputeTask<PlatformItem> implements Runnable {
