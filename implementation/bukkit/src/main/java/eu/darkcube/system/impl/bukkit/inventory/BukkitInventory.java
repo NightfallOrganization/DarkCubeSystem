@@ -142,16 +142,14 @@ public class BukkitInventory extends AbstractInventory<ItemStack> {
     private void handleClick(InventoryClickEvent event) {
         var bukkitInventory = event.getClickedInventory();
         if (bukkitInventory == null) return;
-        var cancel = false;
 
         if (bukkitInventory.getHolder() instanceof Holder holder) {
-            if (holder == this.holder) {
-                // They clicked into this inventory
-                cancel = true;
-                handleClick1(event);
-            } else {
+            if (holder != this.holder) {
+                // our inventory isn't open
                 return;
             }
+            // They clicked into this inventory
+            handleClickTop(event);
         } else {
             // They might still try to shift items into this inventory
             // or sth else :)
@@ -160,12 +158,23 @@ public class BukkitInventory extends AbstractInventory<ItemStack> {
                 // our inventory isn't open
                 return;
             }
+            handleClickBottom(event);
+        }
+    }
 
-            var clickType = event.getClick();
-            switch (clickType) {
-                case LEFT, CREATIVE, CONTROL_DROP, DROP, RIGHT, WINDOW_BORDER_LEFT, WINDOW_BORDER_RIGHT, NUMBER_KEY, MIDDLE -> {
-                }
-                case SHIFT_LEFT, SHIFT_RIGHT, DOUBLE_CLICK, SWAP_OFFHAND, UNKNOWN -> cancel = true;
+    private void handleClickBottom(InventoryClickEvent event) {
+        if (handleCustomClickBottom(event)) {
+            return;
+        }
+        var clickType = event.getClick();
+        var cancel = false;
+        switch (clickType) {
+            case LEFT, CREATIVE, CONTROL_DROP, DROP, RIGHT, WINDOW_BORDER_LEFT, WINDOW_BORDER_RIGHT, NUMBER_KEY, MIDDLE -> {
+            }
+            case SHIFT_LEFT, SHIFT_RIGHT, DOUBLE_CLICK, SWAP_OFFHAND -> cancel = true;
+            default -> {
+                LOGGER.error("Click on bottom inventory not supported by InventoryAPI: {}", clickType);
+                cancel = true;
             }
         }
         if (cancel) {
@@ -173,20 +182,24 @@ public class BukkitInventory extends AbstractInventory<ItemStack> {
         }
     }
 
-    private void handleClick1(InventoryClickEvent event) {
+    private void handleClickTop(InventoryClickEvent event) {
+        if (handleCustomClickTop(event)) {
+            return;
+        }
+        var clickType = event.getClick();
         event.setCancelled(true);
         var user = UserAPI.instance().user(event.getWhoClicked().getUniqueId());
-        var clickType = event.getClick();
         var slot = switch (clickType) {
-            case LEFT, SHIFT_LEFT, RIGHT, SHIFT_RIGHT, DROP, CONTROL_DROP, NUMBER_KEY -> event.getSlot();
+            case LEFT, RIGHT, SHIFT_LEFT, SHIFT_RIGHT, DROP, CONTROL_DROP, NUMBER_KEY -> event.getSlot();
             case WINDOW_BORDER_LEFT, WINDOW_BORDER_RIGHT -> -1;
             case MIDDLE -> -1; // Middle mouse ignored
             case DOUBLE_CLICK -> 0; // TODO test this
             default -> {
-                LOGGER.error("Click not supported by InventoryAPI: {}", clickType);
+                LOGGER.error("Click on top inventory not supported by InventoryAPI: {}", clickType);
                 yield -1;
             }
         };
+        if (slot == -1) return;
         var itemStack = event.getCurrentItem();
         var item = itemStack == null || itemStack.getType().isAir() ? ItemBuilder.item() : ItemBuilder.item(itemStack);
         handleClick(slot, itemStack == null ? new ItemStack(Material.AIR) : itemStack, item);
@@ -208,6 +221,14 @@ public class BukkitInventory extends AbstractInventory<ItemStack> {
                 break;
             }
         }
+    }
+
+    protected boolean handleCustomClickTop(InventoryClickEvent event) {
+        return false;
+    }
+
+    protected boolean handleCustomClickBottom(InventoryClickEvent event) {
+        return false;
     }
 
     protected void handleClick(int slot, @NotNull ItemStack itemStack, @NotNull ItemBuilder item) {

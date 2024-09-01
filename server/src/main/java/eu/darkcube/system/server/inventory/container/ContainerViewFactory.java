@@ -9,6 +9,10 @@ public interface ContainerViewFactory extends ContainerViewConfiguration {
         return PROVIDER.factory(priority, () -> Container.simple(size), ContainerViewConfiguration.EMPTY);
     }
 
+    static @NotNull ContainerViewFactory simple(int priority, int size, @NotNull ContainerViewConfiguration configuration) {
+        return PROVIDER.factory(priority, () -> Container.simple(size), configuration);
+    }
+
     static @NotNull ContainerViewFactory shared(int priority, @NotNull Container container) {
         return shared(priority, container, ContainerViewConfiguration.EMPTY);
     }

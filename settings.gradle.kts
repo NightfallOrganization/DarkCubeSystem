@@ -22,7 +22,7 @@ plugins {
 
 rootProject.name = "darkcubesystem"
 
-includeSubProjects("", "bukkit", "proxy", "minestom", "libs", "kyori-wrapper")
+includeSubProjects("", "bukkit", "proxy", "minestom", "libs", "kyori-wrapper", "test-plugin")
 includeSubProjects("api", "cloudnet")
 includeSubProjects("server", "cloudnet")
 includeSubProjects("implementation", "common", "server", "velocity", "minestom", "cloudnet", "standalone", "kyori-wrapper")

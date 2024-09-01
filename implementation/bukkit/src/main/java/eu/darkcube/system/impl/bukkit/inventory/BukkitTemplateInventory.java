@@ -39,6 +39,7 @@ import eu.darkcube.system.userapi.UserAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
 public final class BukkitTemplateInventory extends BukkitInventory implements TemplateInventoryImpl<ItemStack> {
@@ -99,6 +100,18 @@ public final class BukkitTemplateInventory extends BukkitInventory implements Te
     protected void unregister() {
         super.unregister();
         this.itemHandler.doClose();
+    }
+
+    @Override
+    protected boolean handleCustomClickTop(InventoryClickEvent event) {
+        var clickType = event.getClick();
+        
+        return false;
+    }
+
+    @Override
+    protected boolean handleCustomClickBottom(InventoryClickEvent event) {
+        return false;
     }
 
     @Override

@@ -174,7 +174,7 @@ public interface InventoryTemplate extends Keyed {
      */
     @Api
     @NotNull
-    ItemReference setItem(int priority, int slot, @NotNull Object item);
+    ItemReference setItem(int priority, int slot, @Nullable Object item);
 
     /**
      * Utility method to allow lamdas
@@ -183,7 +183,7 @@ public interface InventoryTemplate extends Keyed {
      */
     @Api
     @NotNull
-    default ItemReference setItem(int priority, int slot, @NotNull Supplier<@NotNull ?> supplier) {
+    default ItemReference setItem(int priority, int slot, @NotNull Supplier<@Nullable ?> supplier) {
         return setItem(priority, slot, (Object) supplier);
     }
 
@@ -193,7 +193,7 @@ public interface InventoryTemplate extends Keyed {
      * @see #setItem(int, int, Object)
      */
     @Api
-    default ItemReference setItem(int priority, int slot, @NotNull Function<User, ?> itemFunction) {
+    default ItemReference setItem(int priority, int slot, @NotNull Function<@NotNull User, ?> itemFunction) {
         return setItem(priority, slot, (Object) itemFunction);
     }
 

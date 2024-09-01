@@ -120,7 +120,7 @@ public class LazyInventoryTemplate implements InventoryTemplate {
     @Override
     @Api
     @NotNull
-    public ItemReference setItem(int priority, int slot, @NotNull Object item) {
+    public ItemReference setItem(int priority, int slot, @Nullable Object item) {
         return handle().setItem(priority, slot, item);
     }
 
