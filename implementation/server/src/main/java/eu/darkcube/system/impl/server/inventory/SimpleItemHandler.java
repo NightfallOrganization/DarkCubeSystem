@@ -8,6 +8,7 @@
 package eu.darkcube.system.impl.server.inventory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -41,6 +42,7 @@ public class SimpleItemHandler<PlatformItem, PlatformPlayer> implements Inventor
     private final @NotNull AnimationHandler<PlatformItem> animationHandler;
     private final int size;
     private final @Nullable SortedMap<Integer, ItemReferenceImpl> @NotNull [] contents;
+    private final int[] priorities;
     private final @Nullable SortedMap<Integer, ItemComputeTask<PlatformItem>> @NotNull [] tasks;
     private final @NotNull ExecutorService service = AsyncExecutor.virtualService();
     private final @NotNull List<ContainerView> containers = new CopyOnWriteArrayList<>();
@@ -58,6 +60,8 @@ public class SimpleItemHandler<PlatformItem, PlatformPlayer> implements Inventor
         this.template = template;
         this.abstractInventory = (AbstractInventory<PlatformItem>) inventory;
         this.size = abstractInventory.size;
+        this.priorities = new int[this.size];
+        Arrays.fill(this.priorities, Integer.MIN_VALUE);
         this.animationHandler = useAnimations() ? new ConfiguredAnimationHandler<>(inventory, template.animation()) : AnimationHandler.noAnimation();
         this.contents = TemplateInventoryImpl.deepCopy(template.contents());
         this.tasks = new SortedMap[size];
@@ -179,6 +183,34 @@ public class SimpleItemHandler<PlatformItem, PlatformPlayer> implements Inventor
     }
 
     @Override
+    public @NotNull List<ContainerView> containers() {
+        return containers;
+    }
+
+    @Override
+    public @Nullable ContainerView findContainer(int slot) {
+        synchronized (this) {
+            var slotPriority = priorities[slot];
+            ContainerView selectedContainer = null;
+            for (var container : containers) {
+                if (container.priority() != slotPriority) continue;
+                var slots = container.slots();
+                for (var s : slots) {
+                    if (slot == s) {
+                        if (selectedContainer == null) {
+                            selectedContainer = container;
+                        } else if (selectedContainer.priority() < container.priority()) {
+                            selectedContainer = container;
+                        }
+                        break;
+                    }
+                }
+            }
+            return selectedContainer;
+        }
+    }
+
+    @Override
     public @NotNull TemplateInventoryImpl<PlatformItem> inventory() {
         return inventory;
     }
@@ -250,10 +282,20 @@ public class SimpleItemHandler<PlatformItem, PlatformPlayer> implements Inventor
     private void setItem(@NotNull PlatformPlayer player, @NotNull User user, int slot) {
         var item = calculateItem(player, user, slot);
         if (item == null) {
-            inventory.onMainThread(() -> inventory.setAir(slot));
+            inventory.onMainThread(() -> {
+                synchronized (this) {
+                    inventory.setAir(slot);
+                    priorities[slot] = Integer.MIN_VALUE;
+                }
+            });
             return;
         }
-        inventory.onMainThread(() -> animationHandler.setItem(inventory, slot, item));
+        inventory.onMainThread(() -> {
+            synchronized (this) {
+                animationHandler.setItem(inventory, slot, item.getKey());
+                priorities[slot] = item.getValue();
+            }
+        });
     }
 
     /**
@@ -261,7 +303,7 @@ public class SimpleItemHandler<PlatformItem, PlatformPlayer> implements Inventor
      *
      * @return the item, or null if air
      */
-    private synchronized @Nullable PlatformItem calculateItem(@NotNull PlatformPlayer player, @NotNull User user, int slot) {
+    private synchronized @Nullable Map.Entry<PlatformItem, Integer> calculateItem(@NotNull PlatformPlayer player, @NotNull User user, int slot) {
         var contentMap = contents[slot];
         if (contentMap == null) {
             return null;
@@ -278,10 +320,10 @@ public class SimpleItemHandler<PlatformItem, PlatformPlayer> implements Inventor
 
         for (var contentEntry : contentMap.sequencedEntrySet()) {
             var itemReference = contentEntry.getValue();
-            var taskKey = contentEntry.getKey();
-            var taskItem = calculateItem(player, user, slot, taskKey, itemReference, taskMap);
+            var priority = contentEntry.getKey();
+            var taskItem = calculateItem(player, user, slot, priority, itemReference, taskMap);
             if (taskItem != null) {
-                return taskItem;
+                return Map.entry(taskItem, priority);
             }
         }
         // no item specified
@@ -293,10 +335,10 @@ public class SimpleItemHandler<PlatformItem, PlatformPlayer> implements Inventor
      *
      * @return the item for the specified task, null if task is async and item is not calculated yet.
      */
-    private @Nullable PlatformItem calculateItem(@NotNull PlatformPlayer player, @NotNull User user, int slot, int taskKey, @NotNull ItemReferenceImpl itemReference, SortedMap<Integer, ItemComputeTask<PlatformItem>> taskMap) {
-        ensureTaskStarted(taskMap, player, taskKey, user, itemReference, slot);
+    private @Nullable PlatformItem calculateItem(@NotNull PlatformPlayer player, @NotNull User user, int slot, int priority, @NotNull ItemReferenceImpl itemReference, SortedMap<Integer, ItemComputeTask<PlatformItem>> taskMap) {
+        ensureTaskStarted(taskMap, player, priority, user, itemReference, slot);
 
-        var task = taskMap.get(taskKey);
+        var task = taskMap.get(priority);
         if (task.future.isDone()) {
             if (task.future.isCompletedExceptionally()) {
                 task.future.exceptionNow().printStackTrace();

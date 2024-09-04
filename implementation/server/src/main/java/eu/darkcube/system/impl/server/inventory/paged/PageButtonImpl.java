@@ -37,7 +37,7 @@ public class PageButtonImpl implements PageButton, Cloneable {
     }
 
     @Override
-    public void slots(int @NotNull [] slots) {
+    public void slots(int @NotNull ... slots) {
         this.slots = slots.clone();
     }
 

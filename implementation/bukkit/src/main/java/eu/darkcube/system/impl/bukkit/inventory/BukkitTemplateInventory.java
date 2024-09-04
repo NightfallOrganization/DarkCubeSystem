@@ -39,6 +39,7 @@ import eu.darkcube.system.userapi.UserAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
@@ -58,7 +59,9 @@ public final class BukkitTemplateInventory extends BukkitInventory implements Te
         for (var listener : template.listeners()) {
             if (listener instanceof TemplateWrapperListener(var handle)) {
                 this.addListener(handle);
-            } else this.addListener(listener);
+            } else {
+                this.addListener(listener);
+            }
         }
         this.user = UserAPI.instance().user(player.getUniqueId());
         this.itemHandler = InventoryItemHandler.simple(user, player, this, template);
@@ -105,7 +108,15 @@ public final class BukkitTemplateInventory extends BukkitInventory implements Te
     @Override
     protected boolean handleCustomClickTop(InventoryClickEvent event) {
         var clickType = event.getClick();
-        
+        if (clickType == ClickType.LEFT) {
+            var slot = event.getRawSlot();
+            var itemInSlot = event.getView().getItem(slot);
+            var itemInCursor = event.getCursor();
+            if ((itemInSlot == null || itemInSlot.isEmpty()) && !itemInCursor.isEmpty()) {
+                // Move item in cursor to slot
+                // TODO
+            }
+        }
         return false;
     }
 

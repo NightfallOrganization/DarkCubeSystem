@@ -17,7 +17,7 @@ import eu.darkcube.system.userapi.User;
 public interface PageButton {
     int @NotNull [] slots();
 
-    void slots(int @NotNull [] slots);
+    void slots(int @NotNull ... slots);
 
     @NotNull
     ItemReference setItem(@NotNull Object item);

@@ -7,7 +7,10 @@
 
 package eu.darkcube.system.impl.server.inventory;
 
+import java.util.List;
+
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
+import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 import eu.darkcube.system.server.inventory.container.Container;
 import eu.darkcube.system.server.inventory.container.ContainerView;
 import eu.darkcube.system.server.inventory.container.ContainerViewConfiguration;
@@ -39,4 +42,9 @@ public interface InventoryItemHandler<PlatformItem, PlatformPlayer> {
     ContainerView addContainer(int priority, @NotNull Container container, @NotNull ContainerViewConfiguration configuration);
 
     void removeContainer(@NotNull ContainerView containerView);
+
+    List<ContainerView> containers();
+
+    @Nullable
+    ContainerView findContainer(int slot);
 }

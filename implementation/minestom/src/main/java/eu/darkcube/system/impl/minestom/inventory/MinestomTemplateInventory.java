@@ -55,7 +55,9 @@ public class MinestomTemplateInventory extends MinestomInventory implements Temp
         for (var listener : template.listeners()) {
             if (listener instanceof TemplateWrapperListener(var handle)) {
                 this.addListener(handle);
-            } else this.addListener(listener);
+            } else {
+                this.addListener(listener);
+            }
         }
         this.user = UserAPI.instance().user(player.getUuid());
         this.itemHandler = InventoryItemHandler.simple(user, player, this, template);
