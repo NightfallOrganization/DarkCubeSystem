@@ -95,7 +95,11 @@ public class BukkitInventory extends AbstractInventory<ItemStack> {
             if (modified) {
                 modified = false;
                 for (var i = 0; i < listeners.size(); i++) {
-                    listeners.get(i).onUpdate(this);
+                    try {
+                        listeners.get(i).onUpdate(this);
+                    } catch (Throwable t) {
+                        LOGGER.error("Error during #onUpdate of {}", listeners.get(i).getClass().getName(), t);
+                    }
                 }
             }
         }, 0, 1);

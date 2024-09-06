@@ -15,7 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class LoggerInventoryListener implements InventoryListener {
-    private final Logger logger = LoggerFactory.getLogger("InventoryAPI");
+    protected final Logger logger = LoggerFactory.getLogger("InventoryAPI");
 
     @Override
     public void onPreOpen(@NotNull Inventory inventory, @NotNull User user) {
@@ -25,11 +25,6 @@ public class LoggerInventoryListener implements InventoryListener {
     @Override
     public void onOpen(@NotNull Inventory inventory, @NotNull User user) {
         logger.info("Open");
-    }
-
-    @Override
-    public void onOpenAnimationFinished(@NotNull Inventory inventory) {
-        logger.info("AnimationFinished");
     }
 
     @Override

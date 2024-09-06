@@ -43,21 +43,20 @@ public class MinestomInventory extends AbstractInventory<ItemStack> {
 
     public MinestomInventory(@NotNull Component title, @NotNull MinestomInventoryType type) {
         super(title, type, type.minestomType().getSize());
-        this.inventory = new ServerInventory(type.minestomType(), MinestomAdventureSupport
-                .adventureSupport()
-                .convert(title), this);
+        this.inventory = new ServerInventory(type.minestomType(), MinestomAdventureSupport.adventureSupport().convert(title), this);
         this.node.addListener(InventoryCloseEvent.class, this::handleClose);
-        this.node.addListener(builder(InventoryPreClickEvent.class)
-                .ignoreCancelled(false)
-                .handler(this::handleClick)
-                .build());
+        this.node.addListener(builder(InventoryPreClickEvent.class).ignoreCancelled(false).handler(this::handleClick).build());
     }
 
     @Override
     protected final void setItem0(int slot, @NotNull ItemStack item) {
         inventory.setItemStack(slot, item);
         for (var i = 0; i < listeners.size(); i++) {
-            listeners.get(i).onSlotUpdate(this, slot);
+            try {
+                listeners.get(i).onSlotUpdate(this, slot);
+            } catch (Throwable t) {
+                LOGGER.error("Error during #onSlotUpdate of {}", listeners.get(i).getClass().getName(), t);
+            }
         }
         modified = true;
     }
@@ -86,7 +85,11 @@ public class MinestomInventory extends AbstractInventory<ItemStack> {
             if (modified) {
                 modified = false;
                 for (var i = 0; i < listeners.size(); i++) {
-                    listeners.get(i).onUpdate(this);
+                    try {
+                        listeners.get(i).onUpdate(this);
+                    } catch (Throwable t) {
+                        LOGGER.error("Error during #onUpdate of {}", listeners.get(i).getClass().getName(), t);
+                    }
                 }
             }
         }, TaskSchedule.immediate(), TaskSchedule.nextTick(), ExecutionType.TICK_END);
@@ -100,12 +103,20 @@ public class MinestomInventory extends AbstractInventory<ItemStack> {
     protected void doOpen(@NotNull Player player) {
         var user = UserAPI.instance().user(player.getUuid());
         for (var i = 0; i < listeners.size(); i++) {
-            listeners.get(i).onPreOpen(this, user);
+            try {
+                listeners.get(i).onPreOpen(this, user);
+            } catch (Throwable t) {
+                LOGGER.error("Error during #onPreOpen of {}", listeners.get(i).getClass().getName(), t);
+            }
         }
         opened.add(user);
         player.openInventory(inventory);
         for (var i = 0; i < listeners.size(); i++) {
-            listeners.get(i).onOpen(this, user);
+            try {
+                listeners.get(i).onOpen(this, user);
+            } catch (Throwable t) {
+                LOGGER.error("Error during #onOpen of {}", listeners.get(i).getClass().getName(), t);
+            }
         }
     }
 
@@ -156,7 +167,11 @@ public class MinestomInventory extends AbstractInventory<ItemStack> {
         var item = itemStack.isAir() ? ItemBuilder.item() : ItemBuilder.item(itemStack);
         handleClick(slot, itemStack, item);
         for (var i = 0; i < listeners.size(); i++) {
-            listeners.get(i).onClick(this, user, slot, item);
+            try {
+                listeners.get(i).onClick(this, user, slot, item);
+            } catch (Throwable t) {
+                LOGGER.error("Error during #onClick of {}", listeners.get(i).getClass().getName(), t);
+            }
         }
     }
 
@@ -170,7 +185,11 @@ public class MinestomInventory extends AbstractInventory<ItemStack> {
         if (inventory != this) return;
         var user = UserAPI.instance().user(event.getPlayer().getUuid());
         for (var i = 0; i < listeners.size(); i++) {
-            listeners.get(i).onClose(this, user);
+            try {
+                listeners.get(i).onClose(this, user);
+            } catch (Throwable t) {
+                LOGGER.error("Error during #onClose of {}", listeners.get(i).getClass().getName(), t);
+            }
         }
         if (openCount.decrementAndGet() == 0) {
             unregister();

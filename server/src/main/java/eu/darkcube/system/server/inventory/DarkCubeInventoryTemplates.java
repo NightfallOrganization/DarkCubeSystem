@@ -32,6 +32,7 @@ public class DarkCubeInventoryTemplates {
             @Override
             public void onOpen(@NotNull TemplateInventory inventory, @NotNull User user) {
                 this.user = user;
+                playSound();
             }
 
             @Override
@@ -47,10 +48,14 @@ public class DarkCubeInventoryTemplates {
             @Override
             public void onUpdate(@NotNull TemplateInventory inventory) {
                 if (!this.finished) {
-                    if (this.user == null) return;
-                    if (!this.user.settings().sounds()) return;
-                    PROVIDER.playSound(this.user);
+                    playSound();
                 }
+            }
+
+            private void playSound() {
+                if (this.user == null) return;
+                if (!this.user.settings().sounds()) return;
+                PROVIDER.playSound(this.user);
             }
         }));
     }

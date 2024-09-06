@@ -10,6 +10,7 @@ package eu.darkcube.system.server.data.component;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
@@ -17,11 +18,6 @@ import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 record DataComponentMapImpl(@NotNull Map<DataComponent<?>, Object> components) implements DataComponentMap {
     DataComponentMapImpl {
         components = new HashMap<>(components);
-    }
-
-    @Override
-    public @NotNull Map<DataComponent<?>, Object> components() {
-        return Map.copyOf(components);
     }
 
     @Override
@@ -48,5 +44,17 @@ record DataComponentMapImpl(@NotNull Map<DataComponent<?>, Object> components) i
     @NotNull
     public Iterator<DataComponent<?>> iterator() {
         return components.keySet().iterator();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof DataComponentMapImpl(var other))) return false;
+        return Objects.equals(components, other);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(components);
     }
 }

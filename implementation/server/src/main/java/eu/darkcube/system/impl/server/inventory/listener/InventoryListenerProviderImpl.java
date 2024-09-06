@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2024. [DarkCube]
+ * All rights reserved.
+ * You may not use or redistribute this software or any associated files without permission.
+ * The above copyright notice shall be included in all copies of this software.
+ */
+
 package eu.darkcube.system.impl.server.inventory.listener;
 
 import java.util.Map;
@@ -42,13 +49,6 @@ public class InventoryListenerProviderImpl implements InventoryListenerProvider 
             }
 
             @Override
-            public void onOpenAnimationFinished(@NotNull Inventory inventory) {
-                var listener = listeners.get(inventory);
-                if (listener == null) return;
-                listener.onOpenAnimationFinished(inventory);
-            }
-
-            @Override
             public void onUpdate(@NotNull Inventory inventory) {
                 var listener = listeners.get(inventory);
                 if (listener == null) return;
@@ -85,7 +85,7 @@ public class InventoryListenerProviderImpl implements InventoryListenerProvider 
 
             @Override
             public void onPreOpen(@NotNull TemplateInventory inventory, @NotNull User user) {
-                var listener = listeners.remove(inventory);
+                var listener = listeners.get(inventory);
                 if (listener == null) throw new NullPointerException("Failed to find stateful listener");
                 listener.onPreOpen(inventory, user);
             }

@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2024. [DarkCube]
+ * All rights reserved.
+ * You may not use or redistribute this software or any associated files without permission.
+ * The above copyright notice shall be included in all copies of this software.
+ */
+
 package eu.darkcube.system.impl.server.inventory.container;
 
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
@@ -10,6 +17,7 @@ public class SimpleContainerView implements ContainerView {
     private final @NotNull Container container;
     private final int priority;
     private final int @NotNull [] slots;
+    private int slotPriority = 0;
 
     public SimpleContainerView(@NotNull TemplateInventory inventory, @NotNull Container container, int priority) {
         this.inventory = inventory;
@@ -34,6 +42,16 @@ public class SimpleContainerView implements ContainerView {
     @Override
     public int priority() {
         return this.priority;
+    }
+
+    @Override
+    public int slotPriority() {
+        return this.slotPriority;
+    }
+
+    @Override
+    public void slotPriority(int slotPriority) {
+        this.slotPriority = slotPriority;
     }
 
     @Override

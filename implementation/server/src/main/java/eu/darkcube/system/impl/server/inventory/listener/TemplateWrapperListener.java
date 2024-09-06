@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2024. [DarkCube]
+ * All rights reserved.
+ * You may not use or redistribute this software or any associated files without permission.
+ * The above copyright notice shall be included in all copies of this software.
+ */
+
 package eu.darkcube.system.impl.server.inventory.listener;
 
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
@@ -17,11 +24,6 @@ public record TemplateWrapperListener(TemplateInventoryListener listener) implem
     @Override
     public void onOpen(@NotNull Inventory inventory, @NotNull User user) {
         listener.onOpen((TemplateInventory) inventory, user);
-    }
-
-    @Override
-    public void onOpenAnimationFinished(@NotNull Inventory inventory) {
-        listener.onOpenAnimationFinished((TemplateInventory) inventory);
     }
 
     @Override

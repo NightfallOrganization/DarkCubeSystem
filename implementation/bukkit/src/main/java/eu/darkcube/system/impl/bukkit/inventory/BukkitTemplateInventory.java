@@ -37,21 +37,19 @@ import eu.darkcube.system.server.item.ItemBuilder;
 import eu.darkcube.system.userapi.User;
 import eu.darkcube.system.userapi.UserAPI;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
 public final class BukkitTemplateInventory extends BukkitInventory implements TemplateInventoryImpl<ItemStack> {
-    private final @NotNull Player player;
-    private final @NotNull User user;
-    private final @NotNull InventoryItemHandler<ItemStack, Player> itemHandler;
-    private final @NotNull AtomicInteger animationsStarted = new AtomicInteger();
-    private final @NotNull List<@NotNull TemplateInventoryListener> templateListeners = new CopyOnWriteArrayList<>();
-    private final @NotNull Map<TemplateInventoryListener, List<InventoryListener>> templateListenerMap = new HashMap<>();
-    private final @NotNull Instant openInstant;
-    private final @NotNull PagedInventoryControllerImpl pagedController;
+    public final @NotNull Player player;
+    public final @NotNull User user;
+    public final @NotNull InventoryItemHandler<ItemStack, Player> itemHandler;
+    public final @NotNull AtomicInteger animationsStarted = new AtomicInteger();
+    public final @NotNull List<@NotNull TemplateInventoryListener> templateListeners = new CopyOnWriteArrayList<>();
+    public final @NotNull Map<TemplateInventoryListener, List<InventoryListener>> templateListenerMap = new HashMap<>();
+    public final @NotNull Instant openInstant;
+    public final @NotNull PagedInventoryControllerImpl pagedController;
 
     public BukkitTemplateInventory(@NotNull Component title, @NotNull BukkitInventoryType type, @NotNull BukkitInventoryTemplate template, @NotNull Player player) {
         super(title, type);
@@ -64,12 +62,16 @@ public final class BukkitTemplateInventory extends BukkitInventory implements Te
             }
         }
         this.user = UserAPI.instance().user(player.getUniqueId());
+        for (var i = 0; i < this.templateListeners.size(); i++) {
+            try {
+                this.templateListeners.get(i).onInit(this, user);
+            } catch (Throwable t) {
+                LOGGER.error("Error during #onInit of {}", this.templateListeners.get(i).getClass().getName(), t);
+            }
+        }
         this.itemHandler = InventoryItemHandler.simple(user, player, this, template);
         this.openInstant = Instant.now();
         this.pagedController = new PagedInventoryControllerImpl(this.itemHandler);
-        for (var i = 0; i < this.templateListeners.size(); i++) {
-            this.templateListeners.get(i).onInit(this, user);
-        }
     }
 
     @Override
@@ -107,22 +109,12 @@ public final class BukkitTemplateInventory extends BukkitInventory implements Te
 
     @Override
     protected boolean handleCustomClickTop(InventoryClickEvent event) {
-        var clickType = event.getClick();
-        if (clickType == ClickType.LEFT) {
-            var slot = event.getRawSlot();
-            var itemInSlot = event.getView().getItem(slot);
-            var itemInCursor = event.getCursor();
-            if ((itemInSlot == null || itemInSlot.isEmpty()) && !itemInCursor.isEmpty()) {
-                // Move item in cursor to slot
-                // TODO
-            }
-        }
-        return false;
+        return InventoryVersionProviderImpl.provider.handleCustomClickTop(this, event);
     }
 
     @Override
     protected boolean handleCustomClickBottom(InventoryClickEvent event) {
-        return false;
+        return InventoryVersionProviderImpl.provider.handleCustomClickBottom(this, event);
     }
 
     @Override
@@ -138,18 +130,27 @@ public final class BukkitTemplateInventory extends BukkitInventory implements Te
     @Override
     public void scheduleSetItem(int slot, @NotNull Duration duration, @NotNull ItemStack item) {
         var millis = duration.toMillis();
+        animationsStarted.incrementAndGet();
         if (millis == 0) {
             setItem(slot, item);
+            if (animationsStarted.decrementAndGet() == 0) {
+                for (var i = 0; i < templateListeners.size(); i++) {
+                    try {
+                        templateListeners.get(i).onOpenAnimationFinished(this);
+                    } catch (Throwable t) {
+                        LOGGER.error("Error during #onOpenAnimationFinished of {}", templateListeners.get(i).getClass().getName(), t);
+                    }
+                }
+            }
         } else {
-            animationsStarted.incrementAndGet();
             Bukkit.getScheduler().runTaskLater(DarkCubeSystemBukkit.systemPlugin(), () -> {
                 setItem(slot, item);
                 if (animationsStarted.decrementAndGet() == 0) {
-                    for (var i = 0; i < listeners.size(); i++) {
+                    for (var i = 0; i < templateListeners.size(); i++) {
                         try {
-                            listeners.get(i).onOpenAnimationFinished(this);
+                            templateListeners.get(i).onOpenAnimationFinished(this);
                         } catch (Throwable t) {
-                            LOGGER.error("Error during #onOpenAnimationFinished of {}", listeners.get(i).getClass().getName(), t);
+                            LOGGER.error("Error during #onOpenAnimationFinished of {}", templateListeners.get(i).getClass().getName(), t);
                         }
                     }
                 }
@@ -173,7 +174,7 @@ public final class BukkitTemplateInventory extends BukkitInventory implements Te
 
     @Override
     public void setAir(int slot) {
-        setItem(slot, new ItemStack(Material.AIR));
+        scheduleSetItem(slot, Duration.ZERO, ItemStack.empty());
     }
 
     @Override

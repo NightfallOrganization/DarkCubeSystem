@@ -22,6 +22,7 @@ import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Unmodifiable;
 import eu.darkcube.system.server.data.component.DataComponent;
+import eu.darkcube.system.server.data.component.DataComponentMap;
 import eu.darkcube.system.server.item.attribute.Attribute;
 import eu.darkcube.system.server.item.attribute.AttributeModifier;
 import eu.darkcube.system.server.item.attribute.AttributeModifierOperation;
@@ -35,7 +36,7 @@ import eu.darkcube.system.server.item.storage.ItemPersistentDataStorage;
 public interface ItemBuilder extends DataComponent.Holder, ItemComponent {
     @Api
     static @NotNull ItemBuilder item() {
-        return item((Material) null);
+        return ItemProvider.itemProvider().item((Material) null);
     }
 
     /**
@@ -51,17 +52,17 @@ public interface ItemBuilder extends DataComponent.Holder, ItemComponent {
      * @return a new {@link ItemBuilder}
      */
     @Api
-    static @NotNull ItemBuilder item(Object object) {
+    static @NotNull ItemBuilder item(@NotNull Object object) {
         return ItemProvider.itemProvider().item(object);
     }
 
     @Api
-    static @NotNull ItemBuilder item(Material material) {
+    static @NotNull ItemBuilder item(@NotNull Material material) {
         return ItemProvider.itemProvider().item(material);
     }
 
     @Api
-    static @NotNull ItemBuilder item(JsonElement json) {
+    static @NotNull ItemBuilder item(@NotNull JsonElement json) {
         return ItemProvider.itemProvider().item(json);
     }
 
@@ -91,6 +92,10 @@ public interface ItemBuilder extends DataComponent.Holder, ItemComponent {
         return mapper.apply(this);
     }
 
+    @Api
+    @NotNull
+    DataComponentMap components();
+
     @Override
     @Api
     @Nullable
@@ -117,6 +122,9 @@ public interface ItemBuilder extends DataComponent.Holder, ItemComponent {
     @Api
     @NotNull
     <T> ItemBuilder mapNotNull(@NotNull DataComponent<T> component, @NotNull Function<T, T> mapper);
+
+    @Api
+    boolean isSimilar(@NotNull ItemBuilder item);
 
     @Api
     int amount();

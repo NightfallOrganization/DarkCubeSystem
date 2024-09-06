@@ -35,6 +35,7 @@ import eu.darkcube.system.server.item.ItemRarity;
 import eu.darkcube.system.server.item.attribute.Attribute;
 import eu.darkcube.system.server.item.attribute.AttributeModifier;
 import eu.darkcube.system.server.item.attribute.AttributeModifierOperation;
+import eu.darkcube.system.server.item.component.ItemComponent;
 import eu.darkcube.system.server.item.component.components.AttributeList;
 import eu.darkcube.system.server.item.component.components.EnchantmentList;
 import eu.darkcube.system.server.item.component.components.Unbreakable;
@@ -51,12 +52,12 @@ public abstract class AbstractItemBuilder implements ItemBuilder {
     protected static final Logger LOGGER = LoggerFactory.getLogger("ItemBuilder");
     protected static final Gson STORAGE_GSON = new Gson();
     protected final DataComponentMap components = DataComponentMap.create();
+    protected final BasicItemPersistentDataStorage storage = new BasicItemPersistentDataStorage(this);
     protected @NotNull Material material = Material.air();
     protected int amount = 1;
-    protected BasicItemPersistentDataStorage storage = new BasicItemPersistentDataStorage(this);
 
     protected void loadPersistentDataStorage() {
-        var customData = get(CUSTOM_DATA);
+        var customData = components.get(CUSTOM_DATA);
         if (customData == null) return;
         var tag = (StringBinaryTag) customData.get(KEY_DOCUMENT);
         if (tag == null) return;
@@ -65,7 +66,7 @@ public abstract class AbstractItemBuilder implements ItemBuilder {
 
     protected void savePersistentDataStorage() {
         var json = storage.storeToJsonObject();
-        var data = get(CUSTOM_DATA);
+        var data = components.get(CUSTOM_DATA);
         if (!json.isEmpty()) {
             if (data == null) data = CompoundBinaryTag.empty();
             data = data.putString(KEY_DOCUMENT, json.toString());
@@ -79,12 +80,21 @@ public abstract class AbstractItemBuilder implements ItemBuilder {
     }
 
     @Override
+    @NotNull
+    public DataComponentMap components() {
+        savePersistentDataStorage();
+        return components;
+    }
+
+    @Override
     public boolean has(@NotNull DataComponent<?> component) {
+        if (component == ItemComponent.CUSTOM_DATA) savePersistentDataStorage();
         return components.has(component);
     }
 
     @Override
     public <T> @Nullable T get(@NotNull DataComponent<T> component) {
+        if (component == ItemComponent.CUSTOM_DATA) savePersistentDataStorage();
         return components.get(component);
     }
 
@@ -96,6 +106,7 @@ public abstract class AbstractItemBuilder implements ItemBuilder {
 
     @Override
     public @NotNull <T> AbstractItemBuilder remove(@NotNull DataComponent<T> component) {
+        if (component == ItemComponent.CUSTOM_DATA) storage.clear();
         components.remove(component);
         return this;
     }
@@ -112,6 +123,12 @@ public abstract class AbstractItemBuilder implements ItemBuilder {
         var data = Objects.requireNonNull(get(component), "Item doesn't have the component " + component.key().asMinimalString());
         set(component, mapper.apply(data));
         return this;
+    }
+
+    @Override
+    public boolean isSimilar(@NotNull ItemBuilder item) {
+        if (item.material() != material) return false;
+        return components().equals(item.components());
     }
 
     @Override

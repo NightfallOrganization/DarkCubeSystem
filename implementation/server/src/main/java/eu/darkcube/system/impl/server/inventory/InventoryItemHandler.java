@@ -8,6 +8,7 @@
 package eu.darkcube.system.impl.server.inventory;
 
 import java.util.List;
+import java.util.Map;
 
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
@@ -38,6 +39,10 @@ public interface InventoryItemHandler<PlatformItem, PlatformPlayer> {
 
     void updateSlots(int priority, int... slots);
 
+    void startContainerTransaction(ContainerView containerView);
+
+    void finishContainerTransaction(ContainerView containerView);
+
     @NotNull
     ContainerView addContainer(int priority, @NotNull Container container, @NotNull ContainerViewConfiguration configuration);
 
@@ -46,5 +51,5 @@ public interface InventoryItemHandler<PlatformItem, PlatformPlayer> {
     List<ContainerView> containers();
 
     @Nullable
-    ContainerView findContainer(int slot);
+    Map.Entry<ContainerView, Integer> findContainer(int slot);
 }

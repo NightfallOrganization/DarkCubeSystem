@@ -4,6 +4,7 @@
  * You may not use or redistribute this software or any associated files without permission.
  * The above copyright notice shall be included in all copies of this software.
  */
+import eu.darkcube.build.UploadArtifacts
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata
 
 plugins {
@@ -58,6 +59,10 @@ tasks {
     assemble.configure {
         dependsOn(cloudnetJar)
         dependsOn(standaloneJar)
+    }
+    register<UploadArtifacts>("uploadCloudNetJar") {
+        dependsOn(cloudnetJar)
+        files.from(cloudnetJar.map { it.outputs.files.singleFile })
     }
 }
 

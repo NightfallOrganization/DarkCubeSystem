@@ -1,0 +1,35 @@
+<!--
+  ~ Copyright (c) 2024. [DarkCube]
+  ~ All rights reserved.
+  ~ You may not use or redistribute this software or any associated files without permission.
+  ~ The above copyright notice shall be included in all copies of this software.
+  -->
+
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="DarkCubeSystem uploadCloudNetJar" type="GradleRunConfiguration" factoryName="Gradle">
+    <ExternalSystemSettings>
+      <option name="executionName" />
+      <option name="externalProjectPath" value="$PROJECT_DIR$" />
+      <option name="externalSystemIdString" value="GRADLE" />
+      <option name="scriptParameters" value="" />
+      <option name="taskDescriptions">
+        <list />
+      </option>
+      <option name="taskNames">
+        <list>
+          <option value="uploadCloudNetJar" />
+          <option value="--user=development" />
+          <option value="--host=darkcube.eu" />
+          <option value="--remoteDir=/home/development/CloudNet/modules/darkcubesystem-cloudnet.jar" />
+          <option value="--fingerprint=AAAAC3NzaC1lZDI1NTE5AAAAIJBV0CboRsi4dZ6wssmeS4fmdOr89Ezh6PjHWW5bm0yV" />
+        </list>
+      </option>
+      <option name="vmOptions" />
+    </ExternalSystemSettings>
+    <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+    <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+    <DebugAllEnabled>false</DebugAllEnabled>
+    <RunAsTest>false</RunAsTest>
+    <method v="2" />
+  </configuration>
+</component>

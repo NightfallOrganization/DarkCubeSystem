@@ -14,7 +14,8 @@ import eu.darkcube.system.server.item.material.Material;
 import org.bukkit.inventory.ItemStack;
 
 public interface BukkitItemProvider extends ItemProvider {
-    @Override default @NotNull ItemBuilder item(@NotNull Object object) {
+    @Override
+    default @NotNull ItemBuilder item(@NotNull Object object) {
         return switch (object) {
             case Material material -> item(material);
             case org.bukkit.Material material -> item(Material.of(material));
@@ -24,5 +25,6 @@ public interface BukkitItemProvider extends ItemProvider {
         };
     }
 
-    @NotNull ItemBuilder item(@NotNull ItemStack item);
+    @NotNull
+    ItemBuilder item(@NotNull ItemStack item);
 }
