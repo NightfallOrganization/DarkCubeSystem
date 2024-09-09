@@ -51,7 +51,7 @@ public interface Container {
     /**
      * Checks if the user can swap the current item with another item.
      * <p>
-     * Defaults to <pre>{@link #canPutItem(User, int, int)} && {@link #canTakeItem(User, int, int)}</pre>
+     * Defaults to {@link #canPutItem(User, int, int)} && {@link #canTakeItem(User, int, int)}
      */
     default boolean canChangeItem(@NotNull User user, int slot, int takeAmount, int putAmount) {
         return canPutItem(user, slot, putAmount) && canTakeItem(user, slot, takeAmount);
