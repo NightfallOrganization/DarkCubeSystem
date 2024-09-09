@@ -7,11 +7,15 @@
 
 package eu.darkcube.system.test.command.test;
 
+import static eu.darkcube.system.bukkit.commandapi.Commands.literal;
+
+import java.util.Arrays;
 import java.util.Random;
 
 import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.server.inventory.DarkCubeInventoryTemplates;
+import eu.darkcube.system.server.inventory.DarkCubeItemTemplates;
 import eu.darkcube.system.server.inventory.Inventory;
 import eu.darkcube.system.server.inventory.InventoryTemplate;
 import eu.darkcube.system.server.inventory.container.Container;
@@ -23,6 +27,7 @@ import org.bukkit.Material;
 
 public class InventoryCommand extends BaseCommand {
     private static final InventoryTemplate template;
+    private static final InventoryTemplate template2;
 
     static {
         template = Inventory.createChestTemplate(Key.key("testplugin", "inventory_1"), 27);
@@ -59,6 +64,17 @@ public class InventoryCommand extends BaseCommand {
             view.slots(array);
         }));
         // template.setItems(0, DarkCubeItemTemplates.Gray.TEMPLATE_3);
+        template2 = Inventory.createChestTemplate(Key.key("testplugin", "inventory_2"), 5 * 9);
+        template2.setItems(-1, DarkCubeItemTemplates.Gray.TEMPLATE_5);
+        DarkCubeInventoryTemplates.Paged.configure5x9(template2);
+        template2.addContainerFactory(ContainerViewFactory.shared(5, container, (user, view) -> {
+            view.slotPriority(5);
+            view.slots(1, 2, 3, 10, 11, 12, 19, 20, 21);
+        }));
+        template2.addContainerFactory(ContainerViewFactory.shared(8, container, (user, view) -> {
+            view.slotPriority(10);
+            view.slots(Arrays.stream(new int[]{1, 2, 3, 10, 11, 12, 19, 20, 21}).map(i -> i + 13).toArray());
+        }));
     }
 
     public InventoryCommand() {
@@ -66,6 +82,10 @@ public class InventoryCommand extends BaseCommand {
             var player = ctx.getSource().asPlayer();
             template.open(player);
             return 0;
-        }));
+        }).then(literal("2").executes(ctx -> {
+            var player = ctx.getSource().asPlayer();
+            template2.open(player);
+            return 0;
+        })));
     }
 }

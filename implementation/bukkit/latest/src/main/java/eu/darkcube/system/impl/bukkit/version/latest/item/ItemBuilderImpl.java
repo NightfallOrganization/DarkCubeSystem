@@ -10,6 +10,7 @@ package eu.darkcube.system.impl.bukkit.version.latest.item;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -74,6 +75,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.LockCode;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.inventory.CraftItemType;
 import org.bukkit.inventory.ItemStack;
 
 public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBuilder {
@@ -187,14 +189,16 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
     @Override
     protected @NotNull ItemStack build0() {
         var bukkitMaterial = ((BukkitMaterialImpl) this.material).bukkitType();
-        var item = ItemStack.of(bukkitMaterial);
+        var itemType = (CraftItemType<?>) Objects.requireNonNull(bukkitMaterial.asItemType());
+        var nms = new net.minecraft.world.item.ItemStack(itemType.getHandle(), amount);
+        for (var component : itemType.getHandle().components()) {
+            nms.remove(component.type());
+        }
 
-        item.setAmount(amount);
-        var nms = CraftItemStack.unwrap(item);
         for (var i = 0; i < MAPPINGS.size(); i++) {
             MAPPINGS.get(i).apply(this, nms);
         }
-        return item;
+        return CraftItemStack.asCraftMirror(nms);
     }
 
     @Override

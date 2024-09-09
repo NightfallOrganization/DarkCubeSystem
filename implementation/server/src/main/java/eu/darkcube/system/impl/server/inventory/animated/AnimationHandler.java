@@ -7,15 +7,16 @@
 
 package eu.darkcube.system.impl.server.inventory.animated;
 
+import java.time.Duration;
+
 import eu.darkcube.system.impl.server.inventory.TemplateInventoryImpl;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
-import eu.darkcube.system.server.inventory.Inventory;
 
 public interface AnimationHandler<PlatformItem> {
 
     void setItem(@NotNull TemplateInventoryImpl<PlatformItem> inventory, int slot, @NotNull PlatformItem item);
 
     static <T> AnimationHandler<T> noAnimation() {
-        return Inventory::setItem;
+        return (inventory, slot, t) -> inventory.scheduleSetItem(slot, Duration.ZERO, t);
     }
 }
