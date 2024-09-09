@@ -294,6 +294,7 @@ public class InventoryActionHandler {
                 }
             }
         }
+        return Move.DENY;
     }
 
     private static boolean checkMismatch(ItemStack item, ItemBuilder containerItem, int slot) {

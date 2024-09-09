@@ -124,7 +124,7 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
             // region persistent data migration
             migration:
             {
-                var customData = get(CUSTOM_DATA);
+                var customData = components.get(CUSTOM_DATA);
                 var originalCustomData = customData;
                 if (customData == null) break migration;
                 var bukkitValues = (CompoundBinaryTag) customData.get("PublicBukkitValues");
@@ -157,8 +157,6 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
             }
             // endregion
         }
-
-        loadPersistentDataStorage();
 
         if (!ignoreCloneFailure) {
             var b = build();

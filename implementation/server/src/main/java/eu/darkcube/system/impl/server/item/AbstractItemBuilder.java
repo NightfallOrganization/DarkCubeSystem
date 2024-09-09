@@ -70,11 +70,11 @@ public abstract class AbstractItemBuilder implements ItemBuilder {
         if (!json.isEmpty()) {
             if (data == null) data = CompoundBinaryTag.empty();
             data = data.putString(KEY_DOCUMENT, json.toString());
-            set(CUSTOM_DATA, data);
+            components.set(CUSTOM_DATA, data);
         } else {
             if (data != null) {
                 data = data.remove(KEY_DOCUMENT);
-                set(CUSTOM_DATA, data);
+                components.set(CUSTOM_DATA, data);
             }
         }
     }
@@ -101,6 +101,7 @@ public abstract class AbstractItemBuilder implements ItemBuilder {
     @Override
     public @NotNull <T> AbstractItemBuilder set(@NotNull DataComponent<T> component, @NotNull T value) {
         components.set(component, value);
+        if (component == ItemComponent.CUSTOM_DATA) loadPersistentDataStorage();
         return this;
     }
 

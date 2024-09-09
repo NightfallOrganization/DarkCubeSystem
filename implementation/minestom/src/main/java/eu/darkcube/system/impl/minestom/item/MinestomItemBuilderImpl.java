@@ -136,8 +136,6 @@ public class MinestomItemBuilderImpl extends AbstractItemBuilder implements Mine
             }
         }
 
-        loadPersistentDataStorage();
-
         var b = build();
         if (!b.isSimilar(item)) {
             LOGGER.error("Failed to clone item correctly: ");

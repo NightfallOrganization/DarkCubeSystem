@@ -96,7 +96,7 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
 
             // region persistent data migration
             {
-                var customData = get(CUSTOM_DATA);
+                var customData = components.get(CUSTOM_DATA);
                 if (customData != null) {
                     var original = customData;
                     if (customData.keySet().contains("System:persistentDataStorage")) {
@@ -116,8 +116,6 @@ public class ItemBuilderImpl extends AbstractItemBuilder implements BukkitItemBu
             }
             // endregion
         }
-
-        loadPersistentDataStorage();
     }
 
     @Override
