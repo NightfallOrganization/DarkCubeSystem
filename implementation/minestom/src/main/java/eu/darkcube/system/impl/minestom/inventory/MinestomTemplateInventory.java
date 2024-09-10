@@ -165,6 +165,11 @@ public class MinestomTemplateInventory extends MinestomInventory implements Temp
     }
 
     @Override
+    public void returnItemToUser(ItemBuilder item) {
+        player.dropItem(item.build());
+    }
+
+    @Override
     public @NotNull PagedInventoryController pagedController() {
         return pagedController;
     }

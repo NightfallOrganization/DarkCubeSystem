@@ -7,12 +7,15 @@
 
 package eu.darkcube.system.impl.server.inventory.container;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.IntStream;
 
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
+import eu.darkcube.system.libs.org.jetbrains.annotations.Unmodifiable;
 import eu.darkcube.system.server.inventory.container.Container;
 import eu.darkcube.system.server.inventory.container.ContainerListener;
 import eu.darkcube.system.server.item.ItemBuilder;
@@ -22,9 +25,11 @@ import eu.darkcube.system.userapi.User;
 public class SimpleContainer implements Container {
     protected final @NotNull List<ContainerListener> listeners = new CopyOnWriteArrayList<>();
     protected final @Nullable ItemBuilder @NotNull [] items;
+    protected final List<Integer> itemSlots;
 
     public SimpleContainer(int size) {
         this.items = new ItemBuilder[size];
+        this.itemSlots = IntStream.range(0, size).boxed().toList();
     }
 
     @Override
@@ -74,7 +79,7 @@ public class SimpleContainer implements Container {
     }
 
     @Override
-    public boolean canPutItem(@NotNull User user, int slot, int putAmount) {
+    public boolean canPutItem(@NotNull User user, @NotNull ItemBuilder item, int slot, int putAmount) {
         return true;
     }
 
@@ -86,5 +91,24 @@ public class SimpleContainer implements Container {
     @Override
     public int size() {
         return items.length;
+    }
+
+    @Override
+    public @NotNull @Unmodifiable List<ItemBuilder> clearItemsOnClose(@NotNull User user) {
+        var list = new ArrayList<ItemBuilder>();
+        var items = this.items;
+        for (var i = 0; i < items.length; i++) {
+            var item = items[i];
+            if (item == null) continue;
+            var tryTakeAmount = item.amount();
+            var takeAmount = Math.min(tryTakeAmount, getMaxTakeAmount(user, i, tryTakeAmount));
+            if (takeAmount == 0) continue;
+            if (!canTakeItem(user, i, takeAmount)) continue;
+            var newItem = tryTakeAmount == takeAmount ? null : item.clone().amount(item.amount() - tryTakeAmount);
+            var takeItem = item.clone().amount(takeAmount);
+            setAt(i, newItem);
+            list.add(takeItem);
+        }
+        return List.copyOf(list);
     }
 }

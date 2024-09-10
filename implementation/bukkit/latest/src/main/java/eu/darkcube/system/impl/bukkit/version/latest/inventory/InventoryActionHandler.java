@@ -19,6 +19,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
 
+import eu.darkcube.system.annotations.Api;
 import eu.darkcube.system.impl.bukkit.inventory.BukkitTemplateInventory;
 import eu.darkcube.system.impl.server.inventory.InventoryItemHandler;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
@@ -72,6 +73,7 @@ public class InventoryActionHandler {
                 var itemInSlot = view.getItem(rawSlot);
                 if (itemInSlot == null) yield false;
                 var itemInCursor = view.getCursor();
+                if (isEmpty(itemInCursor)) yield false;
                 var container = containerView.container();
                 var tryTakeAmount = itemInSlot.getAmount();
                 var takeAmount = min(tryTakeAmount, container.getMaxTakeAmount(user, containerSlot, tryTakeAmount));
@@ -79,7 +81,8 @@ public class InventoryActionHandler {
                 var tryPutAmount = itemInCursor.getAmount();
                 var putAmount = min(tryPutAmount, container.getMaxPutAmount(user, containerSlot, tryPutAmount));
                 if (tryPutAmount != putAmount) yield false;
-                if (!container.canChangeItem(user, containerSlot, takeAmount, putAmount)) yield false;
+                var putItem = item(itemInCursor).amount(1);
+                if (!container.canChangeItem(user, containerSlot, takeAmount, putItem, putAmount)) yield false;
                 itemHandler.startContainerTransaction(containerView);
                 container.setAt(containerSlot, item(itemInCursor));
                 itemHandler.finishContainerTransaction(containerView);
@@ -92,11 +95,14 @@ public class InventoryActionHandler {
                 var containerSlot = entry.getValue();
                 var itemInSlot = view.getItem(rawSlot);
                 var itemToPlace = view.getCursor();
+                if (isEmpty(itemToPlace)) yield false;
+                if (!itemToPlace.isSimilar(itemInSlot)) yield false;
                 var container = containerView.container();
                 var tryPlaceAmount = placeAmount(view, rawSlot, itemToPlace, itemInSlot, action);
                 var placeAmount = min(tryPlaceAmount, container.getMaxPutAmount(user, containerSlot, tryPlaceAmount));
                 var isVanillaAction = tryPlaceAmount == placeAmount;
-                if (!container.canPutItem(user, containerSlot, placeAmount)) yield false;
+                var putItem = item(itemInSlot == null ? itemToPlace : itemInSlot).amount(1);
+                if (!container.canPutItem(user, putItem, containerSlot, placeAmount)) yield false;
                 var containerItem = container.getAt(containerSlot);
                 var newContainerItem = containerItem == null ? item(itemToPlace).amount(0) : containerItem;
                 newContainerItem.amount(newContainerItem.amount() + placeAmount);
@@ -144,7 +150,8 @@ public class InventoryActionHandler {
                 if (takeAmount == 0 && putAmount == 0) yield false;
                 if (takeAmount == 0) {
                     // Take item from hotbar and move to container
-                    if (!container.canPutItem(user, containerSlot, takeAmount)) {
+                    var putItem = itemBInHotbar.clone().amount(1);
+                    if (!container.canPutItem(user, putItem, containerSlot, takeAmount)) {
                         LOGGER.warn("Container didn't put item even though it promised, slot {}", containerSlot);
                         yield false;
                     }
@@ -155,7 +162,8 @@ public class InventoryActionHandler {
                         yield false;
                     }
                 } else {
-                    if (!container.canChangeItem(user, containerSlot, takeAmount, putAmount)) {
+                    var putItem = itemBInHotbar.clone().amount(1);
+                    if (!container.canChangeItem(user, containerSlot, takeAmount, putItem, putAmount)) {
                         LOGGER.warn("Container didn't change item even though it promised, slot {}", containerSlot);
                         yield false;
                     }
@@ -309,7 +317,7 @@ public class InventoryActionHandler {
 
         var topSize = inventoryView.getTopInventory().getSize();
         if (rawSlot < topSize) throw new IllegalStateException();
-        return moveItemsToTop(user, itemHandler, inventoryView, itemInSlot.clone(), 0, topSize, containerTargets);
+        return moveItemsToTop(user, itemHandler, inventoryView, itemInSlot.clone(), topSize, containerTargets);
     }
 
     private static Move calculateMoveChest(User user, ContainerView containerView, int containerSlot, InventoryView inventoryView, int rawSlot) {
@@ -329,14 +337,14 @@ public class InventoryActionHandler {
         }
     }
 
-    private static Move moveItemsToTop(User user, InventoryItemHandler<?, ?> itemHandler, InventoryView view, ItemStack stack, int startIndex, int endIndex, Map<Integer, ContainerView> containerTargets) {
+    private static Move moveItemsToTop(User user, InventoryItemHandler<?, ?> itemHandler, InventoryView view, ItemStack stack, int endSlot, Map<Integer, ContainerView> containerTargets) {
         var moves = new HashMap<Integer, Integer>();
         var increment = 1;
         var damageable = (Damageable) stack.getItemMeta();
         var stackAmount = stack.getAmount();
         var targetedContainers = new ArrayList<SpecifiedTarget>();
         var targetsByPriority = new TreeMap<Integer, TreeMap<Integer, ContainerTarget>>(Comparator.reverseOrder());
-        for (var slot = startIndex; slot < endIndex; slot += increment) {
+        for (var slot = 0; slot < endSlot; slot += increment) {
             var entry = itemHandler.findContainer(slot);
             if (entry == null) continue;
             var target = new ContainerTarget(entry.getKey(), entry.getValue());
@@ -575,95 +583,12 @@ public class InventoryActionHandler {
         return item;
     }
 
-    // private static boolean moveItemTo(InventoryView view, ItemStack itemStack, int startIndex, int endIndex, boolean fromLast) {
-    //     var k = fromLast ? endIndex - 1 : startIndex;
-    //     var itemMeta = itemStack.getItemMeta();
-    //     var damageable = (Damageable) itemMeta;
-    //     var flag1 = false;
-    //
-    //     if (isStackable(itemStack, damageable)) {
-    //         while (!itemStack.isEmpty()) {
-    //             if (fromLast) {
-    //                 if (k < startIndex) {
-    //                     break;
-    //                 }
-    //             } else if (k >= endIndex) {
-    //                 break;
-    //             }
-    //
-    //             var slotItem = view.getItem(k);
-    //             if (!isEmpty(slotItem) && itemStack.isSimilar(slotItem)) {
-    //                 var l = slotItem.getAmount() + itemStack.getAmount();
-    //                 var i1 = getMaxStackSize(view, k, slotItem);
-    //
-    //                 if (l <= i1) {
-    //                     itemStack.setAmount(0);
-    //                     slotItem.setAmount(l);
-    //                     flag1 = true;
-    //                 } else if (slotItem.getAmount() < i1) {
-    //                     itemStack.setAmount(itemStack.getAmount() - slotItem.getAmount());
-    //                     slotItem.setAmount(i1);
-    //                     flag1 = true;
-    //                 }
-    //             }
-    //
-    //             if (fromLast) {
-    //                 k--;
-    //             } else {
-    //                 k++;
-    //             }
-    //         }
-    //     }
-    //
-    //     if (!itemStack.isEmpty()) {
-    //         if (fromLast) {
-    //             k = endIndex - 1;
-    //         } else {
-    //             k = startIndex;
-    //         }
-    //
-    //         while (true) {
-    //             if (fromLast) {
-    //                 if (k < startIndex) {
-    //                     break;
-    //                 }
-    //             } else if (k >= endIndex) {
-    //                 break;
-    //             }
-    //
-    //             var slotItem = view.getItem(k);
-    //
-    //             if (isEmpty(slotItem) && canPlace(k, itemStack)) {
-    //                 var l = getMaxStackSize(view, k, itemStack);
-    //                 var splitResult = split(itemStack, l);
-    //                 view.setItem(k, splitResult);
-    //                 flag1 = true;
-    //                 break;
-    //             }
-    //
-    //             if (fromLast) {
-    //                 k--;
-    //             } else {
-    //                 k++;
-    //             }
-    //         }
-    //     }
-    //     return flag1;
-    // }
-
     /**
      * Checks if the item can be put into the slot. Some slots are restricted to specific items. TODO
      */
+    @Api
     private static boolean canPlace(int slot, ItemStack item) {
         return true;
-    }
-
-    private static ItemStack split(ItemStack item, int amount) {
-        var j = min(amount, item.getAmount());
-        var copy = item.clone();
-        copy.setAmount(j);
-        item.setAmount(item.getAmount() - j);
-        return copy;
     }
 
     private static int getMaxStackSize(InventoryView view, int rawSlot, ItemStack item) {

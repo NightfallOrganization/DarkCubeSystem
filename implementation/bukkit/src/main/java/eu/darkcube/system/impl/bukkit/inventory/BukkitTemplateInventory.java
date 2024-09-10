@@ -39,6 +39,7 @@ import eu.darkcube.system.userapi.UserAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 
 public final class BukkitTemplateInventory extends BukkitInventory implements TemplateInventoryImpl<ItemStack> {
@@ -175,6 +176,15 @@ public final class BukkitTemplateInventory extends BukkitInventory implements Te
     @Override
     public void setAir(int slot) {
         scheduleSetItem(slot, Duration.ZERO, ItemStack.empty());
+    }
+
+    @Override
+    public void returnItemToUser(ItemBuilder item) {
+        var stack = item.<ItemStack>build();
+        var failed = player.getInventory().addItem(stack);
+        for (var value : failed.values()) {
+            player.getOpenInventory().setItem(InventoryView.OUTSIDE, value);
+        }
     }
 
     @Override

@@ -295,6 +295,12 @@ public class SimpleItemHandler<PlatformItem, PlatformPlayer> implements Inventor
         this.paginationCalculator.onClose(user);
         open = false;
         for (var container : List.copyOf(this.containers)) {
+            if (container.dropItemsOnClose()) {
+                var items = container.container().clearItemsOnClose(user);
+                for (var item : items) {
+                    inventory.returnItemToUser(item);
+                }
+            }
             removeContainer(container);
         }
     }

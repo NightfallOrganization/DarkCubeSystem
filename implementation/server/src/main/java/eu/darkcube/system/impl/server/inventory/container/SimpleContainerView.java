@@ -18,6 +18,7 @@ public class SimpleContainerView implements ContainerView {
     private final int priority;
     private final int @NotNull [] slots;
     private int slotPriority = 0;
+    private boolean dropItemsOnClose = false;
 
     public SimpleContainerView(@NotNull TemplateInventory inventory, @NotNull Container container, int priority) {
         this.inventory = inventory;
@@ -52,6 +53,16 @@ public class SimpleContainerView implements ContainerView {
     @Override
     public void slotPriority(int slotPriority) {
         this.slotPriority = slotPriority;
+    }
+
+    @Override
+    public boolean dropItemsOnClose() {
+        return dropItemsOnClose;
+    }
+
+    @Override
+    public void dropItemsOnClose(boolean dropItemsOnClose) {
+        this.dropItemsOnClose = dropItemsOnClose;
     }
 
     @Override

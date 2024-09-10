@@ -32,6 +32,10 @@ public interface ContainerView {
 
     void slotPriority(int priority);
 
+    boolean dropItemsOnClose();
+
+    void dropItemsOnClose(boolean drop);
+
     void slots(int @NotNull ... slots);
 
     int @NotNull [] slots();

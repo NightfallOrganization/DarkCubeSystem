@@ -34,7 +34,7 @@ public interface Container {
     @Unmodifiable
     List<ContainerListener> listeners();
 
-    boolean canPutItem(@NotNull User user, int slot, int putAmount);
+    boolean canPutItem(@NotNull User user, @NotNull ItemBuilder putItem, int slot, int putAmount);
 
     boolean canTakeItem(@NotNull User user, int slot, int takeAmount);
 
@@ -51,13 +51,23 @@ public interface Container {
     /**
      * Checks if the user can swap the current item with another item.
      * <p>
-     * Defaults to {@link #canPutItem(User, int, int)} &amp;&amp; {@link #canTakeItem(User, int, int)}
+     * Defaults to {@link #canPutItem(User, ItemBuilder, int, int)} &amp;&amp; {@link #canTakeItem(User, int, int)}
      */
-    default boolean canChangeItem(@NotNull User user, int slot, int takeAmount, int putAmount) {
-        return canPutItem(user, slot, putAmount) && canTakeItem(user, slot, takeAmount);
+    default boolean canChangeItem(@NotNull User user, int slot, int takeAmount, @NotNull ItemBuilder putItem, int putAmount) {
+        return canPutItem(user, putItem, slot, putAmount) && canTakeItem(user, slot, takeAmount);
+    }
+
+    default boolean canDropOnClose(@NotNull User user, int slot, int dropAmount) {
+        return canTakeItem(user, slot, dropAmount);
     }
 
     int size();
+
+    @NotNull
+    @Unmodifiable
+    default List<ItemBuilder> clearItemsOnClose(@NotNull User user) {
+        return List.of();
+    }
 
     static @NotNull Container simple(int size) {
         return PROVIDER.simple(size);

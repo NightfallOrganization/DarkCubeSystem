@@ -28,6 +28,7 @@ import org.bukkit.Material;
 public class InventoryCommand extends BaseCommand {
     private static final InventoryTemplate template;
     private static final InventoryTemplate template2;
+    private static final InventoryTemplate template3;
 
     static {
         template = Inventory.createChestTemplate(Key.key("testplugin", "inventory_1"), 27);
@@ -75,6 +76,13 @@ public class InventoryCommand extends BaseCommand {
             view.slotPriority(10);
             view.slots(Arrays.stream(new int[]{1, 2, 3, 10, 11, 12, 19, 20, 21}).map(i -> i + 13).toArray());
         }));
+        template3 = Inventory.createChestTemplate(Key.key("testplugin", "inventory_3"), 5 * 9);
+        template3.setItems(-1, DarkCubeItemTemplates.Gray.TEMPLATE_5);
+        DarkCubeInventoryTemplates.Paged.configure5x9(template3);
+        template3.addContainerFactory(ContainerViewFactory.simple(1, 9, (user, view) -> {
+            view.dropItemsOnClose(true);
+            view.slots(Arrays.stream(new int[]{1, 2, 3, 10, 11, 12, 19, 20, 21}).map(i -> i + 13).toArray());
+        }));
     }
 
     public InventoryCommand() {
@@ -85,6 +93,10 @@ public class InventoryCommand extends BaseCommand {
         }).then(literal("2").executes(ctx -> {
             var player = ctx.getSource().asPlayer();
             template2.open(player);
+            return 0;
+        })).then(literal("3").executes(ctx -> {
+            var player = ctx.getSource().asPlayer();
+            template3.open(player);
             return 0;
         })));
     }

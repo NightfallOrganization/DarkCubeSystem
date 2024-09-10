@@ -22,6 +22,7 @@ import eu.darkcube.system.server.inventory.container.Container;
 import eu.darkcube.system.server.inventory.container.ContainerView;
 import eu.darkcube.system.server.inventory.container.ContainerViewConfiguration;
 import eu.darkcube.system.server.inventory.listener.TemplateInventoryListener;
+import eu.darkcube.system.server.item.ItemBuilder;
 import eu.darkcube.system.userapi.User;
 
 public interface TemplateInventoryImpl<PlatformItem> extends TemplateInventory {
@@ -58,4 +59,6 @@ public interface TemplateInventoryImpl<PlatformItem> extends TemplateInventory {
     default @NotNull ContainerView addContainer(int priority, @NotNull Container container) {
         return addContainer(priority, container, ContainerViewConfiguration.EMPTY);
     }
+
+    void returnItemToUser(ItemBuilder item);
 }
