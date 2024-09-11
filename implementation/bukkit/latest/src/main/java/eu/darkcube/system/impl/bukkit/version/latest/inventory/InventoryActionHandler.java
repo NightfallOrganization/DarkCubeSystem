@@ -96,7 +96,7 @@ public class InventoryActionHandler {
                 var itemInSlot = view.getItem(rawSlot);
                 var itemToPlace = view.getCursor();
                 if (isEmpty(itemToPlace)) yield false;
-                if (!itemToPlace.isSimilar(itemInSlot)) yield false;
+                if (itemInSlot != null && !itemToPlace.isSimilar(itemInSlot)) yield false;
                 var container = containerView.container();
                 var tryPlaceAmount = placeAmount(view, rawSlot, itemToPlace, itemInSlot, action);
                 var placeAmount = min(tryPlaceAmount, container.getMaxPutAmount(user, containerSlot, tryPlaceAmount));
@@ -620,7 +620,7 @@ public class InventoryActionHandler {
         return Math.clamp(damageable.getDamage(), 0, damageable.getMaxDamage());
     }
 
-    private static int placeAmount(InventoryView view, int rawSlot, ItemStack itemToPlace, ItemStack itemInSlot, InventoryAction action) {
+    private static int placeAmount(@NotNull InventoryView view, int rawSlot, @NotNull ItemStack itemToPlace, @Nullable ItemStack itemInSlot, @NotNull InventoryAction action) {
         var placeAmount = switch (action) {
             case PLACE_ALL, PLACE_SOME -> itemToPlace.getAmount();
             case PLACE_ONE -> 1;
@@ -631,7 +631,7 @@ public class InventoryActionHandler {
         return min(placeAmount, Math.max(0, maxStackSize - currentSize));
     }
 
-    private static int takeAmount(InventoryView view, int rawSlot, ItemStack itemToTake, InventoryAction action) {
+    private static int takeAmount(@NotNull InventoryView view, int rawSlot, @NotNull ItemStack itemToTake, @NotNull InventoryAction action) {
         var takeAmount = switch (action) {
             case PICKUP_ALL -> itemToTake.getAmount();
             case PICKUP_HALF -> (itemToTake.getAmount() + 1) / 2;

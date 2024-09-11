@@ -9,31 +9,31 @@ package eu.darkcube.system.impl.cloudnet.node.command;
 
 import java.util.Set;
 
-import cloud.commandframework.annotations.CommandMethod;
-import cloud.commandframework.annotations.CommandPermission;
 import dev.derklaro.aerogel.Inject;
 import dev.derklaro.aerogel.Singleton;
 import eu.cloudnetservice.driver.database.DatabaseProvider;
 import eu.cloudnetservice.driver.document.Document;
 import eu.cloudnetservice.node.command.annotation.CommandAlias;
 import eu.darkcube.system.libs.com.google.gson.reflect.TypeToken;
+import org.incendo.cloud.annotations.Command;
+import org.incendo.cloud.annotations.Permission;
 
 @Singleton
 @CommandAlias("darkcubesystem")
-@CommandPermission("darkcube.command.darkcubesystem")
+@Permission("darkcube.command.darkcubesystem")
 public class CommandDarkCubeSystem {
 
     @Inject
     private DatabaseProvider databaseProvider;
 
-    @CommandMethod("darkcubesystem migrateAll")
+    @Command("darkcubesystem migrateAll")
     public void migrateAll() {
         migrateUserApi();
         migrateLobbySystem();
         migrateWoolBattle();
     }
 
-    @CommandMethod("darkcubesystem migrateWoolBattle")
+    @Command("darkcubesystem migrateWoolBattle")
     public void migrateWoolBattle() {
         var database = databaseProvider.database("persistent_data");
         var documentImmutable = database.get("woolbattle:woolbattle");
@@ -47,7 +47,7 @@ public class CommandDarkCubeSystem {
         database.insert("woolbattle:woolbattle", document);
     }
 
-    @CommandMethod("darkcubesystem migrateLobbySystem")
+    @Command("darkcubesystem migrateLobbySystem")
     public void migrateLobbySystem() {
         var database = databaseProvider.database("persistent_data");
         var documentImmutable = database.get("LobbySystem:LobbySystem");
@@ -143,7 +143,7 @@ public class CommandDarkCubeSystem {
         database.insert("lobbysystem:lobbysystem", document);
     }
 
-    @CommandMethod("darkcubesystem migrateUserApi")
+    @Command("darkcubesystem migrateUserApi")
     public void migrateUserApi() {
         var database = databaseProvider.database("userapi_users");
         for (var entry : database.entries().entrySet()) {
