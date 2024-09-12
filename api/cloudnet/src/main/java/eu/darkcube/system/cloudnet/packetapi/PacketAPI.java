@@ -224,7 +224,7 @@ public class PacketAPI {
                         var packet = PacketSerializer.readPacket(content, classLoader);
                         entry.complete(packet);
                     } catch (NoClassDefFoundError error) {
-                        LOGGER.error("Unknown Packet response. Expected: " + entry.resultType.getName(), error);
+                        LOGGER.error("Unknown Packet response. Expected: {}", entry.resultType.getName(), error);
                         entry.task.completeExceptionally(error);
                     }
                     return;
