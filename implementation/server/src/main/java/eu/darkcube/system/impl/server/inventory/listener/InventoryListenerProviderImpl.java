@@ -15,6 +15,7 @@ import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.server.inventory.Inventory;
 import eu.darkcube.system.server.inventory.TemplateInventory;
 import eu.darkcube.system.server.inventory.container.ContainerView;
+import eu.darkcube.system.server.inventory.listener.ClickData;
 import eu.darkcube.system.server.inventory.listener.InventoryListener;
 import eu.darkcube.system.server.inventory.listener.InventoryListenerProvider;
 import eu.darkcube.system.server.inventory.listener.TemplateInventoryListener;
@@ -63,10 +64,10 @@ public class InventoryListenerProviderImpl implements InventoryListenerProvider 
             }
 
             @Override
-            public void onClick(@NotNull Inventory inventory, @NotNull User user, int slot, @NotNull ItemBuilder item) {
+            public void onClick(@NotNull Inventory inventory, @NotNull User user, int slot, @NotNull ItemBuilder item, @NotNull ClickData clickData) {
                 var listener = listeners.get(inventory);
                 if (listener == null) throw new NullPointerException("Failed to find stateful listener");
-                listener.onClick(inventory, user, slot, item);
+                listener.onClick(inventory, user, slot, item, clickData);
             }
         };
     }
@@ -126,10 +127,10 @@ public class InventoryListenerProviderImpl implements InventoryListenerProvider 
             }
 
             @Override
-            public void onClick(@NotNull TemplateInventory inventory, @NotNull User user, int slot, @NotNull ItemBuilder item) {
+            public void onClick(@NotNull TemplateInventory inventory, @NotNull User user, int slot, @NotNull ItemBuilder item, @NotNull ClickData clickData) {
                 var listener = listeners.get(inventory);
                 if (listener == null) throw new NullPointerException("Failed to find stateful listener");
-                listener.onClick(inventory, user, slot, item);
+                listener.onClick(inventory, user, slot, item, clickData);
             }
 
             @Override

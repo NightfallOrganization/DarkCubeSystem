@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2024. [DarkCube]
+ * All rights reserved.
+ * You may not use or redistribute this software or any associated files without permission.
+ * The above copyright notice shall be included in all copies of this software.
+ */
+
 package eu.darkcube.system.server.inventory.listener;
 
 import java.util.function.Supplier;
@@ -80,8 +87,24 @@ public interface TemplateInventoryListener {
      * @param user      the user that clicked
      * @param slot      the slot the item is in
      * @param item      the item
+     * @deprecated use {@link #onClick(TemplateInventory, User, int, ItemBuilder, ClickData)}
      */
+    @Deprecated
     default void onClick(@NotNull TemplateInventory inventory, @NotNull User user, int slot, @NotNull ItemBuilder item) {
+    }
+
+    /**
+     * Called when an item in an inventory is clicked.
+     * Inventories are unmodifiable, so click events are cancelled.
+     *
+     * @param inventory the affected inventory
+     * @param user      the user that clicked
+     * @param slot      the slot the item is in
+     * @param item      the item
+     * @param clickData data about the click
+     */
+    default void onClick(@NotNull TemplateInventory inventory, @NotNull User user, int slot, @NotNull ItemBuilder item, @NotNull ClickData clickData) {
+        onClick(inventory, user, slot, item);
     }
 
     default void onContainerAdd(@NotNull TemplateInventory inventory, @NotNull User user, @NotNull ContainerView containerView) {

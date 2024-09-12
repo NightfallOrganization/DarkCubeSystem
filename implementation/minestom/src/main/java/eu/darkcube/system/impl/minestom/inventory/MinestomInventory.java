@@ -13,11 +13,13 @@ import static net.minestom.server.event.EventListener.builder;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import eu.darkcube.system.impl.server.inventory.AbstractInventory;
+import eu.darkcube.system.impl.server.inventory.listener.ClickDataImpl;
 import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 import eu.darkcube.system.minestom.inventory.MinestomInventoryType;
 import eu.darkcube.system.minestom.util.adventure.MinestomAdventureSupport;
+import eu.darkcube.system.server.inventory.listener.ClickData;
 import eu.darkcube.system.server.item.ItemBuilder;
 import eu.darkcube.system.userapi.User;
 import eu.darkcube.system.userapi.UserAPI;
@@ -142,18 +144,26 @@ public class MinestomInventory extends AbstractInventory<ItemStack> {
         var user = UserAPI.instance().user(event.getPlayer().getUuid());
         var clickType = event.getClickType();
         LOGGER.debug("Clicked inventory with info: {}", clickType);
+        ClickData clickData;
         var slot = switch (clickType) {
-            case LEFT_CLICK, RIGHT_CLICK, START_DOUBLE_CLICK, START_SHIFT_CLICK, DROP, CHANGE_HELD -> event.getSlot();
-            // case Left left -> left.slot();
-            // case Right right -> right.slot();
-            // case LeftShift(var s) -> s;
-            // case RightShift(var s) -> s;
-            // case LeftDrag(var slots) -> slots.isEmpty() ? -1 : slots.getFirst();
-            // case RightDrag(var slots) -> slots.isEmpty() ? -1 : slots.getFirst();
-            // case Info.Double(var s) -> s;
-            // case HotbarSwap(var ignored, var s) -> s;
-            // case DropSlot(var s, var ignored) -> s;
+            case LEFT_CLICK -> {
+                clickData = new ClickDataImpl(false, true, false);
+                yield event.getSlot();
+            }
+            case START_SHIFT_CLICK -> {
+                clickData = new ClickDataImpl(false, true, true);
+                yield event.getSlot();
+            }
+            case RIGHT_CLICK -> {
+                clickData = new ClickDataImpl(true, false, false);
+                yield event.getSlot();
+            }
+            case START_DOUBLE_CLICK, DROP, CHANGE_HELD -> {
+                clickData = new ClickDataImpl(false, false, false);
+                yield event.getSlot();
+            }
             default -> {
+                clickData = new ClickDataImpl(false, false, false);
                 LOGGER.error("Click not supported by InventoryAPI: {}", clickType);
                 yield -1;
             }
@@ -168,7 +178,7 @@ public class MinestomInventory extends AbstractInventory<ItemStack> {
         handleClick(slot, itemStack, item);
         for (var i = 0; i < listeners.size(); i++) {
             try {
-                listeners.get(i).onClick(this, user, slot, item);
+                listeners.get(i).onClick(this, user, slot, item, clickData);
             } catch (Throwable t) {
                 LOGGER.error("Error during #onClick of {}", listeners.get(i).getClass().getName(), t);
             }

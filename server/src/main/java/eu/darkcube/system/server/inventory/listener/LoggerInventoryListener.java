@@ -43,7 +43,7 @@ public class LoggerInventoryListener implements InventoryListener {
     }
 
     @Override
-    public void onClick(@NotNull Inventory inventory, @NotNull User user, int slot, @NotNull ItemBuilder item) {
+    public void onClick(@NotNull Inventory inventory, @NotNull User user, int slot, @NotNull ItemBuilder item, @NotNull ClickData clickData) {
         logger.info("Click {} {}", slot, item);
     }
 }

@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import eu.darkcube.system.bukkit.inventory.BukkitInventoryType;
 import eu.darkcube.system.impl.bukkit.DarkCubeSystemBukkit;
 import eu.darkcube.system.impl.server.inventory.AbstractInventory;
+import eu.darkcube.system.impl.server.inventory.listener.ClickDataImpl;
 import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
@@ -206,10 +207,11 @@ public class BukkitInventory extends AbstractInventory<ItemStack> {
         if (slot == -1) return;
         var itemStack = event.getCurrentItem();
         var item = itemStack == null || itemStack.getType().isAir() ? ItemBuilder.item() : ItemBuilder.item(itemStack);
+        var clickData = new ClickDataImpl(clickType.isRightClick(), clickType.isLeftClick(), clickType.isShiftClick());
         handleClick(slot, itemStack == null ? new ItemStack(Material.AIR) : itemStack, item);
         for (var i = 0; i < listeners.size(); i++) {
             try {
-                listeners.get(i).onClick(this, user, slot, item);
+                listeners.get(i).onClick(this, user, slot, item, clickData);
             } catch (Throwable t) {
                 LOGGER.error("Error during #onClick of {}", listeners.get(i).getClass().getName(), t);
             }

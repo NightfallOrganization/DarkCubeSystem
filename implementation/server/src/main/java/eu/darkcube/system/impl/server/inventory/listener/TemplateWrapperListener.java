@@ -10,6 +10,7 @@ package eu.darkcube.system.impl.server.inventory.listener;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.server.inventory.Inventory;
 import eu.darkcube.system.server.inventory.TemplateInventory;
+import eu.darkcube.system.server.inventory.listener.ClickData;
 import eu.darkcube.system.server.inventory.listener.InventoryListener;
 import eu.darkcube.system.server.inventory.listener.TemplateInventoryListener;
 import eu.darkcube.system.server.item.ItemBuilder;
@@ -42,7 +43,7 @@ public record TemplateWrapperListener(TemplateInventoryListener listener) implem
     }
 
     @Override
-    public void onClick(@NotNull Inventory inventory, @NotNull User user, int slot, @NotNull ItemBuilder item) {
-        listener.onClick((TemplateInventory) inventory, user, slot, item);
+    public void onClick(@NotNull Inventory inventory, @NotNull User user, int slot, @NotNull ItemBuilder item, @NotNull ClickData clickData) {
+        listener.onClick((TemplateInventory) inventory, user, slot, item, clickData);
     }
 }

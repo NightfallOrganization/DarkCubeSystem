@@ -73,7 +73,23 @@ public interface InventoryListener {
      * @param user      the user that clicked
      * @param slot      the slot the item is in
      * @param item      the item
+     * @deprecated use {@link #onClick(Inventory, User, int, ItemBuilder, ClickData)}
      */
+    @Deprecated
     default void onClick(@NotNull Inventory inventory, @NotNull User user, int slot, @NotNull ItemBuilder item) {
+    }
+
+    /**
+     * Called when an item in an inventory is clicked.
+     * Inventories are unmodifiable, so click events are cancelled.
+     *
+     * @param inventory the affected inventory
+     * @param user      the user that clicked
+     * @param slot      the slot the item is in
+     * @param item      the item
+     * @param clickData data about the click
+     */
+    default void onClick(@NotNull Inventory inventory, @NotNull User user, int slot, @NotNull ItemBuilder item, @NotNull ClickData clickData) {
+        onClick(inventory, user, slot, item);
     }
 }
