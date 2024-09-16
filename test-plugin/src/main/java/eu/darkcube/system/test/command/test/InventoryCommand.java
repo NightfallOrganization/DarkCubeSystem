@@ -17,18 +17,26 @@ import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.server.inventory.DarkCubeInventoryTemplates;
 import eu.darkcube.system.server.inventory.DarkCubeItemTemplates;
 import eu.darkcube.system.server.inventory.Inventory;
+import eu.darkcube.system.server.inventory.InventoryCapabilities;
 import eu.darkcube.system.server.inventory.InventoryTemplate;
+import eu.darkcube.system.server.inventory.InventoryType;
+import eu.darkcube.system.server.inventory.TemplateInventory;
 import eu.darkcube.system.server.inventory.container.Container;
 import eu.darkcube.system.server.inventory.container.ContainerListener;
 import eu.darkcube.system.server.inventory.container.ContainerViewFactory;
+import eu.darkcube.system.server.inventory.listener.ClickData;
+import eu.darkcube.system.server.inventory.listener.TemplateInventoryListener;
 import eu.darkcube.system.server.item.ItemBuilder;
 import eu.darkcube.system.test.command.BaseCommand;
+import eu.darkcube.system.userapi.User;
 import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
 
 public class InventoryCommand extends BaseCommand {
     private static final InventoryTemplate template;
     private static final InventoryTemplate template2;
     private static final InventoryTemplate template3;
+    private static final InventoryTemplate template4;
 
     static {
         template = Inventory.createChestTemplate(Key.key("testplugin", "inventory_1"), 27);
@@ -83,6 +91,18 @@ public class InventoryCommand extends BaseCommand {
             view.dropItemsOnClose(true);
             view.slots(Arrays.stream(new int[]{1, 2, 3, 10, 11, 12, 19, 20, 21}).map(i -> i + 13).toArray());
         }));
+        template4 = Inventory.createTemplate(Key.key("testplugin", "inventory_4"), InventoryType.of(org.bukkit.event.inventory.InventoryType.ANVIL));
+        template4.setItem(1, 0, ItemStack.of(Material.STONE));
+        template4.setItem(1, 1, ItemStack.of(Material.GRASS_BLOCK));
+        template4.setItem(1, 2, ItemStack.of(Material.STICK));
+        template4.addListener(new TemplateInventoryListener() {
+            @Override
+            public void onClick(@NotNull TemplateInventory inventory, @NotNull User user, int slot, @NotNull ItemBuilder item, @NotNull ClickData clickData) {
+                var capabilities = ((InventoryCapabilities.Anvil) inventory.capabilities());
+                System.out.println(capabilities.renameText());
+                System.out.println(item.buildSafe());
+            }
+        });
     }
 
     public InventoryCommand() {
@@ -97,6 +117,10 @@ public class InventoryCommand extends BaseCommand {
         })).then(literal("3").executes(ctx -> {
             var player = ctx.getSource().asPlayer();
             template3.open(player);
+            return 0;
+        })).then(literal("4").executes(ctx -> {
+            var player = ctx.getSource().asPlayer();
+            template4.open(player);
             return 0;
         })));
     }

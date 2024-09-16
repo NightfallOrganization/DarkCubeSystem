@@ -76,6 +76,9 @@ public interface Inventory extends Audience {
     @NotNull
     InventoryType type();
 
+    @NotNull
+    InventoryCapabilities capabilities();
+
     void addListener(@NotNull InventoryListener listener);
 
     void removeListener(@NotNull InventoryListener listener);

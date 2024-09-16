@@ -8,6 +8,7 @@
 package eu.darkcube.system.impl.bukkit.inventory;
 
 import static eu.darkcube.system.impl.server.inventory.InventoryAPIUtils.LOGGER;
+import static eu.darkcube.system.kyori.wrapper.KyoriAdventureSupport.adventureSupport;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -39,6 +40,8 @@ import eu.darkcube.system.userapi.UserAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 
@@ -51,10 +54,12 @@ public final class BukkitTemplateInventory extends BukkitInventory implements Te
     public final @NotNull Map<TemplateInventoryListener, List<InventoryListener>> templateListenerMap = new HashMap<>();
     public final @NotNull Instant openInstant;
     public final @NotNull PagedInventoryControllerImpl pagedController;
+    public InventoryView inventoryView;
 
     public BukkitTemplateInventory(@NotNull Component title, @NotNull BukkitInventoryType type, @NotNull BukkitInventoryTemplate template, @NotNull Player player) {
         super(title, type);
         this.player = player;
+        this.openInstant = Instant.now();
         for (var listener : template.listeners()) {
             if (listener instanceof TemplateWrapperListener(var handle)) {
                 this.addListener(handle);
@@ -62,6 +67,7 @@ public final class BukkitTemplateInventory extends BukkitInventory implements Te
                 this.addListener(listener);
             }
         }
+        createInventory();
         this.user = UserAPI.instance().user(player.getUniqueId());
         for (var i = 0; i < this.templateListeners.size(); i++) {
             try {
@@ -71,8 +77,23 @@ public final class BukkitTemplateInventory extends BukkitInventory implements Te
             }
         }
         this.itemHandler = InventoryItemHandler.simple(user, player, this, template);
-        this.openInstant = Instant.now();
         this.pagedController = new PagedInventoryControllerImpl(this.itemHandler);
+    }
+
+    @Override
+    protected boolean delayInventoryCreation() {
+        return true;
+    }
+
+    @Override
+    protected @NotNull Inventory createInventory(BukkitInventoryType type, InventoryType bukkitType, Component title) {
+        if (bukkitType == InventoryType.ANVIL) {
+            var view = BukkitInventoryAPIUtils.utils().createAnvil(player, this, adventureSupport().convert(title));
+            this.inventoryView = view;
+
+            return view.getTopInventory();
+        }
+        return super.createInventory(type, bukkitType, title);
     }
 
     @Override
@@ -91,7 +112,11 @@ public final class BukkitTemplateInventory extends BukkitInventory implements Te
         }
         opened.add(user);
         onMainThread(() -> {
-            player.openInventory(inventory);
+            if (inventoryView == null) {
+                inventoryView = player.openInventory(inventory);
+            } else {
+                player.openInventory(inventoryView);
+            }
             for (var i = 0; i < listeners.size(); i++) {
                 try {
                     listeners.get(i).onOpen(this, user);

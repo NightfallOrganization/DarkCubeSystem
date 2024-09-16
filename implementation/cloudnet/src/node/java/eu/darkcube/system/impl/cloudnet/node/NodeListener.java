@@ -61,7 +61,7 @@ public class NodeListener {
             var path = Path.of(getClass().getProtectionDomain().getCodeSource().getLocation().toURI()).toAbsolutePath();
             var watchService = path.getFileSystem().newWatchService();
             var key = path.getParent().register(watchService, ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE);
-            Thread.startVirtualThread(() -> {
+            Thread.ofPlatform().daemon(true).name("DarkCubeSystem-UpdateCacheTask").start(() -> {
                 // noinspection InfiniteLoopStatement
                 while (true) {
                     if (!newContent.get()) {
@@ -96,7 +96,7 @@ public class NodeListener {
 
                 }
             });
-            Thread.startVirtualThread(() -> {
+            Thread.ofPlatform().daemon(true).name("DarkCubeSystem-UpdateFetcher").start(() -> {
                 while (true) {
                     try {
                         var k = watchService.take();

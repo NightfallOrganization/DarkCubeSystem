@@ -17,8 +17,10 @@ import eu.darkcube.system.impl.bukkit.DarkCubeSystemBukkit;
 import eu.darkcube.system.impl.server.inventory.AbstractInventory;
 import eu.darkcube.system.impl.server.inventory.listener.ClickDataImpl;
 import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
+import eu.darkcube.system.libs.org.jetbrains.annotations.ApiStatus;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
+import eu.darkcube.system.server.inventory.InventoryCapabilities;
 import eu.darkcube.system.server.item.ItemBuilder;
 import eu.darkcube.system.userapi.User;
 import eu.darkcube.system.userapi.UserAPI;
@@ -31,29 +33,45 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 
 public class BukkitInventory extends AbstractInventory<ItemStack> {
     protected final AtomicInteger openCount = new AtomicInteger(0);
-    protected final Inventory inventory;
-    private final Holder holder = new Holder();
+    protected Inventory inventory;
+    protected InventoryCapabilities capabilities;
     private final InventoryListener listener = new InventoryListener();
     private volatile boolean modified = false;
     private volatile BukkitTask updateScheduler;
 
     public BukkitInventory(@Nullable Component title, @NotNull BukkitInventoryType type) {
         super(title, type, type.size());
-        this.inventory = createInventory(type, title);
+        if (!delayInventoryCreation()) {
+            createInventory();
+        }
+    }
+
+    protected void createInventory() {
+        this.inventory = createInventory((BukkitInventoryType) type, title);
+        this.capabilities = BukkitInventoryAPIUtils.utils().createCapabilities(this);
+    }
+
+    protected boolean delayInventoryCreation() {
+        return false;
     }
 
     private Inventory createInventory(BukkitInventoryType type, Component title) {
         if (type instanceof ChestInventoryType(var size)) {
-            return Bukkit.createInventory(holder, size, adventureSupport().convert(title));
+            return Bukkit.createInventory(null, size, adventureSupport().convert(title));
         }
-        return Bukkit.createInventory(holder, type.bukkitType(), adventureSupport().convert(title));
+        var bukkitType = type.bukkitType();
+        return createInventory(type, bukkitType, title);
+    }
+
+    protected @NotNull Inventory createInventory(BukkitInventoryType type, InventoryType bukkitType, Component title) {
+        return Bukkit.createInventory(null, bukkitType, adventureSupport().convert(title));
     }
 
     @Override
@@ -75,6 +93,11 @@ public class BukkitInventory extends AbstractInventory<ItemStack> {
     @Override
     protected ItemStack getItem0(int slot) {
         return inventory.getItem(slot);
+    }
+
+    @Override
+    public @NotNull InventoryCapabilities capabilities() {
+        return capabilities;
     }
 
     @Override
@@ -148,8 +171,8 @@ public class BukkitInventory extends AbstractInventory<ItemStack> {
         var bukkitInventory = event.getClickedInventory();
         if (bukkitInventory == null) return;
 
-        if (bukkitInventory.getHolder() instanceof Holder holder) {
-            if (holder != this.holder) {
+        if (bukkitInventory == event.getView().getTopInventory()) {
+            if (bukkitInventory != this.inventory) {
                 // our inventory isn't open
                 return;
             }
@@ -242,8 +265,7 @@ public class BukkitInventory extends AbstractInventory<ItemStack> {
 
     private void handleClose(InventoryCloseEvent event) {
         var bukkitInventory = event.getInventory();
-        if (!(bukkitInventory.getHolder() instanceof Holder holder)) return;
-        if (holder != this.holder) return;
+        if (bukkitInventory != this.inventory) return;
         var user = UserAPI.instance().user(event.getPlayer().getUniqueId());
         for (var i = 0; i < listeners.size(); i++) {
             try {
@@ -257,11 +279,9 @@ public class BukkitInventory extends AbstractInventory<ItemStack> {
         }
     }
 
-    private class Holder implements InventoryHolder {
-        @Override
-        public @NotNull Inventory getInventory() {
-            return inventory;
-        }
+    @ApiStatus.Internal
+    public Inventory inventory() {
+        return inventory;
     }
 
     private class InventoryListener implements Listener {

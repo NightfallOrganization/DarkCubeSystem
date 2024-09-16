@@ -13,12 +13,14 @@ import static net.minestom.server.event.EventListener.builder;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import eu.darkcube.system.impl.server.inventory.AbstractInventory;
+import eu.darkcube.system.impl.server.inventory.InventoryCapabilitiesImpl;
 import eu.darkcube.system.impl.server.inventory.listener.ClickDataImpl;
 import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 import eu.darkcube.system.minestom.inventory.MinestomInventoryType;
 import eu.darkcube.system.minestom.util.adventure.MinestomAdventureSupport;
+import eu.darkcube.system.server.inventory.InventoryCapabilities;
 import eu.darkcube.system.server.inventory.listener.ClickData;
 import eu.darkcube.system.server.item.ItemBuilder;
 import eu.darkcube.system.userapi.User;
@@ -66,6 +68,11 @@ public class MinestomInventory extends AbstractInventory<ItemStack> {
     @Override
     protected final ItemStack getItem0(int slot) {
         return inventory.getItemStack(slot);
+    }
+
+    @Override
+    public @NotNull InventoryCapabilities capabilities() {
+        return InventoryCapabilitiesImpl.NO_CAPABILITIES;
     }
 
     @Override
