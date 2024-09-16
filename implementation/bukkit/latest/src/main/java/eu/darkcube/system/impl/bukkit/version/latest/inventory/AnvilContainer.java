@@ -14,6 +14,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AnvilMenu;
+import net.minecraft.world.item.ItemStack;
 
 public class AnvilContainer extends AnvilMenu {
     public AnvilContainer(int containerId, Inventory inventory, Component title) {
@@ -33,6 +34,10 @@ public class AnvilContainer extends AnvilMenu {
 
         this.sendAllDataToRemote();
         this.broadcastChanges();
+    }
+
+    @Override
+    protected void onTake(@NotNull Player player, @NotNull ItemStack stack) {
     }
 
     @Override

@@ -235,6 +235,8 @@ public class InventoryActionHandler {
         var type = inventoryView.getType();
         if (type == InventoryType.CHEST) {
             return calculateQuickMoveChest(user, itemHandler, containerView, containerSlot, inventoryView, rawSlot, containerTargets);
+        } else if (type == InventoryType.ANVIL) {
+            return MoveResult.DENY;
         }
         LOGGER.warn("Unsupported action quick-move items for inventory type {}", type);
         return MoveResult.DENY;

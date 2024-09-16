@@ -40,10 +40,8 @@ public class PaginationCalculator<PlatformItem, PlatformPlayer> {
     private final @NotNull SimpleItemHandler<PlatformItem, PlatformPlayer> itemHandler;
     private final boolean enabled;
     private final PagedTemplateSettingsImpl pagination;
-    private final PagedInventoryContentImpl content;
     private final int pageSize;
     private final BigInteger pageSizeBigInt;
-    private final boolean async;
     private final ButtonImpl prevButton;
     private final ButtonImpl nextButton;
     private final Cache<BigInteger, PageCache<PlatformItem>> pageCache;
@@ -53,10 +51,6 @@ public class PaginationCalculator<PlatformItem, PlatformPlayer> {
     private final int loadedPageIdx = UNLOAD_RANGE;
     private final @Nullable Updater updater;
     private int[] viewSortedSlots;
-    private BigInteger expectedSize;
-    private BigInteger pageFirstIndex;
-    private BigInteger pageLastIndex;
-    private boolean unknownSize;
     private @MonotonicNonNull User user;
     private int viewPageSize = 0;
     private boolean loadingPage = false;
@@ -69,11 +63,11 @@ public class PaginationCalculator<PlatformItem, PlatformPlayer> {
         this.pageSizeBigInt = BigInteger.valueOf(this.pageSize);
         this.pageCache = Caffeine.newBuilder().build();
         this.enabled = this.pageSize != 0;
-        this.content = this.pagination.content;
-        this.async = this.pagination.content.isAsync();
+        var content = this.pagination.content;
+        var async = this.pagination.content.isAsync();
         this.prevButton = new ButtonImpl(this.pagination.previousButton());
         this.nextButton = new ButtonImpl(this.pagination.nextButton());
-        this.provider = this.content.provider();
+        this.provider = content.provider();
         var configured = this.pagination.isConfigured();
         this.updater = configured ? new Updater() : null;
 
@@ -96,7 +90,7 @@ public class PaginationCalculator<PlatformItem, PlatformPlayer> {
                 }
 
                 final var finalSlot = slot;
-                var old = contentMap.put(PagedInventoryContent.PRIORITY, new ItemReferenceImpl((Function<User, Object>) user -> getItem(user, finalSlot), this.async));
+                var old = contentMap.put(PagedInventoryContent.PRIORITY, new ItemReferenceImpl((Function<User, Object>) user -> getItem(user, finalSlot), async));
                 if (old != null) {
                     LOGGER.error("Overrode old item at priority " + PagedInventoryContent.PRIORITY + ", slot {}. Do not use this priority when the inventory is paged, or undefined display behaviour follows.", slot);
                 }
@@ -259,10 +253,10 @@ public class PaginationCalculator<PlatformItem, PlatformPlayer> {
     }
 
     private void updateInformation(@NotNull BigInteger page) {
-        this.expectedSize = this.provider.size();
-        this.pageFirstIndex = page.multiply(this.pageSizeBigInt);
-        this.pageLastIndex = this.pageFirstIndex.add(BigInteger.valueOf(this.pageSize - 1));
-        this.unknownSize = this.expectedSize.equals(PagedInventoryContentProvider.SIZE_UNKNOWN);
+        var expectedSize = this.provider.size();
+        var pageFirstIndex = page.multiply(this.pageSizeBigInt);
+        var pageLastIndex = pageFirstIndex.add(BigInteger.valueOf(this.pageSize - 1));
+        var unknownSize = expectedSize.equals(PagedInventoryContentProvider.SIZE_UNKNOWN);
         var pagesToLoadItems = updateLoadedPages(page);
 
         var computationResult = provideItems(page, pagesToLoadItems);
@@ -279,10 +273,8 @@ public class PaginationCalculator<PlatformItem, PlatformPlayer> {
         }
         var nextPageCache = this.pageCache.getIfPresent(page.add(BigInteger.ONE));
 
-        // var hasNextPage = this.unknownSize ? references.length >= length : this.pageLastIndex.compareTo(this.expectedSize) < 0;
-        // var hasNextPage = pageCache.currentItemCount == this.pageSize;
-        var hasNextPage = this.unknownSize ? (nextPageCache != null && nextPageCache.currentItemCount > 0) : this.pageLastIndex.compareTo(this.expectedSize.subtract(BigInteger.ONE)) < 0;
-        var hasPrevPage = BigInteger.ZERO.compareTo(this.pageFirstIndex) < 0;
+        var hasNextPage = unknownSize ? (nextPageCache != null && nextPageCache.currentItemCount > 0) : pageLastIndex.compareTo(expectedSize.subtract(BigInteger.ONE)) < 0;
+        var hasPrevPage = BigInteger.ZERO.compareTo(pageFirstIndex) < 0;
 
         this.viewPageSize = pageCache.currentItemCount;
         this.prevButton.hasPage(hasPrevPage);
