@@ -8,12 +8,9 @@
 package eu.darkcube.system.cloudnet.packetapi;
 
 import java.lang.reflect.Type;
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeoutException;
 
 import eu.cloudnetservice.driver.channel.ChannelMessage;
 import eu.cloudnetservice.driver.event.EventListener;
@@ -25,14 +22,11 @@ import eu.cloudnetservice.driver.network.rpc.defaults.object.DefaultObjectMapper
 import eu.cloudnetservice.driver.network.rpc.object.ObjectMapper;
 import eu.cloudnetservice.driver.network.rpc.object.ObjectSerializer;
 import eu.cloudnetservice.driver.service.ServiceInfoSnapshot;
-import eu.darkcube.system.libs.com.github.benmanes.caffeine.cache.Cache;
-import eu.darkcube.system.libs.com.github.benmanes.caffeine.cache.Caffeine;
-import eu.darkcube.system.libs.com.github.benmanes.caffeine.cache.RemovalCause;
-import eu.darkcube.system.libs.com.github.benmanes.caffeine.cache.Scheduler;
 import eu.darkcube.system.libs.com.google.gson.Gson;
 import eu.darkcube.system.libs.com.google.gson.JsonElement;
 import eu.darkcube.system.libs.com.google.gson.JsonObject;
 import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
+import eu.darkcube.system.libs.net.kyori.adventure.key.KeyPattern;
 import eu.darkcube.system.libs.org.jetbrains.annotations.ApiStatus;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,9 +39,9 @@ public class PacketAPI {
     private static final Gson GSON = new Gson();
     private static final String CHANNEL = "darkcube:packetapi";
     private static final String MESSAGE_PACKET = "packet";
-    private static final byte TYPE_NO_RESPONSE = 0;
-    private static final byte TYPE_QUERY = 1;
-    private static final byte TYPE_QUERY_RESPONSE = 2;
+    // private static final byte TYPE_NO_RESPONSE = 0;
+    // private static final byte TYPE_QUERY = 1;
+    // private static final byte TYPE_QUERY_RESPONSE = 2;
     private static PacketAPI instance;
 
     static {
@@ -58,11 +52,11 @@ public class PacketAPI {
     private volatile ClassLoader classLoader = getClass().getClassLoader();
     private Listener listener;
     private EventManager eventManager = InjectionLayer.boot().instance(EventManager.class);
-    private Cache<UUID, QueryEntry<? extends Packet>> queries = Caffeine.newBuilder().expireAfterWrite(Duration.ofSeconds(10)).scheduler(Scheduler.systemScheduler()).removalListener((UUID unused, QueryEntry<? extends Packet> value, RemovalCause cause) -> {
-        if (cause.wasEvicted() && value != null) {
-            value.task().completeExceptionally(new TimeoutException());
-        }
-    }).build();
+    // private Cache<UUID, QueryEntry<? extends Packet>> queries = Caffeine.newBuilder().expireAfterWrite(Duration.ofSeconds(10)).scheduler(Scheduler.systemScheduler()).removalListener((UUID unused, QueryEntry<? extends Packet> value, RemovalCause cause) -> {
+    //     if (cause.wasEvicted() && value != null) {
+    //         value.task().completeExceptionally(new TimeoutException());
+    //     }
+    // }).build();
 
     private PacketAPI() {
         this.listener = new Listener();
@@ -87,8 +81,11 @@ public class PacketAPI {
     public static void init() {
         DefaultObjectMapper.DEFAULT_MAPPER.registerBinding(Key.class, new ObjectSerializer<Key>() {
             @Override
+            @SuppressWarnings("PatternValidation")
             public @NotNull Key read(@NotNull DataBuf source, @NotNull Type type, @NotNull ObjectMapper caller) {
-                return Key.key(source.readString(), source.readString());
+                @KeyPattern.Namespace var namespace = source.readString();
+                @KeyPattern.Value var value = source.readString();
+                return Key.key(namespace, value);
             }
 
             @Override
@@ -132,45 +129,80 @@ public class PacketAPI {
         eventManager.unregisterListener(listener);
     }
 
-    public void sendPacket(Packet packet) {
-        preparePacket(packet, null, TYPE_NO_RESPONSE).targetAll().build().send();
+    public void sendPacket(@NotNull Packet packet) {
+        preparePacket(packet).targetAll().build().send();
     }
 
-    public void sendPacket(Packet packet, ServiceInfoSnapshot snapshot) {
-        preparePacket(packet, null, TYPE_NO_RESPONSE).targetService(snapshot.name()).build().send();
+    public void sendPacket(@NotNull Packet packet, @NotNull ServiceInfoSnapshot snapshot) {
+        preparePacket(packet).targetService(snapshot.name()).build().send();
     }
 
-    public void sendPacketAsync(Packet packet) {
-        preparePacket(packet, null, TYPE_NO_RESPONSE).targetAll().build().send();
+    public void sendPacketAsync(@NotNull Packet packet) {
+        preparePacket(packet).targetAll().build().send();
     }
 
-    public void sendPacketAsync(Packet packet, ServiceInfoSnapshot snapshot) {
-        preparePacket(packet, null, TYPE_NO_RESPONSE).targetService(snapshot.name()).build().send();
+    public void sendPacketAsync(@NotNull Packet packet, @NotNull ServiceInfoSnapshot snapshot) {
+        preparePacket(packet).targetService(snapshot.name()).build().send();
     }
 
-    public void sendPacketSync(Packet packet) {
-        preparePacket(packet, null, TYPE_NO_RESPONSE).targetAll().build().sendQuery();
+    public void sendPacketSync(@NotNull Packet packet) {
+        preparePacket(packet).targetAll().sendSync(true).build().send();
     }
 
-    public <T extends Packet> T sendPacketQuery(Packet packet, Class<T> responsePacketType) {
+    public <T extends Packet> T sendPacketQuery(@NotNull Packet packet, @NotNull Class<T> responsePacketType) {
         return sendPacketQueryAsync(packet, responsePacketType).join();
     }
 
-    public <T extends Packet> CompletableFuture<T> sendPacketQueryAsync(Packet packet, Class<T> responsePacketType) {
-        var uuid = UUID.randomUUID();
-        var task = new CompletableFuture<T>();
-        var entry = new QueryEntry<T>(task, responsePacketType);
-        queries.put(uuid, entry);
-        preparePacket(packet, uuid, TYPE_QUERY).targetAll().build().send();
-        return task;
+    public <T extends Packet> CompletableFuture<T> sendPacketQueryAsync(@NotNull Packet packet, @NotNull Class<T> responsePacketType) {
+        System.out.println("Send query " + packet);
+        var channelMessage = ChannelMessage.builder().targetAll().channel("te").message("me").buffer(DataBuf.empty().writeString("s1")).build().sendQueryAsync();
+        // (channelMessage, throwable) -> {
+        System.out.println("Rec: " + channelMessage);
+        channelMessage.whenComplete((channelMessages, throwable) -> {
+            LOGGER.info(String.valueOf(channelMessages));
+            LOGGER.error(String.valueOf(throwable));
+        });
+        // var msg = channelMessage.content().readString();
+        // System.out.println("Msg: " + msg);
+        // return null;
+        // });
+        return preparePacket(packet).targetAll().build().sendSingleQueryAsync().handle((message, throwable) -> {
+            System.out.println("Receive " + message);
+            System.out.println("Throw " + throwable);
+            // if (throwable != null) throw PacketAPI.propagate(throwable);
+            try {
+                var content = message.content();
+                var p = responsePacketType.cast(PacketSerializer.readPacket(content, classLoader));
+                System.out.println("Packet: " + p);
+                return p;
+            } catch (NoClassDefFoundError error) {
+                LOGGER.error("Unknown packet response. Expected {}", responsePacketType.getName(), error);
+                throw error;
+            } catch (ClassCastException cast) {
+                LOGGER.error("Wrong packet response.", cast);
+                throw cast;
+            }
+        }).thenApply(p -> {
+            System.out.println("Received " + p);
+            return p;
+        });
     }
 
-    private ChannelMessage.Builder preparePacket(Packet packet, UUID uuid, byte type) {
+    private static <T extends Throwable> void throwException(Throwable throwable) throws T {
+        throw (T) throwable;
+    }
+
+    private static RuntimeException propagate(Throwable throwable) {
+        PacketAPI.throwException(throwable);
+        return new RuntimeException();
+    }
+
+    private ChannelMessage.Builder preparePacket(@NotNull Packet packet) {
         var buf = DataBuf.empty();
-        buf.writeByte(type);
-        if (type == TYPE_QUERY || type == TYPE_QUERY_RESPONSE) {
-            buf.writeUniqueId(uuid);
-        }
+        // buf.writeByte(type);
+        // if (type == TYPE_QUERY || type == TYPE_QUERY_RESPONSE) {
+        //     buf.writeUniqueId(uuid);
+        // }
         PacketSerializer.serialize(packet, buf);
         return prepareMessage(buf);
     }
@@ -195,13 +227,17 @@ public class PacketAPI {
         handlers.values().remove(handler);
     }
 
-    private record QueryEntry<T>(CompletableFuture<T> task, Class<T> resultType) {
-        void complete(Packet packet) {
-            task.complete(resultType.cast(packet));
-        }
-    }
-
     public class Listener {
+
+        @EventListener
+        public void h2(ChannelMessageReceiveEvent e) {
+            if (e.channel().equals("te") && e.message().equals("me")) {
+                System.out.println("Receive & send response: " + e.content().readString());
+                System.out.println(e.sender());
+                Thread.dumpStack();
+                e.binaryResponse(DataBuf.empty().writeString("test"));
+            }
+        }
 
         @EventListener
         public void handle(ChannelMessageReceiveEvent e) {
@@ -211,34 +247,24 @@ public class PacketAPI {
             var content = e.content();
             try {
                 content.startTransaction();
-                var messageType = content.readByte();
 
-                var query = messageType == TYPE_QUERY;
-                var queryResponse = messageType == TYPE_QUERY_RESPONSE;
-                var queryId = query || queryResponse ? content.readUniqueId() : null;
-
-                if (queryResponse) {
-                    var entry = queries.getIfPresent(queryId);
-                    if (entry == null) return;
-                    try {
-                        var packet = PacketSerializer.readPacket(content, classLoader);
-                        entry.complete(packet);
-                    } catch (NoClassDefFoundError error) {
-                        LOGGER.error("Unknown Packet response. Expected: {}", entry.resultType.getName(), error);
-                        entry.task.completeExceptionally(error);
-                    }
-                    return;
-                }
-
+                var query = e.query();
+                System.out.println("Receive " + query);
                 var packetClass = PacketSerializer.getClass(content, classLoader);
+                if (packetClass == null) return;
                 if (handlers.containsKey(packetClass)) {
                     try {
                         var received = content.readObject(packetClass);
                         var handler = (PacketHandler<Packet>) handlers.get(packetClass);
                         var response = handler.handle(received);
 
-                        if (query) {
-                            preparePacket(response, queryId, TYPE_QUERY_RESPONSE).target(e.sender().toTarget()).build().send();
+                        if (query && response != null) {
+                            System.out.println("Send response to " + packetClass.getName());
+                            System.out.println("Response: " + response);
+                            var buf = DataBuf.empty();
+                            PacketSerializer.serialize(response, buf);
+                            e.binaryResponse(buf);
+                            // e.queryResponse(preparePacket(response).targetAll().build());
                         } else if (response != null) {
                             LOGGER.warn("Gave a response packet to a Packet that isn't a query packet! Handler: {}", handler.getClass().getName());
                         }

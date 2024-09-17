@@ -11,6 +11,7 @@ import eu.darkcube.system.cloudnet.packetapi.Packet;
 import eu.darkcube.system.cloudnet.packetapi.PacketHandler;
 import eu.darkcube.system.impl.cloudnet.node.userapi.NodeUserAPI;
 import eu.darkcube.system.impl.cloudnet.userapi.packets.PacketWNPlayerLogin;
+import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 
 public class HandlerPlayerLogin implements PacketHandler<PacketWNPlayerLogin> {
     private final NodeUserAPI userAPI;
@@ -20,7 +21,7 @@ public class HandlerPlayerLogin implements PacketHandler<PacketWNPlayerLogin> {
     }
 
     @Override
-    public Packet handle(PacketWNPlayerLogin packet) {
+    public @NotNull Packet handle(@NotNull PacketWNPlayerLogin packet) {
         userAPI.updateName(packet.playerId(), packet.playerName());
         return new PacketWNPlayerLogin.Response();
     }

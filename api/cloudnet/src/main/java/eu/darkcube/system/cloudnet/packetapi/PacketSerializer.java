@@ -8,14 +8,13 @@
 package eu.darkcube.system.cloudnet.packetapi;
 
 import eu.cloudnetservice.driver.network.buffer.DataBuf;
+import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
+import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 
 public class PacketSerializer {
 
-    public static DataBuf.Mutable serialize(Packet packet, DataBuf.Mutable buf) {
-        if (packet != null) {
-            return buf.writeString(packet.getClass().getName()).writeObject(packet);
-        }
-        return buf;
+    public static void serialize(@NotNull Packet packet, DataBuf.Mutable buf) {
+        buf.writeString(packet.getClass().getName()).writeObject(packet);
     }
 
     public static Packet readPacket(DataBuf buf, ClassLoader classLoader) {
@@ -25,11 +24,11 @@ public class PacketSerializer {
         return buf.readObject(cls);
     }
 
-    public static Class<? extends Packet> getClass(DataBuf buf, ClassLoader classLoader) {
+    public static @Nullable Class<? extends Packet> getClass(DataBuf buf, ClassLoader classLoader) {
         return getClass(buf.readString(), classLoader);
     }
 
-    public static Class<? extends Packet> getClass(String name, ClassLoader classLoader) {
+    public static @Nullable Class<? extends Packet> getClass(String name, ClassLoader classLoader) {
         try {
             return (Class<? extends Packet>) Class.forName(name, true, classLoader);
         } catch (ClassNotFoundException ignored) {

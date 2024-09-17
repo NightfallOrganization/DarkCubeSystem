@@ -10,10 +10,11 @@ package eu.darkcube.system.impl.cloudnet.node.util.data;
 import eu.darkcube.system.cloudnet.packetapi.Packet;
 import eu.darkcube.system.cloudnet.packetapi.PacketHandler;
 import eu.darkcube.system.cloudnet.util.data.packets.PacketWrapperNodeDataSet;
+import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 
 class HandlerSet implements PacketHandler<PacketWrapperNodeDataSet> {
     @Override
-    public Packet handle(PacketWrapperNodeDataSet packet) {
+    public @NotNull Packet handle(@NotNull PacketWrapperNodeDataSet packet) {
         SynchronizedPersistentDataStorages.storage(packet.table(), packet.storageKey()).set(packet.entryKey(), packet.data());
         return new PacketWrapperNodeDataSet.Result(true);
     }

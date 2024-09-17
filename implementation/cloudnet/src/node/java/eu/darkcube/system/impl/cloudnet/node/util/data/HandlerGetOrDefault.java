@@ -10,10 +10,11 @@ package eu.darkcube.system.impl.cloudnet.node.util.data;
 import eu.darkcube.system.cloudnet.packetapi.Packet;
 import eu.darkcube.system.cloudnet.packetapi.PacketHandler;
 import eu.darkcube.system.cloudnet.util.data.packets.PacketWrapperNodeGetOrDefault;
+import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 
 public class HandlerGetOrDefault implements PacketHandler<PacketWrapperNodeGetOrDefault> {
     @Override
-    public Packet handle(PacketWrapperNodeGetOrDefault packet) throws Throwable {
+    public @NotNull Packet handle(@NotNull PacketWrapperNodeGetOrDefault packet) throws Throwable {
         var data = SynchronizedPersistentDataStorages.storage(packet.table(), packet.storageKey()).get(packet.entryKey(), packet::defaultValue);
         return new PacketWrapperNodeGetOrDefault.Result(data);
     }

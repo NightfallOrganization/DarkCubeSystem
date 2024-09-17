@@ -7,8 +7,12 @@
 
 package eu.darkcube.system.cloudnet.packetapi;
 
+import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
+import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
+
 public interface PacketHandler<T extends Packet> {
 
-    Packet handle(T packet) throws Throwable;
+    @Nullable
+    Packet handle(@NotNull T packet) throws Throwable;
 
 }

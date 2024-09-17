@@ -54,6 +54,7 @@ public class DarkCubeSystemModule extends DriverModule {
     void start(Injector injector) {
         try {
             injector.instance(ModuleLoader.class);
+            ModuleStopper.class.getName(); // Init ModuleStopper
         } catch (Throwable t) {
             LOGGER.error("Failed to start module", t);
         }
