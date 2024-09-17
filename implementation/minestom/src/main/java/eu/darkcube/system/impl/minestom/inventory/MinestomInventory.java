@@ -184,6 +184,7 @@ public class MinestomInventory extends AbstractInventory<ItemStack> {
         var item = itemStack.isAir() ? ItemBuilder.item() : ItemBuilder.item(itemStack);
         handleClick(slot, itemStack, item);
         for (var i = 0; i < listeners.size(); i++) {
+            if (openCount.intValue() == 0) break; // If a listener closes the inventory, don't call other listeners
             try {
                 listeners.get(i).onClick(this, user, slot, item, clickData);
             } catch (Throwable t) {

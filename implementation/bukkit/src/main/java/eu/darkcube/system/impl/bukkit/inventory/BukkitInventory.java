@@ -233,6 +233,7 @@ public class BukkitInventory extends AbstractInventory<ItemStack> {
         var clickData = new ClickDataImpl(clickType.isRightClick(), clickType.isLeftClick(), clickType.isShiftClick());
         handleClick(slot, itemStack == null ? new ItemStack(Material.AIR) : itemStack, item);
         for (var i = 0; i < listeners.size(); i++) {
+            if (openCount.intValue() == 0) break; // If a listener closes the inventory, don't call other listeners
             try {
                 listeners.get(i).onClick(this, user, slot, item, clickData);
             } catch (Throwable t) {
