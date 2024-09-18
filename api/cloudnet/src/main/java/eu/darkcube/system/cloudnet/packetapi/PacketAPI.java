@@ -154,27 +154,11 @@ public class PacketAPI {
     }
 
     public <T extends Packet> CompletableFuture<T> sendPacketQueryAsync(@NotNull Packet packet, @NotNull Class<T> responsePacketType) {
-        System.out.println("Send query " + packet);
-        var channelMessage = ChannelMessage.builder().targetAll().channel("te").message("me").buffer(DataBuf.empty().writeString("s1")).build().sendQueryAsync();
-        // (channelMessage, throwable) -> {
-        System.out.println("Rec: " + channelMessage);
-        channelMessage.whenComplete((channelMessages, throwable) -> {
-            LOGGER.info(String.valueOf(channelMessages));
-            LOGGER.error(String.valueOf(throwable));
-        });
-        // var msg = channelMessage.content().readString();
-        // System.out.println("Msg: " + msg);
-        // return null;
-        // });
         return preparePacket(packet).targetAll().build().sendSingleQueryAsync().handle((message, throwable) -> {
-            System.out.println("Receive " + message);
-            System.out.println("Throw " + throwable);
-            // if (throwable != null) throw PacketAPI.propagate(throwable);
+            if (throwable != null) throw PacketAPI.propagate(throwable);
             try {
                 var content = message.content();
-                var p = responsePacketType.cast(PacketSerializer.readPacket(content, classLoader));
-                System.out.println("Packet: " + p);
-                return p;
+                return responsePacketType.cast(PacketSerializer.readPacket(content, classLoader));
             } catch (NoClassDefFoundError error) {
                 LOGGER.error("Unknown packet response. Expected {}", responsePacketType.getName(), error);
                 throw error;
@@ -182,9 +166,6 @@ public class PacketAPI {
                 LOGGER.error("Wrong packet response.", cast);
                 throw cast;
             }
-        }).thenApply(p -> {
-            System.out.println("Received " + p);
-            return p;
         });
     }
 
@@ -199,10 +180,6 @@ public class PacketAPI {
 
     private ChannelMessage.Builder preparePacket(@NotNull Packet packet) {
         var buf = DataBuf.empty();
-        // buf.writeByte(type);
-        // if (type == TYPE_QUERY || type == TYPE_QUERY_RESPONSE) {
-        //     buf.writeUniqueId(uuid);
-        // }
         PacketSerializer.serialize(packet, buf);
         return prepareMessage(buf);
     }
@@ -230,16 +207,6 @@ public class PacketAPI {
     public class Listener {
 
         @EventListener
-        public void h2(ChannelMessageReceiveEvent e) {
-            if (e.channel().equals("te") && e.message().equals("me")) {
-                System.out.println("Receive & send response: " + e.content().readString());
-                System.out.println(e.sender());
-                Thread.dumpStack();
-                e.binaryResponse(DataBuf.empty().writeString("test"));
-            }
-        }
-
-        @EventListener
         public void handle(ChannelMessageReceiveEvent e) {
             if (!e.channel().equals(CHANNEL)) return;
             if (!e.message().equals(MESSAGE_PACKET)) return;
@@ -249,7 +216,6 @@ public class PacketAPI {
                 content.startTransaction();
 
                 var query = e.query();
-                System.out.println("Receive " + query);
                 var packetClass = PacketSerializer.getClass(content, classLoader);
                 if (packetClass == null) return;
                 if (handlers.containsKey(packetClass)) {
@@ -259,12 +225,9 @@ public class PacketAPI {
                         var response = handler.handle(received);
 
                         if (query && response != null) {
-                            System.out.println("Send response to " + packetClass.getName());
-                            System.out.println("Response: " + response);
                             var buf = DataBuf.empty();
                             PacketSerializer.serialize(response, buf);
                             e.binaryResponse(buf);
-                            // e.queryResponse(preparePacket(response).targetAll().build());
                         } else if (response != null) {
                             LOGGER.warn("Gave a response packet to a Packet that isn't a query packet! Handler: {}", handler.getClass().getName());
                         }
