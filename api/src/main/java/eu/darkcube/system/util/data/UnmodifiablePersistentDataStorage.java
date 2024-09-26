@@ -56,11 +56,6 @@ public class UnmodifiablePersistentDataStorage implements PersistentDataStorage 
     }
 
     @Override
-    public <T> void setIfNotPresent(@NotNull Key key, @NotNull PersistentDataType<T> type, @NotNull T data) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public boolean has(@NotNull Key key) {
         return storage.has(key);
     }
@@ -91,7 +86,12 @@ public class UnmodifiablePersistentDataStorage implements PersistentDataStorage 
     }
 
     @Override
-    public @NotNull <T> CompletableFuture<Void> setIfNotPresentAsync(@NotNull Key key, @NotNull PersistentDataType<T> type, @NotNull T data) {
+    public @NotNull <T> CompletableFuture<Void> setIfAbsentAsync(@NotNull Key key, @NotNull PersistentDataType<T> type, @NotNull T data) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> void setIfAbsent(@NotNull Key key, @NotNull PersistentDataType<T> type, @NotNull T data) {
         throw new UnsupportedOperationException();
     }
 

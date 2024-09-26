@@ -36,7 +36,9 @@ public interface PersistentDataStorage {
     @Api
     @NotNull
     @UnmodifiableView
-    PersistentDataStorage unmodifiable();
+    default PersistentDataStorage unmodifiable() {
+        return new UnmodifiablePersistentDataStorage(this);
+    }
 
     @Api
     @NotNull
@@ -171,23 +173,49 @@ public interface PersistentDataStorage {
      * @param type the type
      * @param data the data
      * @param <T>  the data type
+     * @deprecated use
      */
     @Api
-    <T> void setIfNotPresent(@NotNull Key key, @NotNull PersistentDataType<T> type, @NotNull T data);
-
-    @Api
-    @NotNull
-    default <T> CompletableFuture<Void> setIfNotPresentAsync(@NotNull Key key, @NotNull PersistentDataType<T> type, @NotNull T data) {
-        return runAsync(() -> setIfNotPresent(key, type, data), virtualService());
+    @Deprecated(forRemoval = true)
+    default <T> void setIfNotPresent(@NotNull Key key, @NotNull PersistentDataType<T> type, @NotNull T data) {
+        setIfAbsent(key, type, data);
     }
 
     @Api
+    @NotNull
+    @Deprecated(forRemoval = true)
+    default <T> CompletableFuture<Void> setIfNotPresentAsync(@NotNull Key key, @NotNull PersistentDataType<T> type, @NotNull T data) {
+        return setIfAbsentAsync(key, type, data);
+    }
+
+    <T> void setIfAbsent(@NotNull Key key, @NotNull PersistentDataType<T> type, @NotNull T data);
+
+    @Api
+    @NotNull
+    default <T> CompletableFuture<Void> setIfAbsentAsync(@NotNull Key key, @NotNull PersistentDataType<T> type, @NotNull T data) {
+        return runAsync(() -> setIfAbsent(key, type, data), virtualService());
+    }
+
+    @Api
+    default <T> void setIfAbsent(@NotNull DataKey<T> key, @NotNull T data) {
+        setIfAbsent(key.key(), key.dataType(), data);
+    }
+
+    @Api
+    @NotNull
+    default <T> CompletableFuture<Void> setIfAbsentAsync(@NotNull DataKey<T> key, @NotNull T data) {
+        return setIfAbsentAsync(key.key(), key.dataType(), data);
+    }
+
+    @Api
+    @Deprecated(forRemoval = true)
     default <T> void setIfNotPresent(@NotNull DataKey<T> key, @NotNull T data) {
         setIfNotPresent(key.key(), key.dataType(), data);
     }
 
     @Api
     @NotNull
+    @Deprecated(forRemoval = true)
     default <T> CompletableFuture<Void> setIfNotPresentAsync(@NotNull DataKey<T> key, @NotNull T data) {
         return setIfNotPresentAsync(key.key(), key.dataType(), data);
     }

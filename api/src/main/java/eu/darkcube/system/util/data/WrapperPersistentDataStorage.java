@@ -103,14 +103,14 @@ public class WrapperPersistentDataStorage implements PersistentDataStorage {
 
     @Override
     @Api
-    public <T> void setIfNotPresent(@NotNull Key key, @NotNull PersistentDataType<T> type, @NotNull T data) {
-        handle.setIfNotPresent(key, type, data);
+    public <T> void setIfAbsent(@NotNull Key key, @NotNull PersistentDataType<T> type, @NotNull T data) {
+        handle.setIfAbsent(key, type, data);
     }
 
     @Override
     @Api
-    public @NotNull <T> CompletableFuture<Void> setIfNotPresentAsync(@NotNull Key key, @NotNull PersistentDataType<T> type, @NotNull T data) {
-        return handle.setIfNotPresentAsync(key, type, data);
+    public @NotNull <T> CompletableFuture<Void> setIfAbsentAsync(@NotNull Key key, @NotNull PersistentDataType<T> type, @NotNull T data) {
+        return handle.setIfAbsentAsync(key, type, data);
     }
 
     @Override

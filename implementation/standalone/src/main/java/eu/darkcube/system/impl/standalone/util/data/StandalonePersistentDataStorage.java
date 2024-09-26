@@ -225,7 +225,7 @@ public class StandalonePersistentDataStorage implements PersistentDataStorage {
     }
 
     @Override
-    public <T> void setIfNotPresent(@NotNull Key key, @NotNull PersistentDataType<T> type, @NotNull T data) {
+    public <T> void setIfAbsent(@NotNull Key key, @NotNull PersistentDataType<T> type, @NotNull T data) {
         try {
             lock.readLock().lock();
             if (this.data.has(key.toString())) {

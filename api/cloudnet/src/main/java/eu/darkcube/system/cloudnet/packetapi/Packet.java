@@ -12,6 +12,7 @@ import java.util.concurrent.CompletableFuture;
 import eu.cloudnetservice.driver.service.ServiceInfoSnapshot;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 
+@Deprecated(forRemoval = true)
 public abstract class Packet {
 
     public final void send() {

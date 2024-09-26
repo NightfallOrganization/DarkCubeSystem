@@ -7,7 +7,6 @@
 
 package eu.darkcube.system.cloudnet.packetapi;
 
-import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -18,21 +17,14 @@ import eu.cloudnetservice.driver.event.EventManager;
 import eu.cloudnetservice.driver.event.events.channel.ChannelMessageReceiveEvent;
 import eu.cloudnetservice.driver.inject.InjectionLayer;
 import eu.cloudnetservice.driver.network.buffer.DataBuf;
-import eu.cloudnetservice.driver.network.rpc.defaults.object.DefaultObjectMapper;
-import eu.cloudnetservice.driver.network.rpc.object.ObjectMapper;
-import eu.cloudnetservice.driver.network.rpc.object.ObjectSerializer;
 import eu.cloudnetservice.driver.service.ServiceInfoSnapshot;
 import eu.darkcube.system.libs.com.google.gson.Gson;
-import eu.darkcube.system.libs.com.google.gson.JsonElement;
-import eu.darkcube.system.libs.com.google.gson.JsonObject;
-import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
-import eu.darkcube.system.libs.net.kyori.adventure.key.KeyPattern;
 import eu.darkcube.system.libs.org.jetbrains.annotations.ApiStatus;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Deprecated(forRemoval = true)
 public class PacketAPI {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("PacketAPI");
@@ -79,42 +71,6 @@ public class PacketAPI {
 
     @ApiStatus.Internal
     public static void init() {
-        DefaultObjectMapper.DEFAULT_MAPPER.registerBinding(Key.class, new ObjectSerializer<Key>() {
-            @Override
-            @SuppressWarnings("PatternValidation")
-            public @NotNull Key read(@NotNull DataBuf source, @NotNull Type type, @NotNull ObjectMapper caller) {
-                @KeyPattern.Namespace var namespace = source.readString();
-                @KeyPattern.Value var value = source.readString();
-                return Key.key(namespace, value);
-            }
-
-            @Override
-            public void write(@NotNull DataBuf.Mutable dataBuf, @NotNull Key object, @NotNull Type type, @NotNull ObjectMapper caller) {
-                dataBuf.writeString(object.namespace()).writeString(object.value());
-            }
-        }, false);
-        DefaultObjectMapper.DEFAULT_MAPPER.registerBinding(JsonElement.class, new ObjectSerializer<JsonElement>() {
-            @Override
-            public @Nullable JsonElement read(@NotNull DataBuf source, @NotNull Type type, @NotNull ObjectMapper caller) {
-                return GSON.fromJson(source.readString(), JsonElement.class);
-            }
-
-            @Override
-            public void write(@NotNull DataBuf.Mutable dataBuf, @NotNull JsonElement object, @NotNull Type type, @NotNull ObjectMapper caller) {
-                dataBuf.writeString(GSON.toJson(object));
-            }
-        }, false);
-        DefaultObjectMapper.DEFAULT_MAPPER.registerBinding(JsonObject.class, new ObjectSerializer<JsonObject>() {
-            @Override
-            public @Nullable JsonObject read(@NotNull DataBuf source, @NotNull Type type, @NotNull ObjectMapper caller) {
-                return GSON.fromJson(source.readString(), JsonObject.class);
-            }
-
-            @Override
-            public void write(@NotNull DataBuf.Mutable dataBuf, @NotNull JsonObject object, @NotNull Type type, @NotNull ObjectMapper caller) {
-                dataBuf.writeString(GSON.toJson(object));
-            }
-        }, false);
     }
 
     public void classLoader(ClassLoader classLoader) {
@@ -220,24 +176,32 @@ public class PacketAPI {
                 content.startTransaction();
 
                 var query = e.query();
-                var packetClass = PacketSerializer.getClass(content, classLoader);
-                if (packetClass == null) return;
+                var className = content.readString();
+                var packetClass = PacketSerializer.getClass(className, classLoader);
+                if (packetClass == null) {
+                    LOGGER.debug("Unknown packet: {}", className);
+                    return;
+                }
                 if (handlers.containsKey(packetClass)) {
                     try {
                         var received = content.readObject(packetClass);
                         var handler = (PacketHandler<Packet>) handlers.get(packetClass);
                         var response = handler.handle(received);
 
-                        if (query && response != null) {
-                            var buf = DataBuf.empty();
-                            PacketSerializer.serialize(response, buf);
-                            e.binaryResponse(buf);
-                        } else if (response != null) {
-                            LOGGER.warn("Gave a response packet to a Packet that isn't a query packet! Handler: {}", handler.getClass().getName());
+                        if (query) {
+                            if (response != null) {
+                                var buf = DataBuf.empty();
+                                PacketSerializer.serialize(response, buf);
+                                e.binaryResponse(buf);
+                            } else {
+                                LOGGER.warn("Gave a response packet to a Packet that isn't a query packet! Handler: {}", handler.getClass().getName());
+                            }
                         }
                     } catch (Throwable ex) {
                         LOGGER.error("Packet Handling Failed", ex);
                     }
+                } else {
+                    LOGGER.debug("No handler for {}", packetClass.getName());
                 }
             } finally {
                 if (content.accessible()) content.redoTransaction();

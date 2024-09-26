@@ -18,7 +18,7 @@ import eu.darkcube.system.impl.cloudnet.wrapper.transformer.via.ViaInventoryFixT
 import eu.darkcube.system.impl.cloudnet.wrapper.transformer.via.ViaProtocolDetectorServiceTransformer;
 import eu.darkcube.system.impl.cloudnet.wrapper.transformer.via.ViaVelocityVersionProviderTransformer;
 import eu.darkcube.system.impl.cloudnet.wrapper.userapi.WrapperUserAPI;
-import eu.darkcube.system.impl.cloudnet.wrapper.util.data.WrapperPluginPersistentDataProvider;
+import eu.darkcube.system.impl.cloudnet.wrapper.util.data.WrapperCustomPersistentDataProvider;
 import eu.darkcube.system.provider.InternalProvider;
 import eu.darkcube.system.userapi.UserAPI;
 import eu.darkcube.system.util.data.CustomPersistentDataProvider;
@@ -40,7 +40,7 @@ public class DarkCubeSystemWrapper implements ModuleImplementation {
     @Override
     public void start() {
         InternalProvider.instance().register(UserAPI.class, this.userAPI);
-        InternalProvider.instance().register(CustomPersistentDataProvider.class, new WrapperPluginPersistentDataProvider());
+        InternalProvider.instance().register(CustomPersistentDataProvider.class, new WrapperCustomPersistentDataProvider());
         PacketAPI.init();
     }
 

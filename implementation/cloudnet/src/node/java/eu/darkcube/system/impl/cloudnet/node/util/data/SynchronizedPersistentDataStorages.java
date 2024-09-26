@@ -18,25 +18,27 @@ import java.util.function.Function;
 import eu.cloudnetservice.driver.database.Database;
 import eu.cloudnetservice.driver.database.DatabaseProvider;
 import eu.cloudnetservice.driver.document.Document;
+import eu.cloudnetservice.driver.event.EventListener;
+import eu.cloudnetservice.driver.event.EventManager;
+import eu.cloudnetservice.driver.event.events.channel.ChannelMessageReceiveEvent;
 import eu.cloudnetservice.driver.inject.InjectionLayer;
-import eu.darkcube.system.cloudnet.packetapi.PacketAPI;
-import eu.darkcube.system.cloudnet.util.data.packets.PacketWrapperNodeDataClearSet;
-import eu.darkcube.system.cloudnet.util.data.packets.PacketWrapperNodeDataRemove;
-import eu.darkcube.system.cloudnet.util.data.packets.PacketWrapperNodeDataSet;
-import eu.darkcube.system.cloudnet.util.data.packets.PacketWrapperNodeGetOrDefault;
-import eu.darkcube.system.cloudnet.util.data.packets.PacketWrapperNodeQuery;
+import eu.cloudnetservice.driver.network.buffer.DataBuf;
 import eu.darkcube.system.impl.cloudnet.node.userapi.UserNodePersistentDataStorage;
 import eu.darkcube.system.impl.common.data.LegacyDataTransformer;
 import eu.darkcube.system.libs.com.google.gson.Gson;
+import eu.darkcube.system.libs.com.google.gson.JsonElement;
 import eu.darkcube.system.libs.com.google.gson.JsonObject;
 import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 import eu.darkcube.system.util.data.PersistentDataStorage;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SynchronizedPersistentDataStorages {
     private static final DatabaseProvider databaseProvider;
+    private static final Logger LOGGER = LoggerFactory.getLogger(SynchronizedPersistentDataStorages.class);
     private static final Gson gson = new Gson();
     private static final ReferenceQueue<SynchronizedPersistentDataStorage> queue = new ReferenceQueue<>();
     private static final Lock lock = new ReentrantLock(false);
@@ -46,13 +48,105 @@ public class SynchronizedPersistentDataStorages {
 
     static {
         databaseProvider = InjectionLayer.boot().instance(DatabaseProvider.class);
-        PacketAPI.instance().registerHandler(PacketWrapperNodeDataSet.class, new HandlerSet());
-        PacketAPI.instance().registerHandler(PacketWrapperNodeDataClearSet.class, new HandlerClearSet());
-        PacketAPI.instance().registerHandler(PacketWrapperNodeDataRemove.class, new HandlerRemove());
-        PacketAPI.instance().registerHandler(PacketWrapperNodeQuery.class, new HandlerQuery());
-        PacketAPI.instance().registerHandler(PacketWrapperNodeGetOrDefault.class, new HandlerGetOrDefault());
         new CollectorHandler().start();
-        STORAGE_IMPLEMENTATIONS.put("userapi_users", storage -> new UserNodePersistentDataStorage.Implementation());
+        STORAGE_IMPLEMENTATIONS.put("userapi_users", _ -> new UserNodePersistentDataStorage.Implementation());
+
+        InjectionLayer.boot().instance(EventManager.class).registerListener(new Listener());
+    }
+
+    public static class Listener {
+        @EventListener
+        public void handle(ChannelMessageReceiveEvent event) {
+            if (!event.channel().equals(SynchronizedPersistentDataStorage.CHANNEL)) return;
+            var content = event.content();
+            switch (event.message()) {
+                case "query" -> query(event, content);
+                case "set" -> set(event, content);
+                case "remove-plain" -> removePlain(event, content);
+                case "remove-with-response" -> removeWithResponse(event, content);
+                case "get-or-default" -> getOrDefault(event, content);
+                case "clear" -> clear(event, content);
+                case "load-from-json" -> loadFromJson(event, content);
+                default -> LOGGER.error("Unknown message {}", event.message());
+            }
+        }
+
+        private void query(ChannelMessageReceiveEvent event, DataBuf buf) {
+            var table = buf.readString();
+            var key = buf.readObject(Key.class);
+
+            var storage = storage(table, key);
+            var entry = storage.query();
+            event.binaryResponse(DataBuf.empty().writeInt(entry.state()).writeObject(entry.data()));
+        }
+
+        private void set(ChannelMessageReceiveEvent event, DataBuf buf) {
+            var table = buf.readString();
+            var key = buf.readObject(Key.class);
+            var entryKey = buf.readObject(Key.class);
+            var dataJson = buf.readObject(JsonElement.class);
+
+            var storage = storage(table, key);
+            var state = storage.set(entryKey, dataJson);
+            event.binaryResponse(DataBuf.empty().writeInt(state));
+        }
+
+        private void removePlain(ChannelMessageReceiveEvent event, DataBuf buf) {
+            var table = buf.readString();
+            var key = buf.readObject(Key.class);
+            var entryKey = buf.readObject(Key.class);
+
+            var storage = storage(table, key);
+            var state = storage.removePlain(entryKey);
+            event.binaryResponse(DataBuf.empty().writeInt(state));
+        }
+
+        private void removeWithResponse(ChannelMessageReceiveEvent event, DataBuf buf) {
+            var table = buf.readString();
+            var key = buf.readObject(Key.class);
+            var entryKey = buf.readObject(Key.class);
+
+            var storage = storage(table, key);
+            var response = storage.removeComplex(entryKey);
+            var state = response.state();
+            var json = response.json();
+            var r = DataBuf.empty().writeInt(state);
+            r.writeBoolean(json != null);
+            if (json != null) r.writeObject(json);
+            event.binaryResponse(r);
+        }
+
+        private void getOrDefault(ChannelMessageReceiveEvent event, DataBuf buf) {
+            var table = buf.readString();
+            var key = buf.readObject(Key.class);
+            var entryKey = buf.readObject(Key.class);
+            var defaultValueJson = buf.readObject(JsonElement.class);
+
+            var storage = storage(table, key);
+            var response = storage.getOrDefault(entryKey, defaultValueJson);
+            var state = response.state();
+            var json = response.json();
+            event.binaryResponse(DataBuf.empty().writeInt(state).writeObject(json));
+        }
+
+        private void clear(ChannelMessageReceiveEvent event, DataBuf buf) {
+            var table = buf.readString();
+            var key = buf.readObject(Key.class);
+
+            var storage = storage(table, key);
+            var state = storage.clear0();
+            event.binaryResponse(DataBuf.empty().writeInt(state));
+        }
+
+        private void loadFromJson(ChannelMessageReceiveEvent event, DataBuf buf) {
+            var table = buf.readString();
+            var key = buf.readObject(Key.class);
+            var json = buf.readObject(JsonObject.class);
+
+            var storage = storage(table, key);
+            var state = storage.loadFromJson(json);
+            event.binaryResponse(DataBuf.empty().writeInt(state));
+        }
     }
 
     public static String toString(Key key) {
@@ -60,7 +154,7 @@ public class SynchronizedPersistentDataStorages {
         return key.asString();
     }
 
-    public static SynchronizedPersistentDataStorage storage(String table, Key key) {
+    private static SynchronizedPersistentDataStorage storage(String table, Key key) {
         return storageTuple(table, key)._1();
     }
 
@@ -76,8 +170,8 @@ public class SynchronizedPersistentDataStorages {
                 storage = tuple._1();
                 var wrapped = tuple._2();
                 ref = new StorageReference(storage, queue, table, key);
-                storages.computeIfAbsent(table, s -> new HashMap<>()).put(key, ref);
-                wrappers.computeIfAbsent(table, s -> new HashMap<>()).put(key, wrapped);
+                storages.computeIfAbsent(table, _ -> new HashMap<>()).put(key, ref);
+                wrappers.computeIfAbsent(table, _ -> new HashMap<>()).put(key, wrapped);
                 return tuple;
             }
             var wrapper = wrappers.get(table).get(key);
@@ -91,7 +185,7 @@ public class SynchronizedPersistentDataStorages {
         var database = databaseProvider.database(table);
         var toString = toString(key);
         var document = loadDocument(database, toString);
-        var storage = new SynchronizedPersistentDataStorage(database, key);
+        var storage = new SynchronizedPersistentDataStorage(database, table, key);
         var tuple = setupStorage(storage, table, document);
         var persistentData = tuple._2();
         if (persistentData != null) {
@@ -117,7 +211,7 @@ public class SynchronizedPersistentDataStorages {
     private static StorageImplementation<?> findImplementation(String table, SynchronizedPersistentDataStorage storage) {
         var storageImplementation = STORAGE_IMPLEMENTATIONS.get(table);
         if (storageImplementation == null) {
-            storageImplementation = data -> new StorageImplementation.Default();
+            storageImplementation = _ -> new StorageImplementation.Default();
         }
         return storageImplementation.apply(storage);
     }
@@ -139,10 +233,9 @@ public class SynchronizedPersistentDataStorages {
         }
     }
 
-    private static class CollectorHandler extends Thread {
-        public CollectorHandler() {
-            setName("SynchronizedStorageGCHandler");
-            setDaemon(true);
+    private static class CollectorHandler implements Runnable {
+        public void start() {
+            Thread.ofVirtual().name("SynchronizedStorageGCHandler").start(this);
         }
 
         @Override

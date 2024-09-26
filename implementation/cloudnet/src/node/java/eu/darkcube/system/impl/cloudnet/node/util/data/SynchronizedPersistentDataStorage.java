@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -20,29 +21,31 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import eu.cloudnetservice.driver.channel.ChannelMessage;
 import eu.cloudnetservice.driver.database.Database;
 import eu.cloudnetservice.driver.document.Document;
 import eu.cloudnetservice.driver.document.DocumentFactory;
-import eu.darkcube.system.cloudnet.util.data.packets.PacketNodeWrapperDataClearSet;
-import eu.darkcube.system.cloudnet.util.data.packets.PacketNodeWrapperDataRemove;
-import eu.darkcube.system.cloudnet.util.data.packets.PacketNodeWrapperDataSet;
+import eu.cloudnetservice.driver.network.buffer.DataBuf;
 import eu.darkcube.system.libs.com.google.gson.JsonElement;
 import eu.darkcube.system.libs.com.google.gson.JsonObject;
 import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
+import eu.darkcube.system.libs.net.kyori.adventure.key.KeyPattern;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 import eu.darkcube.system.libs.org.jetbrains.annotations.UnmodifiableView;
 import eu.darkcube.system.util.data.PersistentDataStorage;
 import eu.darkcube.system.util.data.PersistentDataType;
-import eu.darkcube.system.util.data.UnmodifiablePersistentDataStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * A data storage that is synchronized over the entire cloud system
  */
-public class SynchronizedPersistentDataStorage implements PersistentDataStorage {
+@SuppressWarnings("PatternValidation")
+public final class SynchronizedPersistentDataStorage implements PersistentDataStorage {
+    static final String CHANNEL = "darkcube-persistent-data";
     private static final Logger LOGGER = LoggerFactory.getLogger("SynchronizedPersistentDataStorage");
+    private final String table;
     private final Key key;
     private final Database database;
     private final ReadWriteLock lock = new ReentrantReadWriteLock(false);
@@ -51,16 +54,83 @@ public class SynchronizedPersistentDataStorage implements PersistentDataStorage 
     private final Collection<@NotNull UpdateNotifier> updateNotifiers = new CopyOnWriteArrayList<>();
     private final AtomicBoolean saving = new AtomicBoolean(false);
     private final AtomicBoolean saveAgain = new AtomicBoolean(false);
+    private int state;
     public Function<Document, Document> documentSaver = d -> d;
 
-    SynchronizedPersistentDataStorage(Database database, Key key) {
+    SynchronizedPersistentDataStorage(Database database, String table, Key key) {
         this.database = database;
+        this.table = table;
         this.key = key;
     }
 
-    @Override
-    public @UnmodifiableView @NotNull PersistentDataStorage unmodifiable() {
-        return new UnmodifiablePersistentDataStorage(this);
+    int set(Key key, JsonElement data) {
+        return this.sendUpdate(() -> {
+            this.data.add(key.toString(), data.deepCopy());
+            this.cache.remove(key);
+            return UpdateResult.CHANGED;
+        }).state();
+    }
+
+    int removePlain(Key key) {
+        return sendUpdate(() -> {
+            if (!data.has(key.toString())) return UpdateResult.NOTHING;
+            data.remove(key.toString());
+            cache.remove(key);
+            return UpdateResult.CHANGED;
+        }).state();
+    }
+
+    @NotNull
+    RemoveComplex removeComplex(Key key) {
+        var update = sendUpdate(() -> {
+            if (!data.has(key.toString())) return UpdateResult.NOTHING;
+            var json = data.remove(key.toString());
+            cache.remove(key);
+            return new UpdateResult(true, json);
+        });
+        var json = (JsonElement) update.other();
+        return new RemoveComplex(update.state(), json);
+    }
+
+    @NotNull
+    GetOrDefault getOrDefault(Key key, JsonElement defaultJson) {
+        var update = sendUpdate(() -> {
+            if (this.data.has(key.toString())) {
+                var data = this.data.get(key.toString());
+                return new UpdateResult(false, data);
+            }
+            data.add(key.toString(), defaultJson.deepCopy());
+            return new UpdateResult(true, defaultJson);
+        });
+        var state = update.state();
+        var json = (JsonElement) Objects.requireNonNull(update.other());
+        return new GetOrDefault(state, json);
+    }
+
+    int clear0() {
+        return sendUpdate(() -> {
+            this.data.asMap().clear();
+            this.cache.clear();
+            return UpdateResult.CHANGED;
+        }).state();
+    }
+
+    int loadFromJson(JsonObject json) {
+        return sendUpdate(() -> {
+            this.data.asMap().clear();
+            this.cache.clear();
+            this.data.asMap().putAll(json.deepCopy().asMap());
+            return UpdateResult.CHANGED;
+        }).state();
+    }
+
+    Query query() {
+        try {
+            lock.readLock().lock();
+            return new Query(state, data.deepCopy());
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
     @Override
@@ -68,7 +138,7 @@ public class SynchronizedPersistentDataStorage implements PersistentDataStorage 
         List<Key> keys = new ArrayList<>();
         try {
             lock.readLock().lock();
-            for (var s : data.keySet()) {
+            for (@KeyPattern var s : data.keySet()) {
                 if (s.contains(":")) {
                     keys.add(Key.key(s));
                 } else {
@@ -83,67 +153,19 @@ public class SynchronizedPersistentDataStorage implements PersistentDataStorage 
 
     @Override
     public <T> void set(@NotNull Key key, @NotNull PersistentDataType<T> type, @NotNull T data) {
-        try {
-            lock.writeLock().lock();
-            data = type.clone(data);
-            if (cache.containsKey(key) && cache.get(key).equals(data)) {
-                return;
-            }
-            cache.put(key, data);
-            var json = type.serialize(data);
-            this.data.add(key.toString(), json);
-            new PacketNodeWrapperDataSet(this.key, key, json).sendEmptyQuery();
-            notifyNotifiers();
-        } finally {
-            lock.writeLock().unlock();
-        }
+        set(key, type.serialize(data));
     }
 
     @Override
-    public <T> T remove(@NotNull Key key, @Nullable PersistentDataType<T> type) {
-        return remove0(key, type);
-    }
-
-    public <T> T remove0(@NotNull Key key, @Nullable PersistentDataType<T> type) {
-        T ret;
-        try {
-            lock.writeLock().lock();
-            if (!data.has(key.toString())) {
-                return null;
-            }
-            var old = (T) cache.remove(key);
-            if (old == null && type != null) {
-                old = type.deserialize(data.get(key.toString()));
-            }
-            data.remove(key.toString());
-            new PacketNodeWrapperDataRemove(this.key, key).sendEmptyQuery();
-            ret = type != null ? type.clone(old) : null;
-            notifyNotifiers();
-        } finally {
-            lock.writeLock().unlock();
-        }
-        return ret;
+    public <T> T remove(@NotNull Key key, @NotNull PersistentDataType<T> type) {
+        var json = removeComplex(key).json();
+        if (json == null) return null;
+        return type.deserialize(json);
     }
 
     @Override
     public void remove(@NotNull Key key) {
-        remove0(key);
-    }
-
-    public @Nullable JsonElement remove0(@NotNull Key key) {
-        try {
-            lock.writeLock().lock();
-            if (!data.has(key.toString())) {
-                return null;
-            }
-            cache.remove(key);
-            var removed = data.remove(key.toString());
-            new PacketNodeWrapperDataRemove(this.key, key).sendEmptyQuery();
-            notifyNotifiers();
-            return removed;
-        } finally {
-            lock.writeLock().unlock();
-        }
+        removePlain(key);
     }
 
     @Override
@@ -164,35 +186,12 @@ public class SynchronizedPersistentDataStorage implements PersistentDataStorage 
             if (!data.has(key.toString())) {
                 return null;
             }
-            var value = type.clone(type.deserialize(data.get(key.toString())));
+            var value = type.deserialize(data.get(key.toString()));
             cache.put(key, value);
             return type.clone(value);
         } finally {
             lock.writeLock().unlock();
         }
-    }
-
-    public JsonElement get(Key key, Supplier<JsonElement> defaultValue) {
-        try {
-            lock.readLock().lock();
-            if (data.has(key.toString())) {
-                return data.get(key.toString()).deepCopy();
-            }
-        } finally {
-            lock.readLock().unlock();
-        }
-        var value = defaultValue.get().deepCopy();
-        try {
-            lock.writeLock().lock();
-            if (data.has(key.toString())) {
-                return data.get(key.toString()).deepCopy();
-            }
-            data.add(key.toString(), value);
-        } finally {
-            lock.writeLock().unlock();
-        }
-        notifyNotifiers();
-        return value.deepCopy();
     }
 
     @Override
@@ -205,32 +204,13 @@ public class SynchronizedPersistentDataStorage implements PersistentDataStorage 
         } finally {
             lock.readLock().unlock();
         }
-        T ret;
-        try {
-            lock.writeLock().lock();
-            if (cache.containsKey(key)) {
-                return type.clone((T) cache.get(key));
-            }
-            if (data.has(key.toString())) {
-                var value = type.clone(type.deserialize(data.get(key.toString())));
-                cache.put(key, value);
-                return type.clone(value);
-            }
-            var val = type.clone(defaultValue.get());
-            var json = type.serialize(val);
-            this.data.add(key.toString(), json);
-            new PacketNodeWrapperDataSet(this.key, key, json).sendEmptyQuery();
-            cache.put(key, val);
-            ret = type.clone(val);
-        } finally {
-            lock.writeLock().unlock();
-        }
-        notifyNotifiers();
-        return ret;
+        var json = type.serialize(defaultValue.get());
+        var response = getOrDefault(key, json);
+        return type.deserialize(response.json());
     }
 
     @Override
-    public <T> void setIfNotPresent(@NotNull Key key, @NotNull PersistentDataType<T> type, @NotNull T data) {
+    public <T> void setIfAbsent(@NotNull Key key, @NotNull PersistentDataType<T> type, @NotNull T data) {
         try {
             lock.readLock().lock();
             if (this.data.has(key.toString())) {
@@ -239,20 +219,8 @@ public class SynchronizedPersistentDataStorage implements PersistentDataStorage 
         } finally {
             lock.readLock().unlock();
         }
-        try {
-            lock.writeLock().lock();
-            if (this.data.has(key.toString())) {
-                return;
-            }
-            data = type.clone(data);
-            var json = type.serialize(data);
-            this.data.add(key.toString(), json);
-            new PacketNodeWrapperDataSet(this.key, key, json).sendEmptyQuery();
-            cache.put(key, data);
-        } finally {
-            lock.writeLock().unlock();
-        }
-        notifyNotifiers();
+        var json = type.serialize(data);
+        getOrDefault(key, json);
     }
 
     @Override
@@ -267,27 +235,12 @@ public class SynchronizedPersistentDataStorage implements PersistentDataStorage 
 
     @Override
     public void clear() {
-        try {
-            lock.writeLock().lock();
-            clearData();
-            new PacketNodeWrapperDataClearSet(key, new JsonObject()).sendEmptyQuery();
-            notifyNotifiers();
-        } finally {
-            lock.writeLock().unlock();
-        }
+        clear0();
     }
 
     @Override
     public void loadFromJsonObject(@NotNull JsonObject object) {
-        try {
-            lock.writeLock().lock();
-            clearData();
-            data.asMap().putAll(object.asMap());
-            new PacketNodeWrapperDataClearSet(key, data).sendEmptyQuery();
-            notifyNotifiers();
-        } finally {
-            lock.writeLock().unlock();
-        }
+        loadFromJson(object);
     }
 
     @Override
@@ -300,16 +253,54 @@ public class SynchronizedPersistentDataStorage implements PersistentDataStorage 
         }
     }
 
-    public void set(Key key, JsonElement data) {
+    private Updated sendUpdate(Updater task) {
+        int newState;
+        JsonObject dataCopy;
+        @Nullable Object other;
         try {
             lock.writeLock().lock();
-            this.data.add(key.toString(), data.deepCopy());
-            this.cache.remove(key);
-            new PacketNodeWrapperDataSet(this.key, key, data).sendEmptyQuery();
-            notifyNotifiers();
+            var result = task.update();
+            if (!result.changed()) {
+                return new Updated(state, result.other()); // Return current state, nothing changed
+            }
+            newState = ++state;
+            dataCopy = data.deepCopy();
+            other = result.other();
         } finally {
             lock.writeLock().unlock();
         }
+        LOGGER.debug("Send update table {} key {} state {}", table, key, newState);
+        // CompletableFuture.runAsync(() -> {
+        // try {
+        //     Thread.sleep(10 + ThreadLocalRandom.current().nextInt(200));
+        // } catch (InterruptedException e) {
+        //     throw new RuntimeException(e);
+        // }
+        ChannelMessage.builder().channel(CHANNEL).targetServices().message("update-data").buffer(DataBuf.empty().writeString(this.table).writeObject(this.key).writeInt(newState).writeObject(dataCopy)).build().send();
+        // });
+        notifyNotifiers();
+        return new Updated(newState, other);
+    }
+
+    record GetOrDefault(int state, @NotNull JsonElement json) {
+    }
+
+    record RemoveComplex(int state, @Nullable JsonElement json) {
+    }
+
+    record Query(int state, @NotNull JsonObject data) {
+    }
+
+    private record Updated(int state, @Nullable Object other) {
+    }
+
+    private interface Updater {
+        UpdateResult update();
+    }
+
+    private record UpdateResult(boolean changed, @Nullable Object other) {
+        private static final UpdateResult CHANGED = new UpdateResult(true, null);
+        private static final UpdateResult NOTHING = new UpdateResult(false, null);
     }
 
     @Override
@@ -364,11 +355,6 @@ public class SynchronizedPersistentDataStorage implements PersistentDataStorage 
                 save();
             }
         }
-    }
-
-    private void clearData() {
-        cache.clear();
-        data.asMap().clear();
     }
 
     private void notifyNotifiers() {
