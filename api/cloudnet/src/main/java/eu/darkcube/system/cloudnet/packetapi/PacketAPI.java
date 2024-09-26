@@ -149,6 +149,10 @@ public class PacketAPI {
         preparePacket(packet).targetAll().sendSync(true).build().send();
     }
 
+    public void sendPacketEmptyQuery(@NotNull Packet packet) {
+        preparePacket(packet).targetAll().build().sendQuery();
+    }
+
     public <T extends Packet> T sendPacketQuery(@NotNull Packet packet, @NotNull Class<T> responsePacketType) {
         return sendPacketQueryAsync(packet, responsePacketType).join();
     }

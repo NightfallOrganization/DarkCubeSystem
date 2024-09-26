@@ -92,7 +92,7 @@ public class SynchronizedPersistentDataStorage implements PersistentDataStorage 
             cache.put(key, data);
             var json = type.serialize(data);
             this.data.add(key.toString(), json);
-            new PacketNodeWrapperDataSet(this.key, key, json).sendSync();
+            new PacketNodeWrapperDataSet(this.key, key, json).sendEmptyQuery();
             notifyNotifiers();
         } finally {
             lock.writeLock().unlock();
@@ -116,7 +116,7 @@ public class SynchronizedPersistentDataStorage implements PersistentDataStorage 
                 old = type.deserialize(data.get(key.toString()));
             }
             data.remove(key.toString());
-            new PacketNodeWrapperDataRemove(this.key, key).sendSync();
+            new PacketNodeWrapperDataRemove(this.key, key).sendEmptyQuery();
             ret = type != null ? type.clone(old) : null;
             notifyNotifiers();
         } finally {
@@ -138,7 +138,7 @@ public class SynchronizedPersistentDataStorage implements PersistentDataStorage 
             }
             cache.remove(key);
             var removed = data.remove(key.toString());
-            new PacketNodeWrapperDataRemove(this.key, key).sendSync();
+            new PacketNodeWrapperDataRemove(this.key, key).sendEmptyQuery();
             notifyNotifiers();
             return removed;
         } finally {
@@ -219,7 +219,7 @@ public class SynchronizedPersistentDataStorage implements PersistentDataStorage 
             var val = type.clone(defaultValue.get());
             var json = type.serialize(val);
             this.data.add(key.toString(), json);
-            new PacketNodeWrapperDataSet(this.key, key, json).sendSync();
+            new PacketNodeWrapperDataSet(this.key, key, json).sendEmptyQuery();
             cache.put(key, val);
             ret = type.clone(val);
         } finally {
@@ -247,7 +247,7 @@ public class SynchronizedPersistentDataStorage implements PersistentDataStorage 
             data = type.clone(data);
             var json = type.serialize(data);
             this.data.add(key.toString(), json);
-            new PacketNodeWrapperDataSet(this.key, key, json).sendSync();
+            new PacketNodeWrapperDataSet(this.key, key, json).sendEmptyQuery();
             cache.put(key, data);
         } finally {
             lock.writeLock().unlock();
@@ -270,7 +270,7 @@ public class SynchronizedPersistentDataStorage implements PersistentDataStorage 
         try {
             lock.writeLock().lock();
             clearData();
-            new PacketNodeWrapperDataClearSet(key, new JsonObject()).sendSync();
+            new PacketNodeWrapperDataClearSet(key, new JsonObject()).sendEmptyQuery();
             notifyNotifiers();
         } finally {
             lock.writeLock().unlock();
@@ -283,7 +283,7 @@ public class SynchronizedPersistentDataStorage implements PersistentDataStorage 
             lock.writeLock().lock();
             clearData();
             data.asMap().putAll(object.asMap());
-            new PacketNodeWrapperDataClearSet(key, data).sendSync();
+            new PacketNodeWrapperDataClearSet(key, data).sendEmptyQuery();
             notifyNotifiers();
         } finally {
             lock.writeLock().unlock();
@@ -304,7 +304,8 @@ public class SynchronizedPersistentDataStorage implements PersistentDataStorage 
         try {
             lock.writeLock().lock();
             this.data.add(key.toString(), data.deepCopy());
-            new PacketNodeWrapperDataSet(this.key, key, data).sendSync();
+            this.cache.remove(key);
+            new PacketNodeWrapperDataSet(this.key, key, data).sendEmptyQuery();
             notifyNotifiers();
         } finally {
             lock.writeLock().unlock();

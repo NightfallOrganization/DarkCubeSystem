@@ -22,6 +22,10 @@ public abstract class Packet {
         PacketAPI.instance().sendPacketSync(this);
     }
 
+    public void sendEmptyQuery() {
+        PacketAPI.instance().sendPacketEmptyQuery(this);
+    }
+
     public final void sendAsync() {
         PacketAPI.instance().sendPacketAsync(this);
     }
@@ -49,4 +53,5 @@ public abstract class Packet {
     public final <T extends Packet> boolean instanceOf(@NotNull Class<T> clazz) {
         return clazz.isInstance(this);
     }
+
 }
