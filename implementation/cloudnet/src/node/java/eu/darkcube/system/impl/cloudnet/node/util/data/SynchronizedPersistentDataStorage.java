@@ -270,14 +270,7 @@ public final class SynchronizedPersistentDataStorage implements PersistentDataSt
             lock.writeLock().unlock();
         }
         LOGGER.debug("Send update table {} key {} state {}", table, key, newState);
-        // CompletableFuture.runAsync(() -> {
-        // try {
-        //     Thread.sleep(10 + ThreadLocalRandom.current().nextInt(200));
-        // } catch (InterruptedException e) {
-        //     throw new RuntimeException(e);
-        // }
         ChannelMessage.builder().channel(CHANNEL).targetServices().message("update-data").buffer(DataBuf.empty().writeString(this.table).writeObject(this.key).writeInt(newState).writeObject(dataCopy)).build().send();
-        // });
         notifyNotifiers();
         return new Updated(newState, other);
     }

@@ -43,7 +43,7 @@ public class SimpleItemHandler<PlatformItem, PlatformPlayer> implements Inventor
     private final @Nullable SortedMap<Integer, ItemReferenceImpl> @NotNull [] contents;
     private final int[] priorities;
     private final @Nullable SortedMap<Integer, ItemComputeTask<PlatformItem>> @NotNull [] tasks;
-    private final @NotNull ExecutorService service = AsyncExecutor.virtualService();
+    private final @NotNull ExecutorService service = AsyncExecutor.cachedService();
     private final @NotNull List<ContainerView> containers = new CopyOnWriteArrayList<>();
     private final @NotNull List<ContainerView> containersInTransaction = new CopyOnWriteArrayList<>();
     private final @NotNull Map<ContainerView, ContainerListener> containerListeners = new HashMap<>();

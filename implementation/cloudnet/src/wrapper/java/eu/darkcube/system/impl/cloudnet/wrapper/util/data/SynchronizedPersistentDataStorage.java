@@ -72,12 +72,15 @@ final class SynchronizedPersistentDataStorage implements PersistentDataStorage {
     void updateData(int state, @NotNull JsonObject newData) {
         this.lock.writeLock().lock();
         try {
-            if (this.state - state > 0) return; // Data is out of date, we already have newer data available
+            if (this.state - state > 0) {
+                LOGGER.debug("Data already up to date: Current {}, Incoming: {}", this.state, state);
+                return; // Data is out of date, we already have newer data available
+            }
             this.data.asMap().clear();
             this.data.asMap().putAll(newData.asMap());
             this.cache.clear();
             this.state = state;
-            LOGGER.info("Table {} key {} update state: {}", table, key, state);
+            LOGGER.debug("Table {} key {} update state: {}", table, key, state);
             this.newStateAvailable.signalAll();
         } finally {
             this.lock.writeLock().unlock();
@@ -90,10 +93,10 @@ final class SynchronizedPersistentDataStorage implements PersistentDataStorage {
         try {
             var response = sendQuery("query", DataBuf.empty().writeString(this.table).writeObject(this.key));
             this.state = response.content().readInt();
-            LOGGER.info("Table {} key {} initial state: {}", table, key, state);
+            LOGGER.debug("Table {} key {} initial state: {}", table, key, state);
             this.data.asMap().putAll(response.content().readObject(JsonObject.class).asMap());
         } finally {
-            LOGGER.info("Time for loadData({}, {}): {}", this.table, this.key, currentTimeMillis() - startTime);
+            LOGGER.debug("Time for loadData({}, {}): {}", this.table, this.key, currentTimeMillis() - startTime);
         }
     }
 
@@ -122,7 +125,7 @@ final class SynchronizedPersistentDataStorage implements PersistentDataStorage {
             var json = type.serialize(data);
             awaitState("set", DataBuf.empty().writeString(this.table).writeObject(this.key).writeObject(key).writeObject(json));
         } finally {
-            LOGGER.info("Time for set({}, {}, {}): {}ms", this.table, this.key, key, currentTimeMillis() - startTime);
+            LOGGER.debug("Time for set({}, {}, {}): {}ms", this.table, this.key, key, currentTimeMillis() - startTime);
         }
     }
 
@@ -132,7 +135,7 @@ final class SynchronizedPersistentDataStorage implements PersistentDataStorage {
         try {
             awaitState("remove-plain", DataBuf.empty().writeString(this.table).writeObject(this.key).writeObject(key));
         } finally {
-            LOGGER.info("Time for remove({}, {}, {}): {}ms", this.table, this.key, key, currentTimeMillis() - startTime);
+            LOGGER.debug("Time for remove({}, {}, {}): {}ms", this.table, this.key, key, currentTimeMillis() - startTime);
         }
     }
 
@@ -148,7 +151,7 @@ final class SynchronizedPersistentDataStorage implements PersistentDataStorage {
             var jsonResponse = response.content().readObject(JsonElement.class);
             return type.deserialize(jsonResponse);
         } finally {
-            LOGGER.info("Time for removeComplex({}, {}, {}): {}ms", this.table, this.key, key, currentTimeMillis() - startTime);
+            LOGGER.debug("Time for removeComplex({}, {}, {}): {}ms", this.table, this.key, key, currentTimeMillis() - startTime);
         }
     }
 
@@ -195,7 +198,7 @@ final class SynchronizedPersistentDataStorage implements PersistentDataStorage {
             return type.deserialize(jsonResponse);
         } finally {
             if (network) {
-                LOGGER.info("Time for getOrDefault({}, {}, {}): {}ms", table, this.key, key, currentTimeMillis() - startTime);
+                LOGGER.debug("Time for getOrDefault({}, {}, {}): {}ms", table, this.key, key, currentTimeMillis() - startTime);
             }
         }
     }
@@ -241,7 +244,7 @@ final class SynchronizedPersistentDataStorage implements PersistentDataStorage {
 
     private void awaitState(int state) {
         if (this.state - state >= 0) return; // State already up-to-date
-        LOGGER.info("Table {} key {} wait for state: {}", table, key, state);
+        LOGGER.debug("Table {} key {} wait for state: {}", table, key, state);
         this.lock.writeLock().lock();
         try {
             // Wait for the state to be at least the given state, or newer

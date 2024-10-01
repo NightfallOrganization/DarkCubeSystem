@@ -56,10 +56,14 @@ public class WrapperCustomPersistentDataProvider implements CustomPersistentData
         @EventListener
         public void handle(ChannelMessageReceiveEvent event) {
             if (!event.channel().equals(SynchronizedPersistentDataStorage.CHANNEL)) return;
-            if (event.message().equals("update-data")) {
-                updateData(event.content());
-            } else {
-                LOGGER.error("Unknown message {}", event.message());
+            try {
+                if (event.message().equals("update-data")) {
+                    updateData(event.content());
+                } else {
+                    LOGGER.error("Unknown message {}", event.message());
+                }
+            } catch (Throwable t) {
+                LOGGER.error("Failed to handle message", t);
             }
         }
 
@@ -69,7 +73,7 @@ public class WrapperCustomPersistentDataProvider implements CustomPersistentData
             var storage = loadedStorage(table, key);
             var state = buf.readInt();
             if (storage == null) {
-                LOGGER.info("Table {} key {} storage not found for update to {}", table, key, state);
+                LOGGER.debug("Table {} key {} storage not found for update to {}", table, key, state);
                 return;
             }
             var newData = buf.readObject(JsonObject.class);
@@ -84,6 +88,7 @@ public class WrapperCustomPersistentDataProvider implements CustomPersistentData
             if (storage != null) return storage;
             storage = new SynchronizedPersistentDataStorage(table, key);
             var ref = new WeakStorageReference(storage);
+            LOGGER.debug("Load storage {} key {}", table, key);
             storages.computeIfAbsent(table, _ -> new HashMap<>()).put(key, ref);
             return storage;
         }

@@ -58,16 +58,21 @@ public class SynchronizedPersistentDataStorages {
         @EventListener
         public void handle(ChannelMessageReceiveEvent event) {
             if (!event.channel().equals(SynchronizedPersistentDataStorage.CHANNEL)) return;
-            var content = event.content();
-            switch (event.message()) {
-                case "query" -> query(event, content);
-                case "set" -> set(event, content);
-                case "remove-plain" -> removePlain(event, content);
-                case "remove-with-response" -> removeWithResponse(event, content);
-                case "get-or-default" -> getOrDefault(event, content);
-                case "clear" -> clear(event, content);
-                case "load-from-json" -> loadFromJson(event, content);
-                default -> LOGGER.error("Unknown message {}", event.message());
+            LOGGER.debug("Request received: {}", event.message());
+            try {
+                var content = event.content();
+                switch (event.message()) {
+                    case "query" -> query(event, content);
+                    case "set" -> set(event, content);
+                    case "remove-plain" -> removePlain(event, content);
+                    case "remove-with-response" -> removeWithResponse(event, content);
+                    case "get-or-default" -> getOrDefault(event, content);
+                    case "clear" -> clear(event, content);
+                    case "load-from-json" -> loadFromJson(event, content);
+                    default -> LOGGER.error("Unknown message {}", event.message());
+                }
+            } catch (Throwable t) {
+                LOGGER.error("Failed to handle message", t);
             }
         }
 
@@ -165,6 +170,7 @@ public class SynchronizedPersistentDataStorages {
             @Nullable var ref = map == null ? null : map.getOrDefault(key, null);
             var storage = ref == null ? null : ref.get();
             if (storage == null) {
+                LOGGER.debug("Load storage {} key {}", table, key);
                 var tuple = load(table, key);
 
                 storage = tuple._1();
@@ -245,8 +251,9 @@ public class SynchronizedPersistentDataStorages {
                 try {
                     var reference = (StorageReference) queue.remove();
                     lock.lock();
+                    LOGGER.debug("Unload storage {} key {}", reference.table, reference.key);
                     var map = storages.get(reference.table);
-                    map.remove(reference.key);
+                    map.remove(reference.key, reference);
 
                     wrappers.get(reference.table).remove(reference.key);
                     if (map.isEmpty()) {

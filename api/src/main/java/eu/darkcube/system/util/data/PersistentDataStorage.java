@@ -7,7 +7,7 @@
 
 package eu.darkcube.system.util.data;
 
-import static eu.darkcube.system.util.AsyncExecutor.virtualService;
+import static eu.darkcube.system.util.AsyncExecutor.cachedService;
 import static java.util.concurrent.CompletableFuture.runAsync;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 
@@ -48,7 +48,7 @@ public interface PersistentDataStorage {
     @Api
     @NotNull
     default CompletableFuture<@Unmodifiable @NotNull Collection<@NotNull Key>> keysAsync() {
-        return supplyAsync(this::keys, virtualService());
+        return supplyAsync(this::keys, cachedService());
     }
 
     /**
@@ -64,7 +64,7 @@ public interface PersistentDataStorage {
 
     @Api
     default <T> @NotNull CompletableFuture<Void> setAsync(@NotNull Key key, @NotNull PersistentDataType<T> type, @NotNull T data) {
-        return runAsync(() -> set(key, type, data), virtualService());
+        return runAsync(() -> set(key, type, data), cachedService());
     }
 
     @Api
@@ -94,7 +94,7 @@ public interface PersistentDataStorage {
     @Api
     @NotNull
     default <T> CompletableFuture<@Nullable T> removeAsync(@NotNull Key key, @NotNull PersistentDataType<T> type) {
-        return supplyAsync(() -> remove(key, type), virtualService());
+        return supplyAsync(() -> remove(key, type), cachedService());
     }
 
     @Api
@@ -122,7 +122,7 @@ public interface PersistentDataStorage {
     @Api
     @NotNull
     default <T> CompletableFuture<@Nullable T> getAsync(@NotNull Key key, @NotNull PersistentDataType<T> type) {
-        return supplyAsync(() -> get(key, type), virtualService());
+        return supplyAsync(() -> get(key, type), cachedService());
     }
 
     @Api
@@ -153,7 +153,7 @@ public interface PersistentDataStorage {
     @Api
     @NotNull
     default <T> CompletableFuture<@NotNull T> getAsync(@NotNull Key key, @NotNull PersistentDataType<T> type, @NotNull Supplier<@NotNull T> defaultValue) {
-        return supplyAsync(() -> get(key, type, defaultValue), virtualService());
+        return supplyAsync(() -> get(key, type, defaultValue), cachedService());
     }
 
     @Api
@@ -193,7 +193,7 @@ public interface PersistentDataStorage {
     @Api
     @NotNull
     default <T> CompletableFuture<Void> setIfAbsentAsync(@NotNull Key key, @NotNull PersistentDataType<T> type, @NotNull T data) {
-        return runAsync(() -> setIfAbsent(key, type, data), virtualService());
+        return runAsync(() -> setIfAbsent(key, type, data), cachedService());
     }
 
     @Api
@@ -230,7 +230,7 @@ public interface PersistentDataStorage {
     @Api
     @NotNull
     default CompletableFuture<@NotNull Boolean> hasAsync(@NotNull Key key) {
-        return supplyAsync(() -> has(key), virtualService());
+        return supplyAsync(() -> has(key), cachedService());
     }
 
     @Api
@@ -253,7 +253,7 @@ public interface PersistentDataStorage {
     @NotNull
     @Api
     default CompletableFuture<Void> clearAsync() {
-        return runAsync(this::clear, virtualService());
+        return runAsync(this::clear, cachedService());
     }
 
     /**
@@ -268,7 +268,7 @@ public interface PersistentDataStorage {
     @NotNull
     @Api
     default CompletableFuture<Void> loadFromJsonObjectAsync(@NotNull JsonObject object) {
-        return runAsync(() -> loadFromJsonObject(object), virtualService());
+        return runAsync(() -> loadFromJsonObject(object), cachedService());
     }
 
     /**
@@ -281,7 +281,7 @@ public interface PersistentDataStorage {
     @Api
     @NotNull
     default CompletableFuture<@NotNull JsonObject> storeToJsonObjectAsync() {
-        return supplyAsync(this::storeToJsonObject, virtualService());
+        return supplyAsync(this::storeToJsonObject, cachedService());
     }
 
     /**
@@ -298,7 +298,7 @@ public interface PersistentDataStorage {
     @ApiStatus.Experimental
     @NotNull
     default CompletableFuture<Void> clearCacheAsync() {
-        return runAsync(this::clearCache, virtualService());
+        return runAsync(this::clearCache, cachedService());
     }
 
     /**
