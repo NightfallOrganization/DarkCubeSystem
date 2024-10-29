@@ -17,7 +17,7 @@ pluginManagement {
 }
 
 plugins {
-    id("eu.darkcube.darkcube.settings") version "1.3.1"
+    id("eu.darkcube.darkcube.settings") version "1.4.0"
 }
 
 rootProject.name = "darkcubesystem"
