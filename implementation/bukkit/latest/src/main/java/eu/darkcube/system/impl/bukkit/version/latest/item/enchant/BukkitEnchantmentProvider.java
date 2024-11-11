@@ -9,11 +9,14 @@ package eu.darkcube.system.impl.bukkit.version.latest.item.enchant;
 
 import static eu.darkcube.system.kyori.wrapper.KyoriAdventureSupport.adventureSupport;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
+import eu.darkcube.system.libs.org.jetbrains.annotations.Unmodifiable;
 import eu.darkcube.system.server.item.enchant.Enchantment;
 import eu.darkcube.system.server.item.enchant.EnchantmentProvider;
 import io.papermc.paper.registry.RegistryAccess;
@@ -23,6 +26,7 @@ import org.bukkit.Registry;
 public class BukkitEnchantmentProvider implements EnchantmentProvider {
     private Registry<org.bukkit.enchantments.Enchantment> registry;
     private Map<org.bukkit.enchantments.Enchantment, Enchantment> enchantments;
+    private List<Enchantment> enchantmentList;
 
     private void tryLoad() {
         if (enchantments != null) return;
@@ -31,8 +35,10 @@ public class BukkitEnchantmentProvider implements EnchantmentProvider {
             enchantments = new HashMap<>();
             registry = RegistryAccess.registryAccess().getRegistry(RegistryKey.ENCHANTMENT);
             for (var enchantment : registry) {
-                enchantments.put(enchantment, new BukkitEnchantmentImpl(enchantment, adventureSupport().convert(enchantment.key())));
+                var e = new BukkitEnchantmentImpl(enchantment, adventureSupport().convert(enchantment.key()));
+                enchantments.put(enchantment, e);
             }
+            enchantmentList = List.copyOf(enchantments.values());
         }
     }
 
@@ -47,5 +53,11 @@ public class BukkitEnchantmentProvider implements EnchantmentProvider {
             case net.kyori.adventure.key.Key key -> of(registry.getOrThrow(key));
             default -> throw new IllegalArgumentException("Not a valid enchantment: " + platformObject);
         };
+    }
+
+    @Override
+    public @NotNull @Unmodifiable Collection<Enchantment> enchantments() {
+        tryLoad();
+        return enchantmentList;
     }
 }

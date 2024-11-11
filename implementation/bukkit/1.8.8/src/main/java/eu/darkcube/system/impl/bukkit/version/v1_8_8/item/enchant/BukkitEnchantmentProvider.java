@@ -7,12 +7,15 @@
 
 package eu.darkcube.system.impl.bukkit.version.v1_8_8.item.enchant;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
+import eu.darkcube.system.libs.org.jetbrains.annotations.Unmodifiable;
 import eu.darkcube.system.server.item.enchant.Enchantment;
 import eu.darkcube.system.server.item.enchant.EnchantmentProvider;
 import net.minecraft.server.v1_8_R3.MinecraftKey;
@@ -21,6 +24,7 @@ import org.bukkit.craftbukkit.v1_8_R3.enchantments.CraftEnchantment;
 public class BukkitEnchantmentProvider implements EnchantmentProvider {
     private Map<net.minecraft.server.v1_8_R3.Enchantment, MinecraftKey> inverseMap;
     private Map<Integer, Enchantment> enchantments;
+    private List<Enchantment> enchantmentList;
     private Map<String, Enchantment> byKey;
 
     private void tryLoad() {
@@ -61,5 +65,11 @@ public class BukkitEnchantmentProvider implements EnchantmentProvider {
             case MinecraftKey key -> of(Key.key(key.toString()));
             default -> throw new IllegalArgumentException("Not a valid enchantment: " + platformObject);
         };
+    }
+
+    @Override
+    public @NotNull @Unmodifiable Collection<Enchantment> enchantments() {
+        tryLoad();
+        return enchantmentList;
     }
 }

@@ -7,9 +7,18 @@
 
 package eu.darkcube.system.server.item.enchant;
 
+import java.util.Collection;
+
 import eu.darkcube.system.libs.org.jetbrains.annotations.ApiStatus;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
+import eu.darkcube.system.libs.org.jetbrains.annotations.Unmodifiable;
 
-@ApiStatus.Internal public interface EnchantmentProvider {
-    @NotNull Enchantment of(@NotNull Object platformObject);
+@ApiStatus.Internal
+public interface EnchantmentProvider {
+    @NotNull
+    Enchantment of(@NotNull Object platformObject);
+
+    @NotNull
+    @Unmodifiable
+    Collection<Enchantment> enchantments();
 }

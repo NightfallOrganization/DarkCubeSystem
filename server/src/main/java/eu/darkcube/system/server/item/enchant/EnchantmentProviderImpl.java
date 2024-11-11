@@ -7,7 +7,10 @@
 
 package eu.darkcube.system.server.item.enchant;
 
+import java.util.Collection;
+
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
+import eu.darkcube.system.libs.org.jetbrains.annotations.Unmodifiable;
 import eu.darkcube.system.provider.InternalProvider;
 
 class EnchantmentProviderImpl {
@@ -15,5 +18,9 @@ class EnchantmentProviderImpl {
 
     public static @NotNull Enchantment of(@NotNull Object platformEnchantment) {
         return provider.of(platformEnchantment);
+    }
+
+    public static @NotNull @Unmodifiable Collection<Enchantment> enchantments() {
+        return provider.enchantments();
     }
 }
