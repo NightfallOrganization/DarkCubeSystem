@@ -25,7 +25,7 @@ public record PotDecorationsMapper() implements Mapper<PotDecorations, net.minec
     }
 
     private Item get(Material material) {
-        return BuiltInRegistries.ITEM.get(ResourceLocation.parse(((BukkitMaterialImpl) material).key().asString()));
+        return BuiltInRegistries.ITEM.getValue(ResourceLocation.parse(((BukkitMaterialImpl) material).key().asString()));
     }
 
     private Material get(Optional<Item> item) {

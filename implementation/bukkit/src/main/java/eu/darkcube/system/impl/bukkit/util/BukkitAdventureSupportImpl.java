@@ -7,19 +7,20 @@
 
 package eu.darkcube.system.impl.bukkit.util;
 
+import eu.darkcube.system.bukkit.DarkCubePlugin;
 import eu.darkcube.system.bukkit.util.BukkitAdventureSupport;
-import eu.darkcube.system.impl.bukkit.DarkCubeSystemBukkit;
 import eu.darkcube.system.libs.net.kyori.adventure.platform.bukkit.BukkitAudiences;
 
 public class BukkitAdventureSupportImpl implements BukkitAdventureSupport {
-    private final BukkitAudiences audienceProvider;
-
-    public BukkitAdventureSupportImpl(DarkCubeSystemBukkit system) {
-        this.audienceProvider = BukkitAudiences.create(system);
-    }
+    private BukkitAudiences audienceProvider;
 
     @Override
     public BukkitAudiences audienceProvider() {
-        return audienceProvider;
+        if (audienceProvider != null) return audienceProvider;
+        synchronized (this) {
+            if (audienceProvider != null) return audienceProvider;
+            audienceProvider = BukkitAudiences.create(DarkCubePlugin.systemPlugin());
+            return audienceProvider;
+        }
     }
 }

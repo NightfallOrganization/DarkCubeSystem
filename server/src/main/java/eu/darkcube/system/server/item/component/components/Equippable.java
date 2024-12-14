@@ -7,16 +7,11 @@
 
 package eu.darkcube.system.server.item.component.components;
 
-import java.util.List;
-
 import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
-import eu.darkcube.system.libs.net.kyori.adventure.util.RGBLike;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
-import eu.darkcube.system.server.item.component.components.util.CustomPotionEffect;
+import eu.darkcube.system.server.item.EquipmentSlot;
+import eu.darkcube.system.server.item.component.components.util.ObjectSet;
 
-public record PotionContents(@Nullable Key potion, @Nullable RGBLike customColor, @NotNull List<CustomPotionEffect> customEffects, @Nullable String customName) {
-    public PotionContents {
-        customEffects = List.copyOf(customEffects);
-    }
+public record Equippable(@NotNull EquipmentSlot slot, @NotNull Key equipSound, @Nullable Key model, @Nullable Key cameraOverlay, @Nullable ObjectSet allowedEntities, boolean dispensable, boolean swappable, boolean damageOnHurt) {
 }

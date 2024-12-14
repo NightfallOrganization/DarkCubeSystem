@@ -10,6 +10,9 @@ package eu.darkcube.system.impl.minestom.item;
 import static eu.darkcube.system.minestom.util.adventure.MinestomAdventureSupport.adventureSupport;
 
 import java.io.IOException;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -31,12 +34,14 @@ import eu.darkcube.system.libs.net.kyori.adventure.nbt.CompoundBinaryTag;
 import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
 import eu.darkcube.system.libs.net.kyori.adventure.util.RGBLike;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
+import eu.darkcube.system.minestom.item.MinestomEquipmentSlot;
 import eu.darkcube.system.minestom.item.MinestomEquipmentSlotGroup;
 import eu.darkcube.system.minestom.item.MinestomItemBuilder;
 import eu.darkcube.system.minestom.item.attribute.MinestomAttribute;
 import eu.darkcube.system.minestom.item.attribute.MinestomAttributeModifierOperation;
 import eu.darkcube.system.minestom.item.material.MinestomMaterial;
 import eu.darkcube.system.server.data.component.DataComponent;
+import eu.darkcube.system.server.item.EquipmentSlot;
 import eu.darkcube.system.server.item.EquipmentSlotGroup;
 import eu.darkcube.system.server.item.ItemBuilder;
 import eu.darkcube.system.server.item.ItemRarity;
@@ -48,9 +53,13 @@ import eu.darkcube.system.server.item.component.components.AttributeList;
 import eu.darkcube.system.server.item.component.components.BannerPatterns;
 import eu.darkcube.system.server.item.component.components.Bee;
 import eu.darkcube.system.server.item.component.components.BlockPredicates;
+import eu.darkcube.system.server.item.component.components.Consumable;
+import eu.darkcube.system.server.item.component.components.DamageResistant;
+import eu.darkcube.system.server.item.component.components.DeathProtection;
 import eu.darkcube.system.server.item.component.components.DebugStickState;
 import eu.darkcube.system.server.item.component.components.DyedItemColor;
 import eu.darkcube.system.server.item.component.components.EnchantmentList;
+import eu.darkcube.system.server.item.component.components.Equippable;
 import eu.darkcube.system.server.item.component.components.FireworkExplosion;
 import eu.darkcube.system.server.item.component.components.FireworkList;
 import eu.darkcube.system.server.item.component.components.Food;
@@ -66,18 +75,24 @@ import eu.darkcube.system.server.item.component.components.SeededContainerLoot;
 import eu.darkcube.system.server.item.component.components.SuspiciousStewEffects;
 import eu.darkcube.system.server.item.component.components.Tool;
 import eu.darkcube.system.server.item.component.components.Unbreakable;
+import eu.darkcube.system.server.item.component.components.UseCooldown;
 import eu.darkcube.system.server.item.component.components.WritableBookContent;
 import eu.darkcube.system.server.item.component.components.WrittenBookContent;
 import eu.darkcube.system.server.item.component.components.util.BlockTypeFilter;
+import eu.darkcube.system.server.item.component.components.util.ConsumeEffect;
 import eu.darkcube.system.server.item.component.components.util.CustomPotionEffect;
 import eu.darkcube.system.server.item.component.components.util.DyeColor;
 import eu.darkcube.system.server.item.component.components.util.FilteredText;
+import eu.darkcube.system.server.item.component.components.util.ItemAnimation;
+import eu.darkcube.system.server.item.component.components.util.ObjectSet;
 import eu.darkcube.system.server.item.component.components.util.WorldPos;
 import eu.darkcube.system.server.item.material.Material;
 import eu.darkcube.system.util.Unit;
 import net.kyori.adventure.nbt.TagStringIO;
 import net.kyori.adventure.nbt.TagStringIOExt;
 import net.minestom.server.coordinate.Pos;
+import net.minestom.server.entity.EntityType;
+import net.minestom.server.gamedata.tags.Tag;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.predicate.BlockPredicate;
 import net.minestom.server.instance.block.predicate.PropertiesPredicate;
@@ -87,6 +102,9 @@ import net.minestom.server.item.component.CustomData;
 import net.minestom.server.potion.PotionEffect;
 import net.minestom.server.potion.PotionType;
 import net.minestom.server.registry.DynamicRegistry;
+import net.minestom.server.registry.ProtocolObject;
+import net.minestom.server.sound.SoundEvent;
+import net.minestom.server.utils.NamespaceID;
 
 public class MinestomItemBuilderImpl extends AbstractItemBuilder implements MinestomItemBuilder {
     private static final Gson gson = new GsonBuilder().registerTypeHierarchyAdapter(ItemStack.class, new TypeAdapter<ItemStack>() {
@@ -201,9 +219,19 @@ public class MinestomItemBuilderImpl extends AbstractItemBuilder implements Mine
     private static final net.minestom.server.item.component.MapPostProcessing[] MAP_POST_PROCESSING_MINESTOM = net.minestom.server.item.component.MapPostProcessing.values();
     private static final ItemRarity[] ITEM_RARITY_CUSTOM = ItemRarity.values();
     private static final net.minestom.server.item.component.ItemRarity[] ITEM_RARITY_MINESTOM = net.minestom.server.item.component.ItemRarity.values();
+    private static final MethodHandle OBJECTSET_TAG_CONSTRUCTOR;
+
+    static {
+        var lookup = MethodHandles.lookup();
+        try {
+            OBJECTSET_TAG_CONSTRUCTOR = lookup.findConstructor(Class.forName("net.minestom.server.registry.ObjectSetImpl$Tag"), MethodType.methodType(void.class, Tag.BasicType.class, String.class));
+        } catch (Throwable t) {
+            throw new Error(t);
+        }
+    }
 
     private static net.minestom.server.item.component.WrittenBookContent convert(WrittenBookContent c) {
-        return new net.minestom.server.item.component.WrittenBookContent(c.pages().stream().map(f -> new net.minestom.server.item.book.FilteredText<>(adventureSupport().convert(f.text()), f.filtered() == null ? null : adventureSupport().convert(f.filtered()))).toList(), new net.minestom.server.item.book.FilteredText<>(c.title().text(), c.title().filtered()), c.author(), c.generation(), c.resolved());
+        return new net.minestom.server.item.component.WrittenBookContent(new net.minestom.server.item.book.FilteredText<>(c.title().text(), c.title().filtered()), c.author(), c.generation(), c.pages().stream().map(f -> new net.minestom.server.item.book.FilteredText<>(adventureSupport().convert(f.text()), f.filtered() == null ? null : adventureSupport().convert(f.filtered()))).toList(), c.resolved());
     }
 
     private static WrittenBookContent convert(net.minestom.server.item.component.WrittenBookContent c) {
@@ -267,11 +295,11 @@ public class MinestomItemBuilderImpl extends AbstractItemBuilder implements Mine
     }
 
     private static net.minestom.server.item.component.PotionContents convert(PotionContents c) {
-        return new net.minestom.server.item.component.PotionContents(c.potion() == null ? null : PotionType.fromNamespaceId(c.potion().asString()), c.customColor() == null ? null : adventureSupport().convert(c.customColor()), c.customEffects().stream().map(MinestomItemBuilderImpl::convert).toList());
+        return new net.minestom.server.item.component.PotionContents(c.potion() == null ? null : PotionType.fromNamespaceId(c.potion().asString()), c.customColor() == null ? null : adventureSupport().convert(c.customColor()), c.customEffects().stream().map(MinestomItemBuilderImpl::convert).toList(), c.customName());
     }
 
     private static PotionContents convert(net.minestom.server.item.component.PotionContents c) {
-        return new PotionContents(c.potion() == null ? null : adventureSupport().convert(c.potion().key()), c.customColor() == null ? null : adventureSupport().convert(c.customColor()), c.customEffects().stream().map(MinestomItemBuilderImpl::convert).toList());
+        return new PotionContents(c.potion() == null ? null : adventureSupport().convert(c.potion().key()), c.customColor() == null ? null : adventureSupport().convert(c.customColor()), c.customEffects().stream().map(MinestomItemBuilderImpl::convert).toList(), c.customName());
     }
 
     private static net.minestom.server.item.component.PotDecorations convert(PotDecorations d) {
@@ -300,6 +328,124 @@ public class MinestomItemBuilderImpl extends AbstractItemBuilder implements Mine
 
     private static MapDecorations convert(net.minestom.server.item.component.MapDecorations d) {
         return new MapDecorations(Map.ofEntries(d.decorations().entrySet().stream().map(s -> Map.entry(s.getKey(), new MapDecorations.Entry(s.getValue().type(), s.getValue().x(), s.getValue().z(), s.getValue().rotation()))).toArray(Map.Entry[]::new)));
+    }
+
+    private static Consumable convert(net.minestom.server.item.component.Consumable consumable) {
+        return new Consumable(consumable.consumeSeconds(), convert(consumable.animation()), adventureSupport().convert(consumable.sound().key()), consumable.hasConsumeParticles(), convertConsumeEffectsP2C(consumable.effects()));
+    }
+
+    private static net.minestom.server.item.component.Consumable convert(Consumable consumable) {
+        return new net.minestom.server.item.component.Consumable(consumable.consumeSeconds(), convert(consumable.animation()), convertToSound(consumable.sound()), consumable.hasConsumeParticles(), convertConsumeEffectsC2P(consumable.onConsumeEffects()));
+    }
+
+    private static SoundEvent convertToSound(Key key) {
+        return SoundEvent.fromNamespaceId(key.asString());
+    }
+
+    private static List<ConsumeEffect> convertConsumeEffectsP2C(List<net.minestom.server.item.component.ConsumeEffect> effects) {
+        return effects.stream().map(MinestomItemBuilderImpl::convert).toList();
+    }
+
+    private static List<net.minestom.server.item.component.ConsumeEffect> convertConsumeEffectsC2P(List<ConsumeEffect> effects) {
+        return effects.stream().map(MinestomItemBuilderImpl::convert).toList();
+    }
+
+    private static net.minestom.server.item.ItemAnimation convert(ItemAnimation animation) {
+        return switch (animation) {
+            case NONE -> net.minestom.server.item.ItemAnimation.NONE;
+            case EAT -> net.minestom.server.item.ItemAnimation.EAT;
+            case DRINK -> net.minestom.server.item.ItemAnimation.DRINK;
+            case BLOCK -> net.minestom.server.item.ItemAnimation.BLOCK;
+            case BOW -> net.minestom.server.item.ItemAnimation.BOW;
+            case SPEAR -> net.minestom.server.item.ItemAnimation.SPEAR;
+            case CROSSBOW -> net.minestom.server.item.ItemAnimation.CROSSBOW;
+            case SPYGLASS -> net.minestom.server.item.ItemAnimation.SPYGLASS;
+            case TOOT_HORN -> net.minestom.server.item.ItemAnimation.TOOT_HORN;
+            case BRUSH -> net.minestom.server.item.ItemAnimation.BRUSH;
+        };
+    }
+
+    private static ItemAnimation convert(net.minestom.server.item.ItemAnimation animation) {
+        return switch (animation) {
+            case NONE -> ItemAnimation.NONE;
+            case EAT -> ItemAnimation.EAT;
+            case DRINK -> ItemAnimation.DRINK;
+            case BLOCK -> ItemAnimation.BLOCK;
+            case BOW -> ItemAnimation.BOW;
+            case SPEAR -> ItemAnimation.SPEAR;
+            case CROSSBOW -> ItemAnimation.CROSSBOW;
+            case SPYGLASS -> ItemAnimation.SPYGLASS;
+            case TOOT_HORN -> ItemAnimation.TOOT_HORN;
+            case BRUSH -> ItemAnimation.BRUSH;
+            case BUNDLE -> ItemAnimation.NONE;
+        };
+    }
+
+    private static net.minestom.server.item.component.ConsumeEffect convert(ConsumeEffect consumeEffect) {
+        return switch (consumeEffect) {
+            case ConsumeEffect.ApplyEffects(var potions, var probability) -> new net.minestom.server.item.component.ConsumeEffect.ApplyEffects(convertPotionsC2P(potions), probability);
+            case ConsumeEffect.RemoveEffects(var effect) -> new net.minestom.server.item.component.ConsumeEffect.RemoveEffects(convert(effect, Tag.BasicType.POTION_EFFECTS));
+            case ConsumeEffect.ClearAllEffects _ -> net.minestom.server.item.component.ConsumeEffect.ClearAllEffects.INSTANCE;
+            case ConsumeEffect.TeleportRandomly(var diameter) -> new net.minestom.server.item.component.ConsumeEffect.TeleportRandomly(diameter);
+            case ConsumeEffect.PlaySound(var sound) -> new net.minestom.server.item.component.ConsumeEffect.PlaySound(convertToSound(sound));
+        };
+    }
+
+    private static ConsumeEffect convert(net.minestom.server.item.component.ConsumeEffect consumeEffect) {
+        return switch (consumeEffect) {
+            case net.minestom.server.item.component.ConsumeEffect.ApplyEffects(var potions, var probability) -> new ConsumeEffect.ApplyEffects(convertPotionsP2C(potions), probability);
+            case net.minestom.server.item.component.ConsumeEffect.RemoveEffects(var effect) -> new ConsumeEffect.RemoveEffects(convert(effect));
+            case net.minestom.server.item.component.ConsumeEffect.ClearAllEffects _ -> new ConsumeEffect.ClearAllEffects();
+            case net.minestom.server.item.component.ConsumeEffect.TeleportRandomly(var diameter) -> new ConsumeEffect.TeleportRandomly(diameter);
+            case net.minestom.server.item.component.ConsumeEffect.PlaySound(var sound) -> new ConsumeEffect.PlaySound(adventureSupport().convert(sound.key()));
+        };
+    }
+
+    private static List<CustomPotionEffect> convertPotionsP2C(List<net.minestom.server.potion.CustomPotionEffect> potions) {
+        return potions.stream().map(MinestomItemBuilderImpl::convert).toList();
+    }
+
+    private static List<net.minestom.server.potion.CustomPotionEffect> convertPotionsC2P(List<CustomPotionEffect> potions) {
+        return potions.stream().map(MinestomItemBuilderImpl::convert).toList();
+    }
+
+    private static <T extends ProtocolObject> net.minestom.server.registry.ObjectSet<T> convert(ObjectSet keys, Tag.BasicType type) {
+        return switch (keys) {
+            case ObjectSet.Empty() -> net.minestom.server.registry.ObjectSet.empty();
+            case ObjectSet.Entries(var entries) -> net.minestom.server.registry.ObjectSet.of(entries.stream().map(k -> NamespaceID.from(k.namespace(), k.value())).toList());
+            case ObjectSet.Tag(var tag) -> {
+                try {
+                    yield (net.minestom.server.registry.ObjectSet<T>) OBJECTSET_TAG_CONSTRUCTOR.invoke(type, tag.asString());
+                } catch (Throwable e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+    }
+
+    @SuppressWarnings("PatternValidation")
+    private static ObjectSet convert(net.minestom.server.registry.ObjectSet<?> keys) {
+        var cls = keys.getClass();
+        return switch (cls.getName()) {
+            case "net.minestom.server.registry.ObjectSetImpl$Empty" -> ObjectSet.empty();
+            case "net.minestom.server.registry.ObjectSetImpl$Entries" -> {
+                try {
+                    var entries = (List<NamespaceID>) cls.getMethod("entries").invoke(keys);
+                    yield ObjectSet.entries(entries.stream().map(adventureSupport()::convert).toList());
+                } catch (Throwable t) {
+                    throw new RuntimeException(t);
+                }
+            }
+            case "net.minestom.server.registry.ObjectSetImpl$Tag" -> {
+                try {
+                    var name = (String) cls.getMethod("name").invoke(keys);
+                    yield ObjectSet.tag(Key.key(name));
+                } catch (Throwable t) {
+                    throw new RuntimeException(t);
+                }
+            }
+            default -> throw new IllegalArgumentException("Unsupported ObjectSet: " + keys);
+        };
     }
 
     private static net.kyori.adventure.util.RGBLike convert(RGBLike r) {
@@ -335,19 +481,12 @@ public class MinestomItemBuilderImpl extends AbstractItemBuilder implements Mine
     }
 
     private static net.minestom.server.item.component.Food convert(Food f) {
-        return new net.minestom.server.item.component.Food(f.nutrition(), f.saturationModifier(), f.canAlwaysEat(), f.eatSeconds(), f.usingConvertsTo() == null ? ItemStack.AIR : f.usingConvertsTo().build(), f.effects().stream().map(MinestomItemBuilderImpl::convert).toList());
+        return new net.minestom.server.item.component.Food(f.nutrition(), f.saturationModifier(), f.canAlwaysEat());
+        // , f.eatSeconds(), f.usingConvertsTo() == null ? ItemStack.AIR : f.usingConvertsTo().build(), f.effects().stream().map(MinestomItemBuilderImpl::convert).toList()
     }
 
     private static Food convert(net.minestom.server.item.component.Food f) {
-        return new Food(f.nutrition(), f.saturationModifier(), f.canAlwaysEat(), f.eatSeconds(), new MinestomItemBuilderImpl(f.usingConvertsTo()), f.effects().stream().map(MinestomItemBuilderImpl::convert).toList());
-    }
-
-    private static net.minestom.server.item.component.Food.EffectChance convert(Food.EffectChance e) {
-        return new net.minestom.server.item.component.Food.EffectChance(convert(e.effect()), e.probability());
-    }
-
-    private static Food.EffectChance convert(net.minestom.server.item.component.Food.EffectChance e) {
-        return new Food.EffectChance(convert(e.effect()), e.probability());
+        return new Food(f.nutrition(), f.saturationModifier(), f.canAlwaysEat());
     }
 
     private static net.minestom.server.potion.CustomPotionEffect convert(CustomPotionEffect e) {
@@ -558,6 +697,55 @@ public class MinestomItemBuilderImpl extends AbstractItemBuilder implements Mine
         return new net.minestom.server.item.component.AttributeList(modifiers, attributeList.showInTooltip());
     }
 
+    private static DamageResistant convert(net.minestom.server.item.component.DamageResistant damageResistant) {
+        return new DamageResistant(damageResistant.tagKey());
+    }
+
+    private static net.minestom.server.item.component.DamageResistant convert(DamageResistant damageResistant) {
+        return new net.minestom.server.item.component.DamageResistant(damageResistant.tag());
+    }
+
+    @SuppressWarnings("PatternValidation")
+    private static UseCooldown convert(net.minestom.server.item.component.UseCooldown cd) {
+        return new UseCooldown(cd.seconds(), cd.cooldownGroup() == null ? null : Key.key(cd.cooldownGroup()));
+    }
+
+    private static net.minestom.server.item.component.UseCooldown convert(UseCooldown cd) {
+        return new net.minestom.server.item.component.UseCooldown(cd.seconds(), cd.cooldownGroup() == null ? null : cd.cooldownGroup().asString());
+    }
+
+    @SuppressWarnings("PatternValidation")
+    private static Equippable convert(net.minestom.server.item.component.Equippable equippable) {
+        var model = equippable.model() == null ? null : Key.key(equippable.model());
+        var cameraOverlay = equippable.cameraOverlay() == null ? null : Key.key(equippable.cameraOverlay());
+        var allowedEntities = equippable.allowedEntities() == null ? null : convert(equippable.allowedEntities());
+        return new Equippable(EquipmentSlot.of(equippable.slot()), adventureSupport().convert(equippable.equipSound().key()), model, cameraOverlay, allowedEntities, equippable.dispensable(), equippable.swappable(), equippable.damageOnHurt());
+    }
+
+    private static net.minestom.server.item.component.Equippable convert(Equippable equippable) {
+        var slot = ((MinestomEquipmentSlot) equippable.slot()).minestomType();
+        var model = equippable.model() == null ? null : equippable.model().asString();
+        var cameraOverlay = equippable.cameraOverlay() == null ? null : equippable.cameraOverlay().asString();
+        var allowedEntities = equippable.allowedEntities() == null ? null : MinestomItemBuilderImpl.<EntityType>convert(equippable.allowedEntities(), Tag.BasicType.ENTITY_TYPES);
+        return new net.minestom.server.item.component.Equippable(slot, convertToSound(equippable.equipSound()), model, cameraOverlay, allowedEntities, equippable.dispensable(), equippable.swappable(), equippable.damageOnHurt());
+    }
+
+    private static DeathProtection convert(net.minestom.server.item.component.DeathProtection deathProtection) {
+        return new DeathProtection(convertConsumeEffectsP2C(deathProtection.deathEffects()));
+    }
+
+    private static net.minestom.server.item.component.DeathProtection convert(DeathProtection deathProtection) {
+        return new net.minestom.server.item.component.DeathProtection(convertConsumeEffectsC2P(deathProtection.deathEffects()));
+    }
+
+    private static ObjectSet convertMaterials(net.minestom.server.registry.ObjectSet<net.minestom.server.item.Material> set) {
+        return convert(set);
+    }
+
+    private static net.minestom.server.registry.ObjectSet<net.minestom.server.item.Material> convertMaterials(ObjectSet set) {
+        return convert(set, Tag.BasicType.ITEMS);
+    }
+
     static {
         var m = new ArrayList<Mapping<?, ?>>();
         m.add(new Mapping<>(ATTRIBUTE_MODIFIERS, ItemComponent.ATTRIBUTE_MODIFIERS, MinestomItemBuilderImpl::convert, MinestomItemBuilderImpl::convert));
@@ -571,6 +759,7 @@ public class MinestomItemBuilderImpl extends AbstractItemBuilder implements Mine
         m.add(new Mapping<>(CAN_BREAK, ItemComponent.CAN_BREAK, MinestomItemBuilderImpl::convert, MinestomItemBuilderImpl::convert));
         m.add(new Mapping<>(CAN_PLACE_ON, ItemComponent.CAN_PLACE_ON, MinestomItemBuilderImpl::convert, MinestomItemBuilderImpl::convert));
         m.add(new Mapping<>(CHARGED_PROJECTILES, ItemComponent.CHARGED_PROJECTILES, MinestomItemBuilderImpl::convertItemsC2P, MinestomItemBuilderImpl::convertItemsP2C));
+        m.add(new Mapping<>(CONSUMABLE, ItemComponent.CONSUMABLE, MinestomItemBuilderImpl::convert, MinestomItemBuilderImpl::convert));
         m.add(new Mapping<>(CONTAINER, ItemComponent.CONTAINER, MinestomItemBuilderImpl::convertItemsC2P, MinestomItemBuilderImpl::convertItemsP2C));
         m.add(new Mapping<>(CONTAINER_LOOT, ItemComponent.CONTAINER_LOOT, MinestomItemBuilderImpl::convert, MinestomItemBuilderImpl::convert));
         m.add(new Mapping<>(CREATIVE_SLOT_LOCK, ItemComponent.CREATIVE_SLOT_LOCK, MinestomItemBuilderImpl::convert, MinestomItemBuilderImpl::convert));
@@ -578,22 +767,27 @@ public class MinestomItemBuilderImpl extends AbstractItemBuilder implements Mine
         m.add(new Mapping<>(CUSTOM_MODEL_DATA, ItemComponent.CUSTOM_MODEL_DATA));
         m.add(new Mapping<>(CUSTOM_NAME, ItemComponent.CUSTOM_NAME, MinestomItemBuilderImpl::convert, MinestomItemBuilderImpl::convert));
         m.add(new Mapping<>(DAMAGE, ItemComponent.DAMAGE));
+        m.add(new Mapping<>(DEATH_PROTECTION, ItemComponent.DEATH_PROTECTION, MinestomItemBuilderImpl::convert, MinestomItemBuilderImpl::convert));
         m.add(new Mapping<>(DEBUG_STICK_STATE, ItemComponent.DEBUG_STICK_STATE, MinestomItemBuilderImpl::convert, MinestomItemBuilderImpl::convert));
         m.add(new Mapping<>(DYED_COLOR, ItemComponent.DYED_COLOR, MinestomItemBuilderImpl::convert, MinestomItemBuilderImpl::convert));
+        m.add(new Mapping<>(ENCHANTABLE, ItemComponent.ENCHANTABLE));
         m.add(new Mapping<>(ENCHANTMENT_GLINT_OVERRIDE, ItemComponent.ENCHANTMENT_GLINT_OVERRIDE));
         m.add(new Mapping<>(ENCHANTMENTS, ItemComponent.ENCHANTMENTS, MinestomItemBuilderImpl::convert, MinestomItemBuilderImpl::convert));
         m.add(new Mapping<>(ENTITY_DATA, ItemComponent.ENTITY_DATA, MinestomItemBuilderImpl::convertData, MinestomItemBuilderImpl::convertData));
-        m.add(new Mapping<>(FIRE_RESISTANT, ItemComponent.FIRE_RESISTANT, MinestomItemBuilderImpl::convert, MinestomItemBuilderImpl::convert));
+        m.add(new Mapping<>(EQUIPPABLE, ItemComponent.EQUIPPABLE, MinestomItemBuilderImpl::convert, MinestomItemBuilderImpl::convert));
+        m.add(new Mapping<>(DAMAGE_RESISTANT, ItemComponent.DAMAGE_RESISTANT, MinestomItemBuilderImpl::convert, MinestomItemBuilderImpl::convert));
         m.add(new Mapping<>(FIREWORK_EXPLOSION, ItemComponent.FIREWORK_EXPLOSION, MinestomItemBuilderImpl::convert, MinestomItemBuilderImpl::convert));
         m.add(new Mapping<>(FIREWORKS, ItemComponent.FIREWORKS, MinestomItemBuilderImpl::convert, MinestomItemBuilderImpl::convert));
         m.add(new Mapping<>(FOOD, ItemComponent.FOOD, MinestomItemBuilderImpl::convert, MinestomItemBuilderImpl::convert));
+        m.add(new Mapping<>(GLIDER, ItemComponent.GLIDER, MinestomItemBuilderImpl::convert, MinestomItemBuilderImpl::convert));
         m.add(new Mapping<>(HIDE_ADDITIONAL_TOOLTIP, ItemComponent.HIDE_ADDITIONAL_TOOLTIP, MinestomItemBuilderImpl::convert, MinestomItemBuilderImpl::convert));
         m.add(new Mapping<>(HIDE_TOOLTIP, ItemComponent.HIDE_TOOLTIP, MinestomItemBuilderImpl::convert, MinestomItemBuilderImpl::convert));
         m.add(new Mapping<>(INSTRUMENT, ItemComponent.INSTRUMENT));
         m.add(new Mapping<>(INTANGIBLE_PROJECTILE, ItemComponent.INTANGIBLE_PROJECTILE, MinestomItemBuilderImpl::convert, MinestomItemBuilderImpl::convert));
+        m.add(new Mapping<>(ITEM_MODEL, ItemComponent.ITEM_MODEL, Key::asString, Key::key));
         m.add(new Mapping<>(ITEM_NAME, ItemComponent.ITEM_NAME, MinestomItemBuilderImpl::convert, MinestomItemBuilderImpl::convert));
         m.add(new Mapping<>(JUKEBOX_PLAYABLE, ItemComponent.JUKEBOX_PLAYABLE, MinestomItemBuilderImpl::convert, MinestomItemBuilderImpl::convert));
-        m.add(new Mapping<>(LOCK, ItemComponent.LOCK));
+        m.add(new Mapping<>(LOCK, ItemComponent.LOCK, MinestomItemBuilderImpl::convert, MinestomItemBuilderImpl::convert));
         m.add(new Mapping<>(LODESTONE_TRACKER, ItemComponent.LODESTONE_TRACKER, MinestomItemBuilderImpl::convert, MinestomItemBuilderImpl::convert));
         m.add(new Mapping<>(LORE, ItemComponent.LORE, MinestomItemBuilderImpl::convertComponentsC2P, MinestomItemBuilderImpl::convertComponentsP2C));
         m.add(new Mapping<>(MAP_COLOR, ItemComponent.MAP_COLOR, MinestomItemBuilderImpl::convert, MinestomItemBuilderImpl::convert));
@@ -610,11 +804,15 @@ public class MinestomItemBuilderImpl extends AbstractItemBuilder implements Mine
         m.add(new Mapping<>(RARITY, ItemComponent.RARITY, MinestomItemBuilderImpl::convert, MinestomItemBuilderImpl::convert));
         m.add(new Mapping<>(RECIPES, ItemComponent.RECIPES));
         m.add(new Mapping<>(REPAIR_COST, ItemComponent.REPAIR_COST));
+        m.add(new Mapping<>(REPAIRABLE, ItemComponent.REPAIRABLE, MinestomItemBuilderImpl::convertMaterials, MinestomItemBuilderImpl::convertMaterials));
         m.add(new Mapping<>(STORED_ENCHANTMENTS, ItemComponent.STORED_ENCHANTMENTS, MinestomItemBuilderImpl::convert, MinestomItemBuilderImpl::convert));
         m.add(new Mapping<>(SUSPICIOUS_STEW_EFFECTS, ItemComponent.SUSPICIOUS_STEW_EFFECTS, MinestomItemBuilderImpl::convert, MinestomItemBuilderImpl::convert));
         m.add(new Mapping<>(TOOL, ItemComponent.TOOL, MinestomItemBuilderImpl::convert, MinestomItemBuilderImpl::convert));
+        m.add(new Mapping<>(TOOLTIP_STYLE, ItemComponent.TOOLTIP_STYLE, Key::asString, Key::key));
         m.add(new Mapping<>(TRIM, ItemComponent.TRIM, MinestomItemBuilderImpl::convert, MinestomItemBuilderImpl::convert));
         m.add(new Mapping<>(UNBREAKABLE, ItemComponent.UNBREAKABLE, MinestomItemBuilderImpl::convert, MinestomItemBuilderImpl::convert));
+        m.add(new Mapping<>(USE_COOLDOWN, ItemComponent.USE_COOLDOWN, MinestomItemBuilderImpl::convert, MinestomItemBuilderImpl::convert));
+        m.add(new Mapping<>(USE_REMAINDER, ItemComponent.USE_REMAINDER, ItemBuilder::build, ItemBuilder::item));
         m.add(new Mapping<>(WRITABLE_BOOK_CONTENT, ItemComponent.WRITABLE_BOOK_CONTENT, MinestomItemBuilderImpl::convert, MinestomItemBuilderImpl::convert));
         m.add(new Mapping<>(WRITTEN_BOOK_CONTENT, ItemComponent.WRITTEN_BOOK_CONTENT, MinestomItemBuilderImpl::convert, MinestomItemBuilderImpl::convert));
 

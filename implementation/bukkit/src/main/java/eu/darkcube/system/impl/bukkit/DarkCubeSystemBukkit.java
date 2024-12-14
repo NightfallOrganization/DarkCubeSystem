@@ -33,8 +33,8 @@ public class DarkCubeSystemBukkit extends DarkCubePlugin implements Listener {
 
     public DarkCubeSystemBukkit() {
         super("system");
-        versionHandler = BukkitVersionLoader.INSTANCE.load();
         DarkCubePlugin.systemPlugin(this);
+        versionHandler = BukkitVersionLoader.INSTANCE.load();
     }
 
     @Override

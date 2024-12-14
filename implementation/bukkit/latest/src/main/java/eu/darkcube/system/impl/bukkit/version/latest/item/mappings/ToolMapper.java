@@ -52,12 +52,12 @@ public record ToolMapper() implements Mapper<Tool, net.minecraft.world.item.comp
             case BlockTypeFilter.Blocks blocks -> {
                 var l = new ArrayList<Holder<Block>>();
                 for (var material : blocks.blocks()) {
-                    var block = BuiltInRegistries.BLOCK.getHolder(ResourceLocation.parse(material.key().asString())).orElseThrow();
+                    var block = BuiltInRegistries.BLOCK.get(ResourceLocation.parse(material.key().asString())).orElseThrow();
                     l.add(block);
                 }
                 yield HolderSet.direct(l);
             }
-            case BlockTypeFilter.Tag tag -> BuiltInRegistries.BLOCK.getTag(TagKey.create(Registries.BLOCK, ResourceLocation.parse(tag.tag().asString()))).orElseThrow();
+            case BlockTypeFilter.Tag tag -> BuiltInRegistries.BLOCK.get(TagKey.create(Registries.BLOCK, ResourceLocation.parse(tag.tag().asString()))).orElseThrow();
         };
     }
 }

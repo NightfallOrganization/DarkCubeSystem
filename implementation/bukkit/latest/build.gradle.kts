@@ -46,11 +46,11 @@ tasks {
 
 configurations.consumable("version-cloudnet") {
     outgoing.artifact(cloudnetJar) {
-        name = "v1_21"
+        name = "latest"
     }
 }
 configurations.consumable("version-standalone") {
     outgoing.artifact(standaloneJar) {
-        name = "v1_21"
+        name = "latest"
     }
 }

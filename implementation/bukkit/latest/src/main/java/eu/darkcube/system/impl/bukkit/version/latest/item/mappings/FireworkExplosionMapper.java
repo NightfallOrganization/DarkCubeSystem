@@ -7,9 +7,7 @@
 
 package eu.darkcube.system.impl.bukkit.version.latest.item.mappings;
 
-import static net.minecraft.util.FastColor.ABGR32.blue;
-import static net.minecraft.util.FastColor.ABGR32.green;
-import static net.minecraft.util.FastColor.ARGB32.red;
+import static net.minecraft.util.ARGB.*;
 
 import java.util.ArrayList;
 
@@ -18,7 +16,7 @@ import eu.darkcube.system.libs.net.kyori.adventure.text.format.TextColor;
 import eu.darkcube.system.libs.net.kyori.adventure.util.RGBLike;
 import eu.darkcube.system.server.item.component.components.FireworkExplosion;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import net.minecraft.util.FastColor;
+import net.minecraft.util.ARGB;
 
 public record FireworkExplosionMapper() implements Mapper<FireworkExplosion, net.minecraft.world.item.component.FireworkExplosion> {
     private FireworkExplosion.Shape convert(net.minecraft.world.item.component.FireworkExplosion.Shape type) {
@@ -47,10 +45,10 @@ public record FireworkExplosionMapper() implements Mapper<FireworkExplosion, net
         var colors = new IntArrayList();
         var fadeColors = new IntArrayList();
         for (var color : mapping.colors()) {
-            colors.add(FastColor.ARGB32.color(0, color.red(), color.green(), color.blue()));
+            colors.add(ARGB.color(0, color.red(), color.green(), color.blue()));
         }
         for (var color : mapping.fadeColors()) {
-            fadeColors.add(FastColor.ARGB32.color(0, color.red(), color.green(), color.blue()));
+            fadeColors.add(ARGB.color(0, color.red(), color.green(), color.blue()));
         }
         return new net.minecraft.world.item.component.FireworkExplosion(shape, colors, fadeColors, mapping.hasTrail(), mapping.hasTwinkle());
     }

@@ -32,9 +32,11 @@ import eu.darkcube.system.server.item.attribute.AttributeProvider;
 import eu.darkcube.system.server.item.enchant.EnchantmentProvider;
 import eu.darkcube.system.server.item.flag.ItemFlagProvider;
 import eu.darkcube.system.server.item.material.MaterialProvider;
+import eu.darkcube.system.util.AdventureSupport;
 
 public class VersionHandler extends AbstractVersionHandler {
     public VersionHandler() {
+        install(AdventureSupport.class, new BukkitAdventureSupportLatest());
         install(KeyProvider.class, new KeyProviderImpl());
         install(MaterialProvider.class, new BukkitMaterialProvider());
         install(ItemProvider.class, new ItemProviderImpl());

@@ -35,7 +35,7 @@ public record AttributeModifiersMapper() implements Mapper<AttributeList, ItemAt
         for (var modifier : mapping.modifiers()) {
             var attributeId = ResourceLocation.parse(((BukkitAttribute) modifier.attribute()).bukkitType().key().asString());
             var id = ResourceLocation.parse(modifier.key().asString());
-            var attribute = BuiltInRegistries.ATTRIBUTE.getHolder(attributeId).orElseThrow();
+            var attribute = BuiltInRegistries.ATTRIBUTE.get(attributeId).orElseThrow();
             var attributeModifier = new AttributeModifier(id, modifier.amount(), switch (((BukkitAttributeModifierOperationImpl) modifier.operation()).bukkitType()) {
                 case ADD_NUMBER -> AttributeModifier.Operation.ADD_VALUE;
                 case ADD_SCALAR -> AttributeModifier.Operation.ADD_MULTIPLIED_BASE;

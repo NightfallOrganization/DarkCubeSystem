@@ -99,8 +99,8 @@ configurations.consumable("standalone") {
 }
 val versions = ArrayList<String>()
 // KEEP THESE VERSIONS IN CORRECT ORDER!!!
-registerVersion("1_8_R3")
-registerVersion("1_21")
+registerVersion("v1_8_R3")
+registerVersion("latest")
 val generateVersionsMeta = tasks.register("generateVersionsMeta") {
     inputs.property("versions", versions.toString())
     val file = temporaryDir.resolve("versions")

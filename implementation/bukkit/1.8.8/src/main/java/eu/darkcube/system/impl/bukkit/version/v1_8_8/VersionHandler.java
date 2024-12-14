@@ -9,6 +9,7 @@ package eu.darkcube.system.impl.bukkit.version.v1_8_8;
 
 import eu.darkcube.system.impl.bukkit.inventory.BukkitInventoryAPIUtils;
 import eu.darkcube.system.impl.bukkit.inventory.InventoryVersionProvider;
+import eu.darkcube.system.impl.bukkit.util.BukkitAdventureSupportImpl;
 import eu.darkcube.system.impl.bukkit.version.AbstractVersionHandler;
 import eu.darkcube.system.impl.bukkit.version.v1_8_8.inventory.BukkitInventoryTemplatePlatformProvider;
 import eu.darkcube.system.impl.bukkit.version.v1_8_8.inventory.BukkitItemTemplateItemProvider;
@@ -26,9 +27,11 @@ import eu.darkcube.system.server.item.ItemProvider;
 import eu.darkcube.system.server.item.enchant.EnchantmentProvider;
 import eu.darkcube.system.server.item.flag.ItemFlagProvider;
 import eu.darkcube.system.server.item.material.MaterialProvider;
+import eu.darkcube.system.util.AdventureSupport;
 
 public class VersionHandler extends AbstractVersionHandler {
     public VersionHandler() {
+        install(AdventureSupport.class, new BukkitAdventureSupportImpl());
         install(KeyProvider.class, new KeyProviderImpl());
         install(MaterialProvider.class, new BukkitMaterialProvider());
         install(EnchantmentProvider.class, new BukkitEnchantmentProvider());

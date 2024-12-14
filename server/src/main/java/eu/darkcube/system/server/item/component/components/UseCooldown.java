@@ -7,5 +7,8 @@
 
 package eu.darkcube.system.server.item.component.components;
 
-public record Food(int nutrition, float saturationModifier, boolean canAlwaysEat) {
+import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
+import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
+
+public record UseCooldown(float seconds, @Nullable Key cooldownGroup) {
 }

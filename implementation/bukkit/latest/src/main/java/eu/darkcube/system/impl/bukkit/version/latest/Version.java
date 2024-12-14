@@ -15,8 +15,6 @@ import eu.darkcube.system.impl.bukkit.DarkCubeSystemBukkit;
 import eu.darkcube.system.impl.bukkit.version.BukkitVersionImpl;
 import eu.darkcube.system.impl.bukkit.version.latest.provider.via.ViaSupportImpl;
 import eu.darkcube.system.impl.bukkit.version.latest.util.WorkbenchUtilImpl;
-import eu.darkcube.system.provider.InternalProvider;
-import eu.darkcube.system.util.AdventureSupport;
 import net.minecraft.SharedConstants;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
@@ -25,7 +23,7 @@ public class Version extends BukkitVersionImpl {
     public Version() {
         this.commandApiUtils = new CommandAPIUtilsImpl();
         this.protocolVersion = SharedConstants.getProtocolVersion();
-        provider.register(WorkbenchUtil.class, new WorkbenchUtilImpl());
+        this.provider.register(WorkbenchUtil.class, new WorkbenchUtilImpl());
     }
 
     @Override
@@ -43,7 +41,6 @@ public class Version extends BukkitVersionImpl {
 
     @Override
     public void enabled(DarkCubeSystemBukkit system) {
-        InternalProvider.instance().register(AdventureSupport.class, new BukkitAdventureSupportLatest(system));
         super.enabled(system);
         Bukkit.getPluginManager().registerEvents((Listener) commandApiUtils, system);
         ((CommandAPIUtilsImpl) commandApiUtils).enabled(system);

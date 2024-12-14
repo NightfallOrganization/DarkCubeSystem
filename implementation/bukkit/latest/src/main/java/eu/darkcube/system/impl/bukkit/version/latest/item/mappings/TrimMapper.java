@@ -18,18 +18,19 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 
-public record TrimMapper() implements Mapper<ArmorTrim, net.minecraft.world.item.armortrim.ArmorTrim> {
+public record TrimMapper() implements Mapper<ArmorTrim, net.minecraft.world.item.equipment.trim.ArmorTrim> {
     private static final RegistryOps<Tag> OPS = RegistryOps.create(NbtOps.INSTANCE, MinecraftServer.getServer().registryAccess());
 
     @Override
-    public net.minecraft.world.item.armortrim.ArmorTrim apply(ArmorTrim mapping) {
+    public net.minecraft.world.item.equipment.trim.ArmorTrim apply(ArmorTrim mapping) {
         var material = OPS.getter(Registries.TRIM_MATERIAL).orElseThrow().get(ResourceKey.create(Registries.TRIM_MATERIAL, ResourceLocation.parse(mapping.material().asString()))).orElseThrow();
         var pattern = OPS.getter(Registries.TRIM_PATTERN).orElseThrow().get(ResourceKey.create(Registries.TRIM_PATTERN, ResourceLocation.parse(mapping.pattern().asString()))).orElseThrow();
-        return new net.minecraft.world.item.armortrim.ArmorTrim(material, pattern, mapping.showInTooltip());
+        return new net.minecraft.world.item.equipment.trim.ArmorTrim(material, pattern, mapping.showInTooltip());
     }
 
+    @SuppressWarnings("PatternValidation")
     @Override
-    public ArmorTrim load(net.minecraft.world.item.armortrim.ArmorTrim mapping) {
-        return new ArmorTrim(Key.key(mapping.material().unwrapKey().orElseThrow().location().toString()), Key.key(mapping.pattern().unwrapKey().orElseThrow().location().toString()), mapping.showInTooltip);
+    public ArmorTrim load(net.minecraft.world.item.equipment.trim.ArmorTrim mapping) {
+        return new ArmorTrim(Key.key(mapping.material().unwrapKey().orElseThrow().location().toString()), Key.key(mapping.pattern().unwrapKey().orElseThrow().location().toString()), mapping.showInTooltip());
     }
 }

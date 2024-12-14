@@ -5,7 +5,17 @@
  * The above copyright notice shall be included in all copies of this software.
  */
 
-package eu.darkcube.system.server.item.component.components;
+package eu.darkcube.system.server.item.component.components.util;
 
-public record Food(int nutrition, float saturationModifier, boolean canAlwaysEat) {
+public enum ItemAnimation {
+    NONE,
+    EAT,
+    DRINK,
+    BLOCK,
+    BOW,
+    SPEAR,
+    CROSSBOW,
+    SPYGLASS,
+    TOOT_HORN,
+    BRUSH
 }

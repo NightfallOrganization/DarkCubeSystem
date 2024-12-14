@@ -31,7 +31,7 @@ public record DebugStickStateMapper() implements Mapper<DebugStickState, net.min
                 LOGGER.error("Not a valid ResourceLocation: {}", entry.getKey());
                 continue;
             }
-            var block = BuiltInRegistries.BLOCK.getHolder(id).orElse(null);
+            var block = BuiltInRegistries.BLOCK.get(id).orElse(null);
             if (block == null) {
                 LOGGER.error("Unknown block: {}", id);
                 continue;

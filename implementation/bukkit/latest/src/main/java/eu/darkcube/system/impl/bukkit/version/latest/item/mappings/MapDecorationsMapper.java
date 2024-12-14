@@ -23,7 +23,7 @@ public record MapDecorationsMapper() implements Mapper<MapDecorations, net.minec
     }
 
     private Holder<MapDecorationType> get(String type) {
-        return BuiltInRegistries.MAP_DECORATION_TYPE.getHolder(ResourceLocation.parse(type)).orElseThrow();
+        return BuiltInRegistries.MAP_DECORATION_TYPE.get(ResourceLocation.parse(type)).orElseThrow();
     }
 
     @Override

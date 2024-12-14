@@ -13,6 +13,7 @@ import eu.cloudnetservice.wrapper.transform.ClassTransformerRegistry;
 import eu.darkcube.system.cloudnet.packetapi.PacketAPI;
 import eu.darkcube.system.impl.cloudnet.ModuleImplementation;
 import eu.darkcube.system.impl.cloudnet.wrapper.transformer.PaperMainClassLoadingTransformer;
+import eu.darkcube.system.impl.cloudnet.wrapper.transformer.minestom.ObjectSetImplTagTransformer;
 import eu.darkcube.system.impl.cloudnet.wrapper.transformer.via.ViaAbstractProtocolDetectorServiceTransformer;
 import eu.darkcube.system.impl.cloudnet.wrapper.transformer.via.ViaInventoryFixTransformer;
 import eu.darkcube.system.impl.cloudnet.wrapper.transformer.via.ViaProtocolDetectorServiceTransformer;
@@ -31,10 +32,13 @@ public class DarkCubeSystemWrapper implements ModuleImplementation {
     public DarkCubeSystemWrapper(ClassTransformerRegistry transformerRegistry, WrapperUserAPI userAPI) {
         this.userAPI = userAPI;
         PaperMainClassLoadingTransformer.register(transformerRegistry);
+
         transformerRegistry.registerTransformer(new ViaProtocolDetectorServiceTransformer());
         transformerRegistry.registerTransformer(new ViaAbstractProtocolDetectorServiceTransformer());
         transformerRegistry.registerTransformer(new ViaVelocityVersionProviderTransformer());
         transformerRegistry.registerTransformer(new ViaInventoryFixTransformer());
+
+        transformerRegistry.registerTransformer(new ObjectSetImplTagTransformer());
     }
 
     @Override

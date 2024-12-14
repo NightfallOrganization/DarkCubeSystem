@@ -15,10 +15,11 @@ import eu.darkcube.system.libs.net.kyori.adventure.audience.Audience;
 import eu.darkcube.system.libs.net.kyori.adventure.key.Key;
 import eu.darkcube.system.libs.net.kyori.adventure.text.flattener.ComponentFlattener;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
+import eu.darkcube.system.minestom.command.PermissionProvider;
 import eu.darkcube.system.minestom.util.adventure.MinestomAudienceProvider;
 import net.minestom.server.adventure.audience.Audiences;
+import net.minestom.server.command.CommandSender;
 import net.minestom.server.entity.Player;
-import net.minestom.server.permission.PermissionHandler;
 
 public class MinestomAudienceProviderImpl implements MinestomAudienceProvider {
     private static final ComponentFlattener FLATTENER = ComponentFlattener.basic().toBuilder().build();
@@ -57,13 +58,14 @@ public class MinestomAudienceProviderImpl implements MinestomAudienceProvider {
             if (audience instanceof Player player) {
                 if (player.getPermissionLevel() >= 2) return true;
             }
-            if (audience instanceof PermissionHandler handler) {
-                return handler.hasPermission(permission);
+            if (audience instanceof CommandSender sender) {
+                return PermissionProvider.provider().hasPermission(sender, permission);
             }
             return false;
         }));
     }
 
+    @SuppressWarnings("PatternValidation")
     @Override
     public @NotNull Audience world(@NotNull Key world) {
         return audience(Audiences.players(player -> {

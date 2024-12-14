@@ -55,13 +55,15 @@ public class BukkitVersionLoader {
             var version = ServerBuildInfo.buildInfo().minecraftVersionId().replace('.', '_');
             var url = loader.getResource("versions/v" + version + ".jar");
             if (url != null) return url;
+            url = loader.getResource("versions/latest.jar");
+            if (url != null) return url;
         } else {
             // legacy minecraft
             var url = loader.getResource("versions/v1_8_R3.jar");
             if (url != null) return url;
         }
         var versions = new String(Objects.requireNonNull(loader.getResourceAsStream("versions/versions")).readAllBytes(), StandardCharsets.UTF_8).split("\n");
-        return loader.getResource("versions/v" + versions[versions.length - 1] + ".jar");
+        return loader.getResource("versions/" + versions[versions.length - 1] + ".jar");
     }
 
     public ModernMinecraft loadModernMinecraft() {
