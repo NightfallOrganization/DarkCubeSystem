@@ -13,7 +13,7 @@ caffeine = "3.1.8"
 slf4j-api = "2.0.14"
 h2 = "2.3.232"
 
-minestom = "ccea53ac44"
+minestom = "7320437640"
 minestom-extensions = "1.2.0"
 
 shadow = "8.1.8"
