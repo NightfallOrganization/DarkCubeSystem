@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2025. [DarkCube]
+ * All rights reserved.
+ * You may not use or redistribute this software or any associated files without permission.
+ * The above copyright notice shall be included in all copies of this software.
+ */
+
 package eu.darkcube.system.impl.cloudnet.wrapper.transformer.via;
 
 import static eu.darkcube.system.impl.cloudnet.wrapper.transformer.via.ViaProtocolDetectorServiceTransformer.*;
@@ -237,7 +244,7 @@ public class ViaAbstractProtocolDetectorServiceTransformer implements ClassTrans
             builder.invokestatic(CD_Arrays, "binarySearch", MTD_Arrays_binarySearch);
             builder.istore(idx);
 
-            // if (idx <= 0) {
+            // if (idx >= 0) {
             //     return versions[idx];
             // }
             builder.iload(idx);
