@@ -1,45 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
-  ],
-  "hostRules": [
-    {
-      "matchHost": "https://nexus.darkcube.eu/repository/darkcube-group/",
-      "username": "powerless",
-      "hostType": "maven",
-      "password": "{{ secrets.MAVEN_DARKCUBE_GROUP }}"
-    },
-    {
-      "matchHost": "https://repo1.maven.org/maven2/",
-      "enabled": false
-    },
-    {
-      "matchHost": "docker.io",
-      "enabled": false
-    },
-    {
-      "matchHost": "api.github.com",
-      "enabled": false
-    },
-    {
-      "matchHost": "github.com",
-      "enabled": false
-    }
-  ],
-  "packageRules": [
-    {
-      "matchManagers": [
-        "gradle"
-      ],
-      "registryUrls": [
-        "https://nexus.darkcube.eu/repository/darkcube-group/"
-      ]
-    },
-    {
-      "matchPackagePatterns": ["^eu.cloudnetservice.cloudnet"],
-      "allowedVersions": "!/-SNAPSHOT$/"
-    }
+    "github>Nightfall/renovate-template"
   ],
   "ignoreDeps": [
     "implementation:bukkit"
