@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. [DarkCube]
+ * Copyright (c) 2024-2025. [DarkCube]
  * All rights reserved.
  * You may not use or redistribute this software or any associated files without permission.
  * The above copyright notice shall be included in all copies of this software.
@@ -24,9 +24,9 @@ import eu.darkcube.system.impl.server.inventory.SimpleItemHandler;
 import eu.darkcube.system.impl.server.inventory.item.ItemReferenceImpl;
 import eu.darkcube.system.libs.com.github.benmanes.caffeine.cache.Cache;
 import eu.darkcube.system.libs.com.github.benmanes.caffeine.cache.Caffeine;
-import eu.darkcube.system.libs.org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
+import eu.darkcube.system.libs.org.jetbrains.annotations.UnknownNullability;
 import eu.darkcube.system.server.inventory.item.ItemReference;
 import eu.darkcube.system.server.inventory.paged.PageButton;
 import eu.darkcube.system.server.inventory.paged.PagedInventoryContent;
@@ -51,7 +51,7 @@ public class PaginationCalculator<PlatformItem, PlatformPlayer> {
     private final int loadedPageIdx = UNLOAD_RANGE;
     private final @Nullable Updater updater;
     private int[] viewSortedSlots;
-    private @MonotonicNonNull User user;
+    private @UnknownNullability User user;
     private int viewPageSize = 0;
     private boolean loadingPage = false;
 
