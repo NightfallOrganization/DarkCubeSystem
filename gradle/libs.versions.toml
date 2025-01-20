@@ -1,7 +1,7 @@
 metadata.format.version = "1.1"
 
 [versions]
-cloudnet = "4.0.0-RC11.1"
+cloudnet = "4.0.0-RC12-SNAPSHOT"
 annotations = "26.0.1"
 brigadier = "1.0.18"
 gson = "2.11.0"
@@ -12,6 +12,7 @@ viaversion = "5.2.1"
 caffeine = "3.1.8"
 slf4j-api = "2.0.16"
 h2 = "2.3.232"
+reflexion = "1.8.0"
 
 minestom = "ccea53ac44"
 minestom-extensions = "1.2.0"
@@ -43,14 +44,17 @@ annotations = { group = "org.jetbrains", name = "annotations", version.ref = "an
 luckperms = { group = "net.luckperms", name = "api", version.ref = "luckperms" }
 caffeine = { group = "com.github.ben-manes.caffeine", name = "caffeine", version.ref = "caffeine" }
 h2 = { group = "com.h2database", name = "h2", version.ref = "h2" }
+reflexion = { group = "dev.derklaro.reflexion", name = "reflexion", version.ref = "reflexion" }
 
 minestom = { group = "net.minestom", name = "minestom-snapshots", version.ref = "minestom" }
 minestom-extensions = { group = "dev.hollowcube", name = "minestom-ce-extensions", version.ref = "minestom-extensions" }
 
-cloudnet-driver = { group = "eu.darkcube.cloudnetservice.cloudnet", name = "driver", version.ref = "cloudnet" }
-cloudnet-bridge = { group = "eu.darkcube.cloudnetservice.cloudnet", name = "bridge", version.ref = "cloudnet" }
-cloudnet-node = { group = "eu.darkcube.cloudnetservice.cloudnet", name = "node", version.ref = "cloudnet" }
-cloudnet-wrapper = { group = "eu.darkcube.cloudnetservice.cloudnet", name = "wrapper-jvm", version.ref = "cloudnet" }
+cloudnet-driver-api = { group = "eu.darkcube.cloudnetservice.cloudnet", name = "driver-api", version.ref = "cloudnet" }
+cloudnet-driver-impl = { group = "eu.darkcube.cloudnetservice.cloudnet", name = "driver-impl", version.ref = "cloudnet" }
+cloudnet-bridge-api = { group = "eu.darkcube.cloudnetservice.cloudnet", name = "bridge-api", version.ref = "cloudnet" }
+cloudnet-bridge-impl = { group = "eu.darkcube.cloudnetservice.cloudnet", name = "bridge-impl", version.ref = "cloudnet" }
+cloudnet-node = { group = "eu.darkcube.cloudnetservice.cloudnet", name = "node-impl", version.ref = "cloudnet" }
+cloudnet-wrapper = { group = "eu.darkcube.cloudnetservice.cloudnet", name = "wrapper-jvm-impl", version.ref = "cloudnet" }
 
 paper-legacy = { group = "io.papermc.paper", name = "paper", version.ref = "paper-legacy" }
 paper-latest = { group = "io.papermc.paper", name = "paper-api", version.ref = "paper-latest" }

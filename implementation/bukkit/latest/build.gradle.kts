@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. [DarkCube]
+ * Copyright (c) 2024-2025. [DarkCube]
  * All rights reserved.
  * You may not use or redistribute this software or any associated files without permission.
  * The above copyright notice shall be included in all copies of this software.
@@ -20,7 +20,7 @@ configurations.named(cloudnetSource.compileClasspathConfigurationName).configure
 dependencies {
     paperweightDevelopmentBundle(libs.paper.latest.bundle)
     implementation(projects.darkcubesystemImplementationBukkit)
-    compileOnly(libs.cloudnet.driver)
+    compileOnly(libs.cloudnet.driver.impl)
     api(libs.viaversion.common)
 
     cloudnetSource.implementationConfigurationName(projects.darkcubesystemApiCloudnet)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. [DarkCube]
+ * Copyright (c) 2024-2025. [DarkCube]
  * All rights reserved.
  * You may not use or redistribute this software or any associated files without permission.
  * The above copyright notice shall be included in all copies of this software.
@@ -17,11 +17,11 @@ import dev.derklaro.aerogel.binding.BindingBuilder;
 import dev.derklaro.aerogel.util.Qualifiers;
 import dev.derklaro.reflexion.Reflexion;
 import eu.cloudnetservice.driver.ComponentInfo;
+import eu.cloudnetservice.driver.impl.network.object.DefaultObjectMapper;
 import eu.cloudnetservice.driver.inject.InjectionLayer;
 import eu.cloudnetservice.driver.network.buffer.DataBuf;
-import eu.cloudnetservice.driver.network.rpc.defaults.object.DefaultObjectMapper;
-import eu.cloudnetservice.driver.network.rpc.object.ObjectMapper;
-import eu.cloudnetservice.driver.network.rpc.object.ObjectSerializer;
+import eu.cloudnetservice.driver.network.object.ObjectMapper;
+import eu.cloudnetservice.driver.network.object.ObjectSerializer;
 import eu.darkcube.system.libs.com.google.gson.GsonBuilder;
 import eu.darkcube.system.libs.com.google.gson.JsonElement;
 import eu.darkcube.system.libs.com.google.gson.JsonObject;
@@ -43,6 +43,7 @@ class ModuleLoader {
             var simpleName = "DarkCubeSystem" + environmentName.substring(0, 1).toUpperCase(Locale.ROOT) + environmentName.substring(1);
             var className = getClass().getPackageName() + "." + environmentName + "." + simpleName;
             var cls = Class.forName(className);
+            
             var reflexion = Reflexion.on(cls);
 
             injectionLayer.install(BindingBuilder.create().bind(Element.forType(String.class).requireAnnotation(Qualifiers.named("pluginName"))).toInstance(DarkCubeSystemModule.PLUGIN_NAME));

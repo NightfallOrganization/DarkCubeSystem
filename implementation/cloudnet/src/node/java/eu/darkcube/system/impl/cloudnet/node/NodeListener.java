@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. [DarkCube]
+ * Copyright (c) 2024-2025. [DarkCube]
  * All rights reserved.
  * You may not use or redistribute this software or any associated files without permission.
  * The above copyright notice shall be included in all copies of this software.
@@ -34,12 +34,12 @@ import java.util.zip.ZipOutputStream;
 
 import dev.derklaro.aerogel.Inject;
 import dev.derklaro.aerogel.Name;
-import eu.cloudnetservice.common.io.FileUtil;
 import eu.cloudnetservice.driver.event.EventListener;
 import eu.cloudnetservice.driver.service.ServiceEnvironmentType;
 import eu.cloudnetservice.node.event.service.CloudServiceConfigurationPrePrepareEvent;
 import eu.cloudnetservice.node.event.service.CloudServicePreProcessStartEvent;
 import eu.cloudnetservice.node.service.CloudService;
+import eu.cloudnetservice.utils.base.io.FileUtil;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. [DarkCube]
+ * Copyright (c) 2024-2025. [DarkCube]
  * All rights reserved.
  * You may not use or redistribute this software or any associated files without permission.
  * The above copyright notice shall be included in all copies of this software.
@@ -86,6 +86,7 @@ configurations {
 dependencies {
     api(projects.darkcubesystemApiCloudnet)
     api(projects.darkcubesystemImplementationCommon)
+    api(libs.cloudnet.driver.impl)
     implementation(projects.darkcubesystemImplementationProviderCloudnet)
 
     common(projects.darkcubesystemApi)
@@ -104,6 +105,8 @@ dependencies {
 
     "bootstrapCompileOnly"(main.map { it.output })
     "bootstrapCompileOnly"(agent.map { it.output })
+    "bootstrapCompileOnly"(libs.cloudnet.driver.impl)
+    "bootstrapCompileOnly"(libs.reflexion)
     "bootstrapCompileOnly"(projects.darkcubesystemApiCloudnet)
     "bootstrapCompileOnly"(projects.darkcubesystemImplementationCommon)
 }
