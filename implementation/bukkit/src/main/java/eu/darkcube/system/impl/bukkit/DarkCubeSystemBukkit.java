@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024. [DarkCube]
+ * Copyright (c) 2023-2025. [DarkCube]
  * All rights reserved.
  * You may not use or redistribute this software or any associated files without permission.
  * The above copyright notice shall be included in all copies of this software.
@@ -57,6 +57,7 @@ public class DarkCubeSystemBukkit extends DarkCubePlugin implements Listener {
         Bukkit.getPluginManager().registerEvents(this, this);
         linkManager.enableLinks();
         CommandAPI.instance().register(new DarkCubeSystemCommand());
+        AdventureSupport.adventureSupport().audienceProvider();
     }
 
     @EventHandler
