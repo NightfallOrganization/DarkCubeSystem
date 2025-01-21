@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024. [DarkCube]
+ * Copyright (c) 2023-2025. [DarkCube]
  * All rights reserved.
  * You may not use or redistribute this software or any associated files without permission.
  * The above copyright notice shall be included in all copies of this software.
@@ -30,7 +30,7 @@ public abstract class CommonUserAPI implements UserAPI {
     protected final LoadingCache<UUID, CommonUser> userCache;
 
     public CommonUserAPI() {
-        userCache = Caffeine.newBuilder().softValues().removalListener(new UserCacheRemovalListener()).build(uniqueId -> {
+        userCache = Caffeine.newBuilder().weakValues().removalListener(new UserCacheRemovalListener()).build(uniqueId -> {
             var user = loadUser(uniqueId);
             for (var modifier : modifiers) {
                 modifier.onLoad(user);
