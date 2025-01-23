@@ -2,7 +2,7 @@ metadata.format.version = "1.1"
 
 [versions]
 cloudnet = "4.0.0-RC12-SNAPSHOT"
-annotations = "26.0.1"
+annotations = "26.0.2"
 brigadier = "1.0.18"
 gson = "2.11.0"
 adventure = "4.18.0"
