@@ -23,8 +23,11 @@ import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
 import eu.darkcube.system.libs.org.jetbrains.annotations.Nullable;
 import eu.darkcube.system.userapi.UserAPI;
 import eu.darkcube.system.userapi.UserModifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class CommonUserAPI implements UserAPI {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CommonUserAPI.class);
     protected final ReadWriteLock lock = new ReentrantReadWriteLock();
     protected final List<UserModifier> modifiers = new CopyOnWriteArrayList<>();
     protected final LoadingCache<UUID, CommonUser> userCache;
@@ -33,7 +36,11 @@ public abstract class CommonUserAPI implements UserAPI {
         userCache = Caffeine.newBuilder().weakValues().removalListener(new UserCacheRemovalListener()).build(uniqueId -> {
             var user = loadUser(uniqueId);
             for (var modifier : modifiers) {
-                modifier.onLoad(user);
+                try {
+                    modifier.onLoad(user);
+                } catch (Throwable t) {
+                    LOGGER.error("UserModifier threw exception: ", t);
+                }
             }
             return user;
         });
@@ -86,7 +93,11 @@ public abstract class CommonUserAPI implements UserAPI {
         try {
             lock.writeLock().lock();
             for (var modifier : modifiers) {
-                modifier.onUnload(user);
+                try {
+                    modifier.onUnload(user);
+                } catch (Throwable t) {
+                    LOGGER.error("UserModifier threw exception: ", t);
+                }
             }
         } finally {
             lock.writeLock().unlock();

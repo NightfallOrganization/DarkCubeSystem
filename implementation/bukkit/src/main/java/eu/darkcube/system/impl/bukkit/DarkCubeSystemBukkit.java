@@ -74,48 +74,64 @@ public class DarkCubeSystemBukkit extends DarkCubePlugin implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void handle(AsyncPlayerPreLoginEvent event) {
-        var user = UserAPI.instance().user(event.getUniqueId());
-        Reference.reachabilityFence(user);
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                Reference.reachabilityFence(user);
-            }
-        }.runTaskLater(this, 10 * 60 * 20); // 10 minutes
+        try {
+            var user = UserAPI.instance().user(event.getUniqueId());
+            Reference.reachabilityFence(user);
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    Reference.reachabilityFence(user);
+                }
+            }.runTaskLater(this, 10 * 60 * 20); // 10 minutes
+        } catch (Throwable t) {
+            LOGGER.error("Error while ensuring user reachability", t);
+        }
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void handle(PlayerLoginEvent event) {
-        var user = UserAPI.instance().user(event.getPlayer().getUniqueId());
-        Reference.reachabilityFence(user);
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                Reference.reachabilityFence(user);
-            }
-        }.runTaskLater(this, 10);
+        try {
+            var user = UserAPI.instance().user(event.getPlayer().getUniqueId());
+            Reference.reachabilityFence(user);
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    Reference.reachabilityFence(user);
+                }
+            }.runTaskLater(this, 10);
+        } catch (Throwable t) {
+            LOGGER.error("Error while ensuring user reachability", t);
+        }
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void handle(PlayerJoinEvent event) {
-        var user = UserAPI.instance().user(event.getPlayer().getUniqueId());
-        onlineUsers.add(user);
-        Reference.reachabilityFence(user);
+        try {
+            var user = UserAPI.instance().user(event.getPlayer().getUniqueId());
+            onlineUsers.add(user);
+            Reference.reachabilityFence(user);
+        } catch (Throwable t) {
+            LOGGER.error("Error while ensuring user reachability", t);
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void handle(PlayerQuitEvent event) {
-        var user = UserAPI.instance().user(event.getPlayer().getUniqueId());
-        if (!onlineUsers.remove(user)) {
-            LOGGER.error("User {} was not in onlineUsers list when quitting", event.getPlayer().getName());
-        }
-        Reference.reachabilityFence(user);
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                Reference.reachabilityFence(user);
+        try {
+            var user = UserAPI.instance().user(event.getPlayer().getUniqueId());
+            if (!onlineUsers.remove(user)) {
+                LOGGER.error("User {} was not in onlineUsers list when quitting", event.getPlayer().getName());
             }
-        }.runTaskLater(this, 10);
+            Reference.reachabilityFence(user);
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    Reference.reachabilityFence(user);
+                }
+            }.runTaskLater(this, 10);
+        } catch (Throwable t) {
+            LOGGER.error("Error while ensuring user reachability", t);
+        }
     }
 
     @EventHandler
