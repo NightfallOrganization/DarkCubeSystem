@@ -14,7 +14,7 @@ slf4j-api = "2.0.16"
 h2 = "2.3.232"
 reflexion = "1.8.0"
 
-minestom = "ccea53ac44"
+minestom = "7320437640"
 minestom-extensions = "1.2.0"
 
 shadow = "8.1.8"
