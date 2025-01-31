@@ -4,6 +4,7 @@
     "github>NightfallOrganization/renovate-template"
   ],
   "ignoreDeps": [
-    "implementation:bukkit"
+    "implementation:bukkit",
+    "com.mojang:brigadier"
   ]
 }
