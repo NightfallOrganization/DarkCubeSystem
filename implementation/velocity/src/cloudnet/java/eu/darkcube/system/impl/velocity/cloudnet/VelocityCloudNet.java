@@ -101,7 +101,6 @@ public class VelocityCloudNet {
     @Subscribe
     public void handle(GameProfileRequestEvent event) {
         if (proxy.getConfiguration().isOnlineMode()) return;
-        if (event.isOnlineMode()) return;
         var id = UUID_CACHE.getIfPresent(event.getUsername());
         if (id == null) return;
         event.setGameProfile(event.getGameProfile().withId(id));

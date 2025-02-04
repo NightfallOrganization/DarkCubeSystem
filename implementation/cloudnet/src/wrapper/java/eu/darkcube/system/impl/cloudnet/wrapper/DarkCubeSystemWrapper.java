@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024. [DarkCube]
+ * Copyright (c) 2024-2025. [DarkCube]
  * All rights reserved.
  * You may not use or redistribute this software or any associated files without permission.
  * The above copyright notice shall be included in all copies of this software.
@@ -14,6 +14,8 @@ import eu.darkcube.system.cloudnet.packetapi.PacketAPI;
 import eu.darkcube.system.impl.cloudnet.ModuleImplementation;
 import eu.darkcube.system.impl.cloudnet.wrapper.transformer.PaperMainClassLoadingTransformer;
 import eu.darkcube.system.impl.cloudnet.wrapper.transformer.minestom.ObjectSetImplTagTransformer;
+import eu.darkcube.system.impl.cloudnet.wrapper.transformer.velocity.VelocityEncryptionRequestPacketTransformer;
+import eu.darkcube.system.impl.cloudnet.wrapper.transformer.velocity.VelocityInitialLoginSessionHandlerTransformer;
 import eu.darkcube.system.impl.cloudnet.wrapper.transformer.via.ViaAbstractProtocolDetectorServiceTransformer;
 import eu.darkcube.system.impl.cloudnet.wrapper.transformer.via.ViaInventoryFixTransformer;
 import eu.darkcube.system.impl.cloudnet.wrapper.transformer.via.ViaProtocolDetectorServiceTransformer;
@@ -39,6 +41,9 @@ public class DarkCubeSystemWrapper implements ModuleImplementation {
         transformerRegistry.registerTransformer(new ViaInventoryFixTransformer());
 
         transformerRegistry.registerTransformer(new ObjectSetImplTagTransformer());
+
+        transformerRegistry.registerTransformer(new VelocityEncryptionRequestPacketTransformer());
+        transformerRegistry.registerTransformer(new VelocityInitialLoginSessionHandlerTransformer());
     }
 
     @Override
