@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024. [DarkCube]
+ * Copyright (c) 2022-2025. [DarkCube]
  * All rights reserved.
  * You may not use or redistribute this software or any associated files without permission.
  * The above copyright notice shall be included in all copies of this software.
@@ -33,6 +33,7 @@ import eu.darkcube.system.annotations.Api;
 import eu.darkcube.system.libs.net.kyori.adventure.text.Component;
 import eu.darkcube.system.libs.net.kyori.adventure.text.ComponentLike;
 import eu.darkcube.system.libs.net.kyori.adventure.text.format.Style;
+import eu.darkcube.system.libs.net.kyori.adventure.text.format.TextColor;
 import eu.darkcube.system.libs.net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import eu.darkcube.system.libs.org.jetbrains.annotations.ApiStatus;
 import eu.darkcube.system.libs.org.jetbrains.annotations.NotNull;
@@ -101,48 +102,99 @@ public enum Language {
     public Component getMessage(String key, Object... replacements) {
         replacements = Arrays.copyOf(replacements, replacements.length);
         List<Component> components = new ArrayList<>();
+        List<Style> styles = new ArrayList<>();
         for (var i = 0; i < replacements.length; i++) {
             if (replacements[i] instanceof BaseMessage) {
                 replacements[i] = ((BaseMessage) replacements[i]).getMessage(this);
             }
+            if (replacements[i] instanceof TextColor color) {
+                replacements[i] = Style.style(color);
+            }
+
             if (replacements[i] instanceof ComponentLike componentLike) {
-                replacements[i] = (Formattable) (formatter, flags, width, precision) -> {
+                replacements[i] = (Formattable) (formatter, _, _, _) -> {
                     var index = components.size();
                     components.add(componentLike.asComponent());
                     formatter.format("&#!$%s%s;", (char) 1054, index);
+                };
+            }
+            if (replacements[i] instanceof Style style) {
+                replacements[i] = (Formattable) (formatter, _, _, _) -> {
+                    var index = styles.size();
+                    styles.add(style);
+                    formatter.format("&#!$%s%s;", (char) 1055, index);
                 };
             }
         }
         if (this.bundle.containsKey(key)) {
             var formatted = String.format(this.locale, this.bundle.getObject(key).toString(), replacements);
             formatted = ChatColorUtil.translateAlternateColorCodes('&', formatted);
-            Component c = Component.empty();
-            for (var i = 0; i < components.size(); i++) {
-                var s = formatted.split(String.format("&#!\\$%s%s;", (char) 1054, i), 2);
-                c = c.append(LegacyComponentSerializer.legacySection().deserialize(s[0]));
-                var o = c;
-                if (s.length == 2) {
-                    formatted = s[1];
-                    c = c.append(components.get(i));
-                    var str = LegacyComponentSerializer.legacySection().serialize(Component.text(" ").style(lastStyle(o)));
-                    str = str.replace(" ", "");
+            var counterStyle = 0;
+            var styleStrings = new String[styles.size() + 1];
+            while (formatted != null) {
+                var splitStyle = formatted.split(String.format("&#!\\$%s%s;", (char) 1055, counterStyle), 2);
+                styleStrings[counterStyle++] = splitStyle[0];
+                if (splitStyle.length == 2) {
+                    formatted = splitStyle[1];
+                } else break;
+            }
 
-                    formatted = str + formatted;
-                    // c = c.append(LegacyComponentSerializer.legacySection()
-                    //.deserialize(formatted));
-                } else {
-                    break;
+            Component c = Component.empty();
+
+            Style lastStyle = null;
+            counterStyle = 0;
+            var counterComponent = 0;
+            for (var styleString : styleStrings) {
+                Style lastStyleComponent = null;
+                while (true) {
+                    var splitComponent = styleString.split(String.format("&#!\\$%s%s;", (char) 1054, counterComponent), 2);
+                    var deserialized = (Component) LegacyComponentSerializer.legacySection().deserialize(splitComponent[0]);
+
+                    if (lastStyleComponent != null) {
+                        deserialized = deserialized.applyFallbackStyle(lastStyleComponent);
+                    } else if (lastStyle != null) {
+                        deserialized = deserialized.applyFallbackStyle(lastStyle);
+                    }
+
+                    c = c.append(deserialized);
+                    lastStyleComponent = lastStyle(c);
+                    if (splitComponent.length == 2) {
+                        c = c.append(components.get(counterComponent++));
+                        styleString = splitComponent[1];
+                    } else break;
+                }
+
+                if (counterStyle < styles.size()) {
+                    lastStyle = styles.get(counterStyle++);
                 }
             }
-            if (components.isEmpty()) {
-                c = LegacyComponentSerializer.legacySection().deserialize(formatted);
-            } else {
-                var str = LegacyComponentSerializer.legacySection().serialize(Component.text(" ").style(lastStyle(c)));
-                str = str.replace(" ", "");
 
-                formatted = str + formatted;
-                c = c.append(LegacyComponentSerializer.legacySection().deserialize(formatted));
-            }
+            // for (var i = 0; i < components.size(); i++) {
+            //     var s = formatted.split(String.format("&#!\\$%s%s;", (char) 1054, i), 2);
+            //     c = c.append(LegacyComponentSerializer.legacySection().deserialize(s[0]));
+            //     var o = c;
+            //     if (s.length == 2) {
+            //         formatted = s[1];
+            //         c = c.append(components.get(i));
+            //         var str = LegacyComponentSerializer.legacySection().serialize(Component.text(" ").style(lastStyle(o)));
+            //         str = str.replace(" ", "");
+            //
+            //         formatted = str + formatted;
+            //         // c = c.append(LegacyComponentSerializer.legacySection()
+            //         //.deserialize(formatted));
+            //     } else {
+            //         break;
+            //     }
+            // }
+            // if (components.isEmpty()) {
+            //     c = LegacyComponentSerializer.legacySection().deserialize(formatted);
+            // } else {
+            //     var str = LegacyComponentSerializer.legacySection().serialize(Component.text(" ").style(lastStyle(c)));
+            //     str = str.replace(" ", "");
+            //
+            //     formatted = str + formatted;
+            //     c = c.append(LegacyComponentSerializer.legacySection().deserialize(formatted));
+            // }
             return c;
         } else {
             return LegacyComponentSerializer.legacySection().deserialize(key + '[' + String.join(", ", Arrays.stream(replacements).map(String::valueOf).toArray(String[]::new)) + ']');
